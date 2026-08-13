@@ -1,6 +1,3 @@
-// ==========================================
-// CÓDIGO DEL SERVIDOR BACKEND (Node.js)
-// ==========================================
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
@@ -15,7 +12,7 @@ let rooms = {
     }
 };
 
-let usersDb = {}; // Base de datos temporal de cuentas y perfiles
+let usersDb = {}; 
 let roomStats = {}; 
 
 function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
@@ -33,7 +30,6 @@ io.on('connection', (socket) => {
     socket.join('global');
     if(!roomStats['global']) roomStats['global'] = { activity: 0 };
 
-    // Autenticación de usuario
     socket.on('login_user', (data) => {
         const { username, password, avatar } = data;
         if (!usersDb[username]) {
@@ -46,7 +42,6 @@ io.on('connection', (socket) => {
         socket.emit('login_success', socket.userProfile);
     });
 
-    // Actualizar perfil de usuario
     socket.on('update_profile', (data) => {
         if (usersDb[data.username]) {
             usersDb[data.username].bio = data.bio;
@@ -58,7 +53,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Actualización de ubicación
     socket.on('update_location', (data) => {
         if (!socket.userProfile && data.username) {
             socket.userProfile = { username: data.username, avatar: data.avatar || '🎧', bio: '', genre: '' };
@@ -75,7 +69,6 @@ io.on('connection', (socket) => {
         })));
     });
 
-    // Crear Sala
     socket.on('create_room', (data) => {
         const roomId = Math.random().toString(36).substring(7);
         const initialTrack = data.trackUri || '4cOdK2wGLETKBW3PvgPWqT';
@@ -98,7 +91,6 @@ io.on('connection', (socket) => {
         })));
     });
 
-    // Unirse a Sala
     socket.on('join_room', (roomId) => {
         if (rooms[roomId]) {
             socket.join(roomId);
@@ -112,7 +104,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Añadir canción
     socket.on('add_song', (data) => {
         const room = rooms[data.roomId];
         if (!room) return;
@@ -125,7 +116,6 @@ io.on('connection', (socket) => {
         io.to(data.roomId).emit('playlist_updated', room.playlist);
     });
 
-    // Saltar canción
     socket.on('skip_song', (roomId) => {
         const room = rooms[roomId];
         if (!room) return;
@@ -139,7 +129,6 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('play_now', nextTrack);
     });
 
-    // Mensajería
     socket.on('chat_msg', (data) => {
         const room = rooms[data.roomId];
         if(!room) return;
@@ -168,7 +157,17 @@ io.on('connection', (socket) => {
         });
     });
 
-    // Notas de voz
+    // Mensajería Privada (DM)
+    socket.on('private_msg', (data) => {
+        for (let sId of Object.keys(io.sockets.sockets)) {
+            const s = io.sockets.sockets.get(sId);
+            if (s && s.userProfile && s.userProfile.username === data.targetUser) {
+                s.emit('incoming_dm', { from: socket.userProfile.username, msg: data.msg });
+                break;
+            }
+        }
+    });
+
     socket.on('send_voice', (data) => {
         io.to(data.roomId).emit('incoming_voice', {
             from: socket.userProfile ? socket.userProfile.username : 'Anónimo',
@@ -176,17 +175,14 @@ io.on('connection', (socket) => {
         });
     });
 
-    // Indicador de escritura
     socket.on('typing', (data) => {
         socket.to(data.roomId).emit('display_typing', { user: data.user, isTyping: data.isTyping });
     });
 
-    // Reacciones
     socket.on('react_msg', (data) => {
         io.to(data.roomId).emit('msg_reacted', data);
     });
 
-    // Desconexión
     socket.on('disconnect', () => {
         for (let rId in rooms) {
             if (rooms[rId].members && rooms[rId].members[socket.id]) {
@@ -199,5 +195,5 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
-    console.log(`Servidor GeoVibe Supremo activo en puerto ${PORT}`);
+    console.log(`Servidor GeoVibe Supremo Pro activo en puerto ${PORT}`);
 });
