@@ -115,7 +115,7 @@
             </div>
         </div>
 
-        <!-- VISTA ECONOMÍA & GOOGLE PAY (TARJETAS BANCARIAS) -->
+        <!-- VISTA ECONOMÍA & GOOGLE PAY -->
         <div id="pz-economy" class="pz-tab-content">
             <div class="pz-card" style="border-color: var(--pz-economy);">
                 <h2><i class="fa-solid fa-vault"></i> Banco & Tarjetas (Google Pay)</h2>
@@ -128,7 +128,6 @@
 
                 <button onclick="claimDailyReward()" style="background:var(--pz-accent); font-size:0.65rem; padding:6px; margin-bottom:6px;"><i class="fa-solid fa-gift"></i> Reclamar Bono Diario</button>
 
-                <!-- Botón integrado de Google Pay -->
                 <div id="container-google-pay" style="margin-top: 6px;"></div>
             </div>
         </div>
@@ -179,7 +178,7 @@
 
 <script>
     const socket = io(); 
-    let currentRoomId = null, myProfile = null, map = null, markers = [], tempIgMediaData = null, igPostsStore = [], isRegisterMode = false;
+    let currentRoomId = null, myProfile = null, map = null, tempIgMediaData = null, igPostsStore = [], isRegisterMode = false;
 
     window.addEventListener('DOMContentLoaded', () => {
         const activeSession = localStorage.getItem('geovibe_active_session');
@@ -187,9 +186,6 @@
             myProfile = JSON.parse(activeSession);
             activateUserHud(myProfile);
             socket.emit('login_user', myProfile);
-        }
-        if (window.google) {
-            google.accounts.id.initialize({ client_id: "TU_GOOGLE_CLIENT_ID.apps.googleusercontent.com", callback: handleGoogleResponse });
         }
     });
 
@@ -204,36 +200,36 @@
         });
     }
 
-    async function handleGoogleResponse(response) {
-        const res = await fetch('/api/auth/google', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: response.credential })
-        });
-        const data = await res.json();
-        if(data.success) completeLogin(data.user);
-    }
-
     function toggleAuthMode() {
         isRegisterMode = !isRegisterMode;
         document.getElementById('register-extra-fields').style.display = isRegisterMode ? 'block' : 'none';
         document.getElementById('auth-action-btn').innerText = isRegisterMode ? 'Registrar Cuenta' : 'Iniciar Sesión';
+        document.getElementById('auth-toggle-text').innerText = isRegisterMode ? '¿Ya tienes cuenta? Inicia sesión aquí' : '¿No tienes cuenta? Regístrate aquí';
     }
 
-    function handleAuthSubmit() {
-        const identifier = document.getElementById('auth-user').value.trim();
+    async function handleAuthSubmit() {
+        const username = document.getElementById('auth-user').value.trim();
         const password = document.getElementById('auth-pass').value.trim();
-        if(!identifier || !password) return alert('Ingresa los datos requeridos.');
+        if(!username || !password) return alert('Ingresa los datos requeridos.');
 
-        let db = JSON.parse(localStorage.getItem('geovibe_users_db') || '{}');
-        if(isRegisterMode) {
-            if(db[identifier]) return alert('El usuario ya existe.');
-            db[identifier] = { email: identifier, username: identifier.split('@')[0], password, avatar: document.getElementById('auth-avatar').value, wallet: 150 };
-            localStorage.setItem('geovibe_users_db', JSON.stringify(db));
-            completeLogin(db[identifier]);
-        } else {
-            let user = db[identifier] || Object.values(db).find(u => u.username === identifier);
-            if(!user || user.password !== password) return alert('Credenciales incorrectas.');
-            completeLogin(user);
+        const endpoint = isRegisterMode ? '/api/auth/register' : '/api/auth/login';
+        const payload = isRegisterMode ? { username, password, avatar: document.getElementById('auth-avatar').value } : { username, password };
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            
+            if(data.success) {
+                completeLogin(data.user);
+            } else {
+                alert(data.error || 'Error en la autenticación');
+            }
+        } catch (err) {
+            alert('Error de conexión con el servidor');
         }
     }
 
@@ -278,7 +274,7 @@
         if(tab === 'profile') document.getElementById('pz-profile').classList.add('active');
     }
 
-    // --- CONFIGURACIÓN DE GOOGLE PAY PARA VINCULAR TARJETAS ---
+    // --- CONFIGURACIÓN DE GOOGLE PAY ---
     let paymentsClient = null;
     function getGooglePaymentsClient() {
         if (paymentsClient === null) {
