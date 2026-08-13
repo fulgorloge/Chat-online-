@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoVibe | Project Z Ultimate HUD Pro</title>
+    <title>GeoVibe | Project Z Enterprise Core</title>
     <!-- Librerías Externas -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -14,253 +14,296 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { 
-            --pz-bg: #07090f;
-            --pz-surface: #0f131d;
-            --pz-surface-glass: rgba(15, 19, 29, 0.9);
-            --pz-border: #1e2638;
-            --pz-primary: #3b82f6;
-            --pz-accent: #10b981;
+            --pz-bg: #04060a;
+            --pz-surface: #0b0f17;
+            --pz-surface-glass: rgba(11, 15, 23, 0.92);
+            --pz-border: #1a2336;
+            --pz-border-glow: #25334d;
+            --pz-primary: #2563eb;
+            --pz-primary-glow: rgba(37, 99, 235, 0.4);
+            --pz-accent: #059669;
             --pz-neon: #06b6d4;
-            --pz-pink: #ec4899;
-            --pz-amber: #f59e0b;
-            --pz-text: #f3f4f6;
-            --pz-muted: #9ca3af;
+            --pz-neon-glow: rgba(6, 182, 212, 0.25);
+            --pz-pink: #db2777;
+            --pz-amber: #d97706;
+            --pz-text: #f8fafc;
+            --pz-muted: #64748b;
+            --pz-danger: #dc2626;
         }
+
+        * { box-sizing: border-box; }
 
         body { 
             background: var(--pz-bg); color: var(--pz-text); font-family: 'Outfit', sans-serif; 
-            margin: 0; padding: 6px; display: flex; justify-content: center; 
+            margin: 0; padding: 4px; display: flex; justify-content: center; 
             min-height: 100vh; overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(37, 99, 235, 0.03) 0%, transparent 40%);
         }
 
         #app { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 6px; }
 
+        /* Tarjetas de Grado Industrial con Estética Project Z */
         .pz-card { 
-            background: var(--pz-surface-glass); backdrop-filter: blur(20px); 
-            border: 1px solid var(--pz-border); padding: 10px; 
-            border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.7);
-            position: relative;
+            background: var(--pz-surface-glass); backdrop-filter: blur(24px); 
+            border: 1px solid var(--pz-border); padding: 12px; 
+            border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+            position: relative; overflow: hidden;
+            transition: border-color 0.3s ease;
         }
+        .pz-card:hover { border-color: var(--pz-border-glow); }
+        
         .pz-card::before {
             content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%;
-            background: var(--pz-neon); border-top-left-radius: 10px; border-bottom-left-radius: 10px;
+            background: var(--pz-neon); box-shadow: 0 0 10px var(--pz-neon);
+            border-top-left-radius: 12px; border-bottom-left-radius: 12px;
         }
 
-        h2, h3 { margin: 0 0 5px 0; font-weight: 900; letter-spacing: -0.5px; }
-        h2 { font-size: 1.1rem; color: var(--pz-neon); display: flex; align-items: center; gap: 6px; }
+        h2, h3 { margin: 0 0 8px 0; font-weight: 700; letter-spacing: -0.3px; }
+        h2 { font-size: 1.05rem; color: var(--pz-neon); display: flex; align-items: center; gap: 8px; }
+
+        label { font-size: 0.65rem; color: var(--pz-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
 
         input, select, textarea { 
-            width: 100%; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--pz-border); 
-            background: rgba(0,0,0,0.6); color: white; box-sizing: border-box; margin: 3px 0; font-family: inherit;
-            font-size: 0.8rem; transition: all 0.2s;
+            width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--pz-border); 
+            background: rgba(2, 4, 8, 0.7); color: white; box-sizing: border-box; margin: 4px 0; font-family: inherit;
+            font-size: 0.8rem; transition: all 0.25s ease;
         }
-        input:focus, select:focus, textarea:focus { border-color: var(--pz-neon); outline: none; box-shadow: 0 0 8px rgba(6,182,212,0.4); }
+        input:focus, select:focus, textarea:focus { 
+            border-color: var(--pz-neon); outline: none; 
+            box-shadow: 0 0 12px var(--pz-neon-glow); 
+            background: rgba(4, 8, 16, 0.9);
+        }
 
         button { 
-            width: 100%; padding: 7px 10px; border-radius: 6px; border: none; 
-            background: var(--pz-primary); color: white; font-weight: 700; cursor: pointer; 
-            margin-top: 3px; transition: all 0.2s; font-family: inherit; font-size: 0.8rem;
+            width: 100%; padding: 8px 12px; border-radius: 8px; border: none; 
+            background: var(--pz-primary); color: white; font-weight: 600; cursor: pointer; 
+            margin-top: 4px; transition: all 0.25s ease; font-family: inherit; font-size: 0.8rem;
+            box-shadow: 0 4px 12px var(--pz-primary-glow);
         }
-        button:hover { filter: brightness(1.2); box-shadow: 0 0 10px rgba(59,130,246,0.5); }
+        button:hover { filter: brightness(1.15); transform: translateY(-1px); box-shadow: 0 6px 16px var(--pz-primary-glow); }
+        button:active { transform: translateY(0); }
 
+        /* Header de Estado Profesional */
         .pz-header {
             display: flex; justify-content: space-between; align-items: center;
-            background: var(--pz-surface); padding: 6px 10px; border-radius: 8px;
-            border: 1px solid var(--pz-border);
+            background: var(--pz-surface); padding: 8px 12px; border-radius: 10px;
+            border: 1px solid var(--pz-border); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
         }
 
-        #map { height: 110px; border-radius: 6px; margin-bottom: 5px; border: 1px solid var(--pz-border); }
+        /* Mapa Telelemétrico */
+        #map { height: 120px; border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--pz-border); z-index: 1; }
 
         .pz-list-item {
-            background: rgba(0, 0, 0, 0.4); border: 1px solid var(--pz-border);
-            border-radius: 6px; padding: 5px 8px; display: flex; justify-content: space-between;
-            align-items: center; margin-bottom: 3px; font-size: 0.75rem;
+            background: rgba(2, 4, 8, 0.5); border: 1px solid var(--pz-border);
+            border-radius: 8px; padding: 6px 10px; display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 4px; font-size: 0.75rem;
+            transition: background 0.2s;
         }
-        .pz-list-item button { width: auto; padding: 2px 6px; font-size: 0.65rem; margin: 0; }
+        .pz-list-item:hover { background: rgba(6, 182, 212, 0.03); border-color: var(--pz-border-glow); }
+        .pz-list-item button { width: auto; padding: 3px 8px; font-size: 0.65rem; margin: 0; box-shadow: none; }
 
-        #chat-box { height: 170px; overflow-y: auto; margin-bottom: 5px; display: flex; flex-direction: column; gap: 4px; padding-right: 2px; }
+        /* Sistema de Mensajería Avanzado */
+        #chat-box { height: 180px; overflow-y: auto; margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; }
         .msg-bubble { 
-            background: rgba(255,255,255,0.03); padding: 5px 8px; border-radius: 6px; 
+            background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 8px; 
             border-left: 2px solid var(--pz-neon); font-size: 0.8rem;
+            border-top: 1px solid rgba(255,255,255,0.03);
         }
-        .msg-header { display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--pz-muted); margin-bottom: 1px; }
-        .typing-indicator { font-size: 0.6rem; color: var(--pz-pink); height: 10px; font-style: italic; }
+        .msg-header { display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--pz-muted); margin-bottom: 2px; }
+        .typing-indicator { font-size: 0.6rem; color: var(--pz-pink); height: 12px; font-style: italic; }
 
-        .reactions-bar { display: flex; gap: 3px; margin-top: 2px; }
-        .reaction-btn { background: rgba(255,255,255,0.05); border: none; border-radius: 4px; padding: 1px 4px; cursor: pointer; color: white; width: auto; font-size: 0.65rem; }
+        .reactions-bar { display: flex; gap: 4px; margin-top: 3px; }
+        .reaction-btn { background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); border-radius: 4px; padding: 1px 5px; cursor: pointer; color: white; width: auto; font-size: 0.65rem; }
+        .reaction-btn:hover { background: rgba(255,255,255,0.08); }
 
-        .pz-badge { background: rgba(16, 185, 129, 0.15); border: 1px solid var(--pz-accent); color: var(--pz-accent); padding: 1px 4px; border-radius: 4px; font-size: 0.55rem; font-weight: 700; }
+        .pz-badge { background: rgba(5, 150, 105, 0.15); border: 1px solid var(--pz-accent); color: #34d399; padding: 1px 6px; border-radius: 6px; font-size: 0.55rem; font-weight: 700; text-transform: uppercase; }
         
-        .pz-tab-content { display: none; flex-direction: column; gap: 6px; }
+        /* Contenedores de Pestañas Estructuradas */
+        .pz-tab-content { display: none; flex-direction: column; gap: 8px; animation: fadeIn 0.3s ease; }
         .pz-tab-content.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbars Estilizados de Grado Pro */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: var(--pz-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--pz-neon); }
     </style>
 </head>
 <body>
 
 <div id="app">
     
-    <!-- 1. PANTALLA DE LOGIN -->
-    <div id="login-screen" class="pz-card" style="margin-top: 25px; text-align: center; padding: 20px 12px;">
-        <h2><i class="fa-solid fa-terminal"></i> GeoVibe // Project Z Ultimate</h2>
-        <p style="color: var(--pz-muted); font-size: 0.75rem; margin-bottom: 12px;">Terminal de Acceso Seguro a Frecuencias</p>
-        <input type="text" id="login-user" placeholder="Nombre de usuario...">
-        <input type="password" id="login-pass" placeholder="Contraseña...">
+    <!-- 1. MÓDULO DE AUTENTICACIÓN INDUSTRIAL -->
+    <div id="login-screen" class="pz-card" style="margin-top: 30px; text-align: center; padding: 24px 16px;">
+        <h2><i class="fa-solid fa-shield-halved"></i> GeoVibe // Core Security</h2>
+        <p style="color: var(--pz-muted); font-size: 0.75rem; margin-bottom: 16px;">Identificación de Nodo y Enlace Criptográfico</p>
+        <input type="text" id="login-user" placeholder="Identificador de Usuario...">
+        <input type="password" id="login-pass" placeholder="Clave de Frecuencia...">
         <select id="login-avatar">
-            <option value="🎧">🎧 DJ / Productor</option>
-            <option value="🚀">🚀 Explorador</option>
-            <option value="🔥">🔥 Raver</option>
-            <option value="⚡">⚡ Cyberpunk</option>
-            <option value="💀">💀 Dark Synth</option>
-            <option value="👽">👽 Alien Beats</option>
+            <option value="🎧">🎧 Operador de Audio / DJ</option>
+            <option value="🚀">🚀 Oficial de Campo</option>
+            <option value="🔥">🔥 Nodo Raver / Producción</option>
+            <option value="⚡">⚡ Ingeniero Cyberpunk</option>
+            <option value="💀">💀 Analista Dark Synth</option>
+            <option value="👽">👽 Especialista Telemetría</option>
         </select>
-        <button onclick="login()" style="margin-top: 6px;">Inicializar Sesión</button>
+        <button onclick="login()" style="margin-top: 8px;"><i class="fa-solid fa-key"></i> Autorizar Enlace</button>
     </div>
 
-    <!-- 2. PANEL PRINCIPAL HUD -->
-    <div id="main-hud" style="display:none; flex-direction: column; gap: 6px;">
+    <!-- 2. INTERFAZ DE CONTROL PRINCIPAL (HUD) -->
+    <div id="main-hud" style="display:none; flex-direction: column; gap: 8px;">
         
-        <!-- BARRA SUPERIOR HUD -->
+        <!-- BARRA DE TELEMETRÍA SUPERIOR -->
         <div class="pz-header">
-            <div style="display: flex; align-items: center; gap: 6px;">
-                <span id="header-avatar" style="font-size: 1rem;">🎧</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span id="header-avatar" style="font-size: 1.1rem;">🎧</span>
                 <div>
-                    <span id="header-username" style="font-weight: 700; font-size: 0.8rem; display: block;">Usuario</span>
-                    <span style="font-size: 0.55rem; color: var(--pz-muted);" id="header-status">Offline</span>
+                    <span id="header-username" style="font-weight: 700; font-size: 0.8rem; display: block;">Operador</span>
+                    <span style="font-size: 0.55rem; color: var(--pz-muted); display:flex; align-items:center; gap:4px;"><span id="status-dot" style="width:6px; height:6px; background:var(--pz-danger); border-radius:50%; display:inline-block;"></span> <span id="header-status">Desconectado</span></span>
                 </div>
             </div>
-            <div style="display: flex; gap: 3px;">
-                <button onclick="switchPzTab('rooms')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.05); margin:0;"><i class="fa-solid fa-tower-broadcast"></i> Salas</button>
-                <button onclick="switchPzTab('global-chat')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.05); margin:0;"><i class="fa-solid fa-globe"></i> Global</button>
-                <button onclick="switchPzTab('profile')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.05); margin:0;"><i class="fa-solid fa-user-gear"></i> Perfil</button>
+            <div style="display: flex; gap: 4px;">
+                <button onclick="switchPzTab('rooms')" style="width: auto; padding: 5px 8px; font-size: 0.7rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);"><i class="fa-solid fa-tower-broadcast"></i> Salas</button>
+                <button onclick="switchPzTab('global-chat')" style="width: auto; padding: 5px 8px; font-size: 0.7rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);"><i class="fa-solid fa-globe"></i> Global</button>
+                <button onclick="switchPzTab('profile')" style="width: auto; padding: 5px 8px; font-size: 0.7rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);"><i class="fa-solid fa-sliders"></i> Perfil</button>
             </div>
         </div>
 
-        <!-- VISTA A: SALAS Y RADAR -->
+        <!-- VISTA A: GESTIÓN DE SALAS Y RADAR -->
         <div id="pz-rooms" class="pz-tab-content active">
             <div class="pz-card">
-                <h2><i class="fa-solid fa-crosshairs"></i> Radar de Ubicación GPS</h2>
-                <button id="btn-init" style="background:#064e3b; color:var(--pz-accent); border: 1px solid var(--pz-accent);" onclick="initRadar()">Sincronizar Coordenadas GPS</button>
+                <h2><i class="fa-solid fa-satellite-dish"></i> Sincronización Telemétrica GPS</h2>
+                <button id="btn-init" style="background:#064e3b; color:#34d399; border: 1px solid var(--pz-accent);" onclick="initRadar()"><i class="fa-solid fa-location-crosshairs"></i> Vincular Coordenadas de Nodo</button>
             </div>
 
             <div class="pz-card">
-                <h2><i class="fa-solid fa-circle-plus"></i> Crear Nueva Sala</h2>
-                <input type="text" id="new-room-name" placeholder="Nombre de sala (ej: Bunker Techno)">
-                <input type="text" id="new-room-song" placeholder="ID canción Spotify...">
-                <button onclick="createRoom()"><i class="fa-solid fa-satellite-dish"></i> Desplegar Sala</button>
+                <h2><i class="fa-solid fa-circle-plus"></i> Desplegar Nueva Frecuencia</h2>
+                <input type="text" id="new-room-name" placeholder="Designación de Sala (ej: Industrial Bunker)">
+                <input type="text" id="new-room-song" placeholder="URI / ID de Pista Spotify...">
+                <button onclick="createRoom()"><i class="fa-solid fa-bolt"></i> Inicializar Red Local</button>
             </div>
 
             <div class="pz-card">
-                <h2><i class="fa-solid fa-signal"></i> Redes / Salas Activas</h2>
-                <div id="rooms-container" style="max-height: 140px; overflow-y: auto;">
-                    <p style="color: var(--pz-muted); font-size: 0.7rem; text-align: center;">Escaneando frecuencia...</p>
+                <h2><i class="fa-solid fa-signal"></i> Redes de Alta Frecuencia Activas</h2>
+                <div id="rooms-container" style="max-height: 150px; overflow-y: auto;">
+                    <p style="color: var(--pz-muted); font-size: 0.75rem; text-align: center;">Escaneando espectro local...</p>
                 </div>
             </div>
         </div>
 
-        <!-- VISTA B: CHAT GLOBAL DE LA RED -->
+        <!-- VISTA B: FRECUENCIA GLOBAL DE TRANSMISIÓN -->
         <div id="pz-global-chat" class="pz-tab-content">
-            <div class="pz-card" style="padding: 8px;">
-                <h2><i class="fa-solid fa-globe"></i> Frecuencia Global Abierta</h2>
-                <div id="global-chat-box" style="height: 220px; overflow-y: auto; background:rgba(0,0,0,0.4); border-radius:6px; padding:6px; margin-bottom:5px; font-size:0.8rem;"></div>
-                <div style="display: flex; gap: 3px;">
-                    <input type="text" id="global-msg-input" placeholder="Transmitir mensaje global..." style="margin:0; padding:6px; font-size:0.75rem;" onkeypress="if(event.key==='Enter') sendGlobalMsg()">
-                    <button onclick="sendGlobalMsg()" style="width: 45px; margin:0; padding:6px; font-size:0.75rem;"><i class="fa-solid fa-paper-plane"></i></button>
+            <div class="pz-card" style="padding: 10px;">
+                <h2><i class="fa-solid fa-globe"></i> Canal de Enlace Global</h2>
+                <div id="global-chat-box" style="height: 230px; overflow-y: auto; background:rgba(2, 4, 8, 0.6); border-radius:8px; padding:8px; margin-bottom:6px; font-size:0.8rem; border:1px solid var(--pz-border);"></div>
+                <div style="display: flex; gap: 4px;">
+                    <input type="text" id="global-msg-input" placeholder="Transmitir datos globales..." style="margin:0; padding:7px 10px; font-size:0.75rem;" onkeypress="if(event.key==='Enter') sendGlobalMsg()">
+                    <button onclick="sendGlobalMsg()" style="width: 45px; margin:0; padding:7px; font-size:0.75rem;"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </div>
         </div>
 
-        <!-- VISTA C: SALA ACTIVA (HUD PROYECTO Z) -->
+        <!-- VISTA C: SALA DE OPERACIONES ACTIVA (HUD Z) -->
         <div id="pz-room-active" class="pz-tab-content">
             
-            <div class="pz-card" style="padding: 8px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
-                    <span id="active-room-name" style="font-weight: 900; font-size: 0.85rem; color: var(--pz-neon);">Sala</span>
-                    <div style="display: flex; gap: 3px;">
-                        <button onclick="toggleMusicControl()" style="width: auto; padding: 2px 5px; background: rgba(255,255,255,0.1); font-size: 0.6rem; margin:0;"><i class="fa-solid fa-music"></i></button>
-                        <button onclick="leaveRoom()" style="width: auto; padding: 2px 5px; background: var(--pz-pink); font-size: 0.6rem; margin:0;">Salir</button>
+            <div class="pz-card" style="padding: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span id="active-room-name" style="font-weight: 900; font-size: 0.9rem; color: var(--pz-neon);">Sala Operativa</span>
+                    <div style="display: flex; gap: 4px;">
+                        <button onclick="toggleMusicControl()" style="width: auto; padding: 2px 6px; background: rgba(255,255,255,0.06); font-size: 0.65rem; margin:0; border:1px solid var(--pz-border); box-shadow:none;"><i class="fa-solid fa-music"></i> Audio</button>
+                        <button onclick="leaveRoom()" style="width: auto; padding: 2px 6px; background: var(--pz-danger); font-size: 0.65rem; margin:0; box-shadow:none;"><i class="fa-solid fa-power-off"></i> Salir</button>
                     </div>
                 </div>
                 
                 <div id="map"></div>
 
                 <div id="media-panel" style="display: block;">
-                    <iframe id="spotify-player" src="" width="100%" height="55" frameborder="0" style="border-radius: 6px; margin-bottom: 3px;"></iframe>
-                    <div style="display: flex; gap: 3px;">
-                        <input type="text" id="song-input" placeholder="ID Spotify..." style="margin:0; padding: 4px 6px; font-size: 0.7rem;">
-                        <button onclick="addSong()" style="background:#1db954; width:55px; margin:0; padding:4px; font-size:0.65rem;">Añadir</button>
-                        <button onclick="skipSong()" style="background:var(--pz-amber); color:#000; width:55px; margin:0; padding:4px; font-size:0.65rem;">Saltar</button>
+                    <iframe id="spotify-player" src="" width="100%" height="55" frameborder="0" style="border-radius: 6px; margin-bottom: 4px; border:1px solid var(--pz-border);"></iframe>
+                    <div style="display: flex; gap: 4px;">
+                        <input type="text" id="song-input" placeholder="ID Spotify..." style="margin:0; padding: 5px 8px; font-size: 0.75rem;">
+                        <button onclick="addSong()" style="background:#1db954; width:65px; margin:0; padding:5px; font-size:0.7rem;"><i class="fa-solid fa-plus"></i> Añadir</button>
+                        <button onclick="skipSong()" style="background:var(--pz-amber); color:#000; width:65px; margin:0; padding:5px; font-size:0.7rem;"><i class="fa-solid fa-forward"></i> Saltar</button>
                     </div>
-                    <div id="playlist-container" style="font-size: 0.65rem; color: var(--pz-muted); margin-top: 3px;">Cola vacía</div>
+                    <div id="playlist-container" style="font-size: 0.7rem; color: var(--pz-muted); margin-top: 4px;">Cola de reproducción sincronizada vacía</div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 5px;">
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 6px;">
                 
-                <div class="pz-card" style="padding: 6px; display:flex; flex-direction:column; justify-content:space-between;">
+                <!-- Chat de Sala -->
+                <div class="pz-card" style="padding: 8px; display:flex; flex-direction:column; justify-content:space-between;">
                     <div id="chat-box"></div>
                     <div>
                         <div id="typing-box" class="typing-indicator"></div>
-                        <div style="display: flex; gap: 2px;">
-                            <input type="text" id="msg-input" placeholder="Mensaje..." style="margin:0; padding:5px; font-size:0.7rem;" oninput="handleTyping()" onkeypress="if(event.key==='Enter') sendMsg()">
-                            <button onclick="sendMsg()" style="width: 30px; margin:0; padding:5px; font-size:0.7rem;"><i class="fa-solid fa-paper-plane"></i></button>
-                            <button id="mic-btn" onclick="toggleMic()" style="width: 30px; background:var(--pz-pink); margin:0; padding:5px; font-size:0.7rem;" title="Audio"><i class="fa-solid fa-microphone"></i></button>
+                        <div style="display: flex; gap: 3px;">
+                            <input type="text" id="msg-input" placeholder="Mensaje de red..." style="margin:0; padding:6px 8px; font-size:0.75rem;" oninput="handleTyping()" onkeypress="if(event.key==='Enter') sendMsg()">
+                            <button onclick="sendMsg()" style="width: 35px; margin:0; padding:6px; font-size:0.75rem;"><i class="fa-solid fa-paper-plane"></i></button>
+                            <button id="mic-btn" onclick="toggleMic()" style="width: 35px; background:var(--pz-pink); margin:0; padding:6px; font-size:0.75rem;" title="Transmisión de Voz"><i class="fa-solid fa-microphone"></i></button>
                         </div>
                     </div>
                 </div>
 
-                <div class="pz-card" style="padding: 6px; display:flex; flex-direction:column;">
-                    <span style="font-size: 0.65rem; font-weight: 700; color: var(--pz-muted); margin-bottom: 3px;"><i class="fa-solid fa-users"></i> Online</span>
-                    <div id="room-members-list" style="max-height: 160px; overflow-y: auto; display:flex; flex-direction:column; gap:2px;">
-                        <span style="font-size: 0.6rem; color: var(--pz-muted);">Buscando...</span>
+                <!-- Lista de Nodos Conectados -->
+                <div class="pz-card" style="padding: 8px; display:flex; flex-direction:column;">
+                    <span style="font-size: 0.7rem; font-weight: 700; color: var(--pz-muted); margin-bottom: 4px;"><i class="fa-solid fa-users-line"></i> Nodos Online</span>
+                    <div id="room-members-list" style="max-height: 170px; overflow-y: auto; display:flex; flex-direction:column; gap:3px;">
+                        <span style="font-size: 0.65rem; color: var(--pz-muted);">Buscando nodos...</span>
                     </div>
                 </div>
 
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-                <div class="pz-card" style="text-align: center; padding: 6px;">
-                    <span style="font-size: 0.6rem; color: var(--pz-muted); display:block; margin-bottom:2px;">🎟 Ticket Vibe</span>
-                    <div id="qrcode" style="display:inline-block; background:white; padding:2px; border-radius:4px;"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                <div class="pz-card" style="text-align: center; padding: 8px;">
+                    <span style="font-size: 0.65rem; color: var(--pz-muted); display:block; margin-bottom:3px;"><i class="fa-solid fa-ticket"></i> Credencial QR</span>
+                    <div id="qrcode" style="display:inline-block; background:white; padding:3px; border-radius:4px;"></div>
                 </div>
-                <div class="pz-card" style="padding: 6px;">
-                    <span style="font-size: 0.6rem; color: var(--pz-muted); display:block; margin-bottom:2px;">📊 Actividad de Red</span>
-                    <canvas id="energyChart" style="max-height: 60px;"></canvas>
+                <div class="pz-card" style="padding: 8px;">
+                    <span style="font-size: 0.65rem; color: var(--pz-muted); display:block; margin-bottom:3px;"><i class="fa-solid fa-chart-line"></i> Telemetría de Red</span>
+                    <canvas id="energyChart" style="max-height: 65px;"></canvas>
                 </div>
             </div>
 
         </div>
 
-        <!-- VISTA D: PERFIL DE USUARIO -->
+        <!-- VISTA D: CONFIGURACIÓN DE PERFIL Y ESTADO -->
         <div id="pz-profile" class="pz-tab-content">
-            <div class="pz-card" style="text-align: center; padding: 15px;">
-                <div id="profile-avatar-big" style="font-size: 2rem; margin-bottom: 3px;">🎧</div>
-                <h3 id="profile-name-big" style="margin-bottom: 2px;">Usuario</h3>
-                <p style="font-size: 0.65rem; color: var(--pz-muted); margin-bottom: 10px;">Parámetros de Nodo de Usuario</p>
+            <div class="pz-card" style="text-align: center; padding: 20px 15px;">
+                <div id="profile-avatar-big" style="font-size: 2.4rem; margin-bottom: 4px;">🎧</div>
+                <h3 id="profile-name-big" style="margin-bottom: 2px;">Operador</h3>
+                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 12px;">Configuración de Registro de Perfil</p>
                 
                 <div style="text-align: left;">
-                    <label style="font-size: 0.6rem; color: var(--pz-muted);">Biografía / Estado:</label>
-                    <textarea id="profile-bio" rows="2" placeholder="Tu estado actual..."></textarea>
+                    <label style="font-size: 0.65rem; color: var(--pz-muted);">Biografía / Estado del Nodo:</label>
+                    <textarea id="profile-bio" rows="2" placeholder="Estado operativo actual..."></textarea>
                     
-                    <label style="font-size: 0.6rem; color: var(--pz-muted); margin-top: 3px; display: block;">Género Musical:</label>
-                    <input type="text" id="profile-genre" placeholder="Ej: Techno, Cyberpunk...">
+                    <label style="font-size: 0.65rem; color: var(--pz-muted); margin-top: 6px; display: block;">Género Musical Preferente:</label>
+                    <input type="text" id="profile-genre" placeholder="Ej: Industrial Techno, Cyberpunk...">
                 </div>
-                <button onclick="saveProfile()" style="background:var(--pz-accent); margin-top: 8px;">Actualizar Registro</button>
+                <button onclick="saveProfile()" style="background:var(--pz-accent); margin-top: 12px;"><i class="fa-solid fa-floppy-disk"></i> Guardar Configuración</button>
             </div>
         </div>
 
     </div>
 </div>
 
-<!-- 3. MODAL DE CHAT PRIVADO (DM) -->
+<!-- 3. MÓDULO DE COMUNICACIÓN PRIVADA (DM MODAL) -->
 <div id="dm-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:2000; justify-content:center; align-items:center;">
-    <div class="pz-card" style="width: 85%; max-width: 320px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-            <span id="dm-target-title" style="font-weight: 700; font-size: 0.8rem; color: var(--pz-neon);">Chat Privado</span>
-            <button onclick="closeDmModal()" style="width:auto; padding:2px 5px; background:var(--pz-pink); font-size:0.55rem; margin:0;">X</button>
+    <div class="pz-card" style="width: 85%; max-width: 340px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span id="dm-target-title" style="font-weight: 700; font-size: 0.85rem; color: var(--pz-neon);"><i class="fa-solid fa-lock"></i> Canal Privado (DM)</span>
+            <button onclick="closeDmModal()" style="width:auto; padding:2px 6px; background:var(--pz-danger); font-size:0.6rem; margin:0; box-shadow:none;">✕</button>
         </div>
-        <div id="dm-box" style="height: 110px; overflow-y: auto; background:rgba(0,0,0,0.4); border-radius:5px; padding:5px; margin-bottom:5px; font-size:0.7rem;"></div>
-        <input type="text" id="dm-input" placeholder="Mensaje privado..." style="margin:0; padding:5px; font-size:0.7rem;" onkeypress="if(event.key==='Enter') sendDm()">
-        <button onclick="sendDm()" style="padding:5px; font-size:0.7rem;">Enviar</button>
+        <div id="dm-box" style="height: 120px; overflow-y: auto; background:rgba(2, 4, 8, 0.6); border-radius:6px; padding:6px; margin-bottom:6px; font-size:0.75rem; border:1px solid var(--pz-border);"></div>
+        <input type="text" id="dm-input" placeholder="Mensaje seguro cifrado..." style="margin:0; padding:6px; font-size:0.75rem;" onkeypress="if(event.key==='Enter') sendDm()">
+        <button onclick="sendDm()" style="padding:6px; font-size:0.75rem; margin-top:4px;"><i class="fa-solid fa-paper-plane"></i> Enviar Mensaje</button>
     </div>
 </div>
 
@@ -291,7 +334,7 @@
         const username = document.getElementById('login-user').value.trim();
         const password = document.getElementById('login-pass').value.trim();
         const avatar = document.getElementById('login-avatar').value;
-        if (!username || !password) return alert('Rellena usuario y contraseña.');
+        if (!username || !password) return alert('Se requiere identificación y clave de acceso.');
         socket.emit('login_user', { username, password, avatar });
     }
 
@@ -301,13 +344,15 @@
         document.getElementById('main-hud').style.display = 'flex';
         document.getElementById('header-avatar').innerText = myProfile.avatar;
         document.getElementById('header-username').innerText = myProfile.username;
+        document.getElementById('header-status').innerText = "En Línea / Conectado";
+        document.getElementById('status-dot').style.background = "var(--pz-accent)";
         document.getElementById('profile-name-big').innerText = `${myProfile.avatar} ${myProfile.username}`;
         document.getElementById('profile-avatar-big').innerText = myProfile.avatar;
         document.getElementById('profile-bio').value = profile.bio || '';
         document.getElementById('profile-genre').value = profile.genre || '';
     });
 
-    socket.on('login_error', (err) => alert(err));
+    socket.on('login_error', (err) => alert("Error de Autenticación: " + err));
 
     function saveProfile() {
         const bio = document.getElementById('profile-bio').value.trim();
@@ -315,7 +360,7 @@
         socket.emit('update_profile', { username: myProfile.username, bio, genre });
         myProfile.bio = bio;
         myProfile.genre = genre;
-        alert('Perfil sincronizado con éxito');
+        alert('Parámetros de perfil sincronizados con éxito.');
     }
 
     function initRadar() {
@@ -327,9 +372,9 @@
                     username: `${myProfile.avatar} ${myProfile.username}` 
                 });
                 document.getElementById('btn-init').innerText = "✓ Coordenadas Sincronizadas";
-                document.getElementById('header-status').innerText = "GPS Activo";
+                document.getElementById('header-status').innerText = "GPS Activo / Telemetría OK";
             }, () => {
-                alert('GPS denegado.');
+                alert('Acceso a GPS denegado por el navegador.');
                 socket.emit('update_location', { lat: null, lng: null, username: `${myProfile.avatar} ${myProfile.username}` });
             });
         }
@@ -338,22 +383,22 @@
     socket.on('rooms_list', (rooms) => {
         const container = document.getElementById('rooms-container');
         if (!rooms || rooms.length === 0) {
-            container.innerHTML = '<p style="color: var(--pz-muted); font-size: 0.7rem; text-align: center;">No hay redes activas.</p>';
+            container.innerHTML = '<p style="color: var(--pz-muted); font-size: 0.75rem; text-align: center;">No hay redes activas disponibles.</p>';
             return;
         }
         container.innerHTML = rooms.map(r => `
             <div class="pz-list-item">
                 <div>
-                    <span style="font-weight:700;">${r.name}</span>
-                    <div style="font-size:0.55rem; color:var(--pz-muted);">${r.count} conectados</div>
+                    <span style="font-weight:700; color:var(--pz-text);">${r.name}</span>
+                    <div style="font-size:0.6rem; color:var(--pz-muted);">${r.count} nodos conectados</div>
                 </div>
-                <button onclick="joinRoom('${r.id}')">Conectar</button>
+                <button onclick="joinRoom('${r.id}')"><i class="fa-solid fa-plug"></i> Conectar</button>
             </div>
         `).join('');
     });
 
     function createRoom() {
-        const name = document.getElementById('new-room-name').value.trim() || 'Sala Vibe';
+        const name = document.getElementById('new-room-name').value.trim() || 'Sala Operativa Vibe';
         let trackUri = document.getElementById('new-room-song').value.trim() || '4cOdK2wGLETKBW3PvgPWqT';
         if(trackUri.includes('spotify.com')) trackUri = trackUri.split('/').pop().split('?')[0];
         socket.emit('create_room', { name, trackUri });
@@ -373,8 +418,8 @@
 
         document.getElementById("qrcode").innerHTML = "";
         new QRCode(document.getElementById("qrcode"), {
-            text: `GeoVibe-Ticket:${myProfile.username}:${room.id}`,
-            width: 70, height: 70
+            text: `GeoVibe-Enterprise-Ticket:${myProfile.username}:${room.id}`,
+            width: 75, height: 75
         });
 
         setTimeout(() => {
@@ -399,9 +444,9 @@
         
         const membersContainer = document.getElementById('room-members-list');
         membersContainer.innerHTML = members.map(m => `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:2px 5px; border-radius:4px;">
-                <span style="font-size:0.65rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:65px;">${m.username}</span>
-                ${m.username !== `${myProfile.avatar} ${myProfile.username}` ? `<button onclick="openDmModal('${m.username}')" style="width:auto; padding:1px 4px; font-size:0.5rem; margin:0; background:var(--pz-primary);">DM</button>` : '<span class="pz-badge">Tú</span>'}
+            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:3px 6px; border-radius:4px;">
+                <span style="font-size:0.7rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70px;">${m.username}</span>
+                ${m.username !== `${myProfile.avatar} ${myProfile.username}` ? `<button onclick="openDmModal('${m.username}')" style="width:auto; padding:1px 5px; font-size:0.55rem; margin:0; background:var(--pz-primary); box-shadow:none;">DM</button>` : '<span class="pz-badge">Tú</span>'}
             </div>
         `).join('');
 
@@ -415,7 +460,7 @@
 
     function openDmModal(username) {
         currentTargetDmUser = username;
-        document.getElementById('dm-target-title').innerText = `DM: ${username}`;
+        document.getElementById('dm-target-title').innerHTML = `<i class="fa-solid fa-lock"></i> DM: ${username}`;
         document.getElementById('dm-box').innerHTML = '';
         document.getElementById('dm-modal').style.display = 'flex';
     }
@@ -428,7 +473,7 @@
         const msg = document.getElementById('dm-input').value.trim();
         if(!msg) return;
         socket.emit('private_msg', { targetUser: currentTargetDmUser, msg });
-        document.getElementById('dm-box').innerHTML += `<div style="text-align:right; margin:2px 0;"><span style="background:var(--pz-primary); padding:2px 4px; border-radius:4px; display:inline-block;">Tú: ${msg}</span></div>`;
+        document.getElementById('dm-box').innerHTML += `<div style="text-align:right; margin:3px 0;"><span style="background:var(--pz-primary); padding:3px 6px; border-radius:6px; display:inline-block;">Tú: ${msg}</span></div>`;
         document.getElementById('dm-input').value = '';
     }
 
@@ -436,7 +481,7 @@
         if(document.getElementById('dm-modal').style.display !== 'flex' || currentTargetDmUser !== data.from) {
             openDmModal(data.from);
         }
-        document.getElementById('dm-box').innerHTML += `<div style="text-align:left; margin:2px 0;"><span style="background:rgba(255,255,255,0.1); padding:2px 4px; border-radius:4px; display:inline-block;">${data.from}: ${data.msg}</span></div>`;
+        document.getElementById('dm-box').innerHTML += `<div style="text-align:left; margin:3px 0;"><span style="background:rgba(255,255,255,0.08); padding:3px 6px; border-radius:6px; display:inline-block;">${data.from}: ${data.msg}</span></div>`;
     });
 
     function addSong() {
@@ -479,8 +524,8 @@
             box.innerHTML += `
                 <div class="msg-bubble">
                     <div class="msg-header"><span><b>${data.user}</b></span><span>${data.time}</span></div>
-                    <div style="font-size:0.55rem; color:var(--pz-muted); margin-bottom:1px;">📍 ${data.distance}</div>
-                    <div style="word-break: break-word;">${data.msg}</div>
+                    <div style="font-size:0.6rem; color:var(--pz-muted); margin-bottom:1px;">📍 ${data.distance}</div>
+                    <div style="word-break: break-word; font-size:0.8rem;">${data.msg}</div>
                     <div class="reactions-bar" id="reactions-${data.id}">
                         <button class="reaction-btn" onclick="react('${data.id}', '🔥')">🔥</button>
                         <button class="reaction-btn" onclick="react('${data.id}', '❤️')">❤️</button>
@@ -494,9 +539,9 @@
         const globalBox = document.getElementById('global-chat-box');
         if (globalBox) {
             globalBox.innerHTML += `
-                <div style="margin-bottom:4px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:3px;">
+                <div style="margin-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.04); padding-bottom:4px;">
                     <div style="font-size:0.65rem; color:var(--pz-neon);"><b>${data.user}</b> <span style="opacity:0.5;">(${data.time})</span></div>
-                    <div style="font-size:0.75rem;">${data.msg}</div>
+                    <div style="font-size:0.8rem;">${data.msg}</div>
                 </div>
             `;
             globalBox.scrollTop = globalBox.scrollHeight;
@@ -513,14 +558,14 @@
 
     socket.on('display_typing', (data) => {
         const typingEl = document.getElementById('typing-box');
-        if(typingEl) typingEl.innerText = data.isTyping ? `✏️ ${data.user} escribiendo...` : "";
+        if(typingEl) typingEl.innerText = data.isTyping ? `✏️ ${data.user} escribiendo datos...` : "";
     });
 
     function react(msgId, emoji) { socket.emit('react_msg', { roomId: currentRoomId, msgId, emoji }); }
 
     socket.on('msg_reacted', (data) => {
         const el = document.getElementById(`reactions-${data.msgId}`);
-        if(el) el.innerHTML += `<span style="background:rgba(255,255,255,0.15); padding:1px 3px; border-radius:3px; font-size:0.6rem;">${data.emoji}</span>`;
+        if(el) el.innerHTML += `<span style="background:rgba(255,255,255,0.12); padding:1px 4px; border-radius:4px; font-size:0.65rem;">${data.emoji}</span>`;
     });
 
     async function toggleMic() {
@@ -536,9 +581,9 @@
                     const blob = new Blob(audioChunks, { type: 'audio/webm' });
                     socket.emit('send_voice', { roomId: currentRoomId, audioBlob: blob });
                 };
-                micBtn.style.background = "#ef4444";
+                micBtn.style.background = "#dc2626";
                 micBtn.innerHTML = '<i class="fa-solid fa-stop"></i>';
-            } catch (e) { alert('Micrófono denegado.'); }
+            } catch (e) { alert('Permiso de micrófono denegado.'); }
         } else {
             mediaRecorder.stop();
             micBtn.style.background = "var(--pz-pink)";
@@ -552,8 +597,8 @@
         if(box) {
             box.innerHTML += `
                 <div class="msg-bubble">
-                    <div class="msg-header"><span>🔊 Voz de ${data.from}</span></div>
-                    <audio src="${url}" controls style="width:100%; height:22px; margin-top:2px;"></audio>
+                    <div class="msg-header"><span>🔊 Transmisión de Voz de ${data.from}</span></div>
+                    <audio src="${url}" controls style="width:100%; height:26px; margin-top:3px;"></audio>
                 </div>
             `;
             box.scrollTop = box.scrollHeight;
@@ -563,14 +608,14 @@
     const ctx = document.getElementById('energyChart').getContext('2d');
     const energyChart = new Chart(ctx, {
         type: 'line',
-        data: { labels: [], datasets: [{ label: 'Actividad', data: [], borderColor: '#06b6d4', tension: 0.3 }] },
+        data: { labels: [], datasets: [{ label: 'Telemetría', data: [], borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,0.1)', fill: true, tension: 0.3 }] },
         options: { responsive: true, maintainAspectRatio: false, scales: { x: { display: false }, y: { display: false } }, plugins: { legend: { display: false } } }
     });
 
     socket.on('update_stats', (val) => {
         energyChart.data.labels.push(new Date().toLocaleTimeString().slice(-5));
         energyChart.data.datasets[0].data.push(val);
-        if (energyChart.data.labels.length > 5) {
+        if (energyChart.data.labels.length > 6) {
             energyChart.data.labels.shift();
             energyChart.data.datasets[0].data.shift();
         }
