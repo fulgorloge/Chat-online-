@@ -3,55 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoVibe | Music Hub Pro</title>
-    <!-- Librerías Necesarias -->
+    <title>GeoVibe | Premium Experience</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; padding: 20px; }
-        .card { background: #1e293b; padding: 20px; border-radius: 20px; margin-bottom: 15px; }
-        .msg { background: #334155; padding: 10px; border-radius: 10px; margin: 5px 0; font-size: 0.9rem; }
-        input { width: 100%; padding: 10px; margin: 5px 0; border-radius: 8px; border: none; background: #0f172a; color: white; }
-        button { width: 100%; padding: 10px; background: #10b981; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; }
-        #map { height: 200px; border-radius: 15px; margin-bottom: 10px; }
+        :root {
+            --primary: #6366f1;
+            --glass: rgba(255, 255, 255, 0.05);
+            --bg: #0f172a;
+        }
+
+        body { 
+            background: #030014; color: white; font-family: 'Outfit', sans-serif;
+            margin: 0; display: flex; justify-content: center; min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animación de entrada suave */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        #app { width: 90%; max-width: 420px; padding-top: 50px; animation: fadeIn 0.8s ease-out; }
+
+        .card { 
+            background: var(--glass); backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1); padding: 25px;
+            border-radius: 30px; margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        h2 { font-weight: 900; font-size: 2rem; margin-bottom: 10px; letter-spacing: -1px; }
+
+        input { 
+            width: 100%; padding: 15px; border-radius: 15px; border: 2px solid transparent;
+            background: rgba(0,0,0,0.3); color: white; box-sizing: border-box;
+            transition: 0.3s; margin-bottom: 10px;
+        }
+        input:focus { border-color: var(--primary); outline: none; background: rgba(0,0,0,0.5); }
+
+        button { 
+            width: 100%; padding: 15px; border-radius: 15px; border: none;
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            color: white; font-weight: 700; cursor: pointer;
+            transition: transform 0.2s, filter 0.3s;
+        }
+        button:hover { transform: translateY(-2px); filter: brightness(1.2); }
+
+        .msg { 
+            padding: 12px 18px; border-radius: 20px; margin: 8px 0;
+            background: rgba(255,255,255,0.08); font-size: 0.95rem;
+            animation: fadeIn 0.4s ease;
+        }
+
+        /* Indicador de "Streaming" */
+        .spotify-container { border-radius: 20px; overflow: hidden; margin-top: 15px; box-shadow: 0 0 20px rgba(29, 185, 84, 0.2); }
     </style>
 </head>
 <body>
 
-<div id="app" style="max-width: 500px; margin: auto;">
-    <!-- Setup Inicial -->
+<div id="app">
     <div id="setup" class="card">
-        <h2>GeoVibe 🌍</h2>
-        <input type="text" id="username" placeholder="Tu Apodo">
-        <button onclick="start()">Entrar al Radar</button>
+        <h2>GeoVibe</h2>
+        <p style="opacity: 0.6; margin-bottom: 20px;">Sincronización espacial en tiempo real.</p>
+        <input type="text" id="username" placeholder="¿Cómo te llamas?">
+        <button onclick="start()">Conectar al Radar</button>
     </div>
 
-    <!-- UI Principal -->
     <div id="chat-ui" style="display:none;">
         <div class="card">
-            <h3 id="room-title">Mi Sala Musical</h3>
-            <div id="map"></div>
-            <iframe id="spotify-player" src="" width="100%" height="80" frameborder="0" style="border-radius: 10px;"></iframe>
-            <input type="text" id="song-input" placeholder="ID de Spotify...">
-            <button onclick="addSong()" style="background:#1db954;">Añadir Canción</button>
+            <h3 style="margin-top:0;">Ahora sonando</h3>
+            <div class="spotify-container">
+                <iframe id="spotify-player" src="" width="100%" height="80" frameborder="0"></iframe>
+            </div>
+            <input type="text" id="song-input" placeholder="Spotify Track ID" style="margin-top:15px;">
+            <button onclick="addSong()">Actualizar Track</button>
         </div>
-
-        <div id="chat-box" class="card" style="height: 200px; overflow-y: auto;"></div>
-        <input type="text" id="msg-input" placeholder="Mensaje...">
-        <button onclick="sendMsg()">Enviar Mensaje</button>
-        <button onclick="toggleMic()" style="background:#8b5cf6;">🎤 Nota de Voz</button>
-
-        <div class="card">
-            <h2>🎟 Ticket QR</h2>
-            <div id="qrcode" style="display:flex; justify-content:center; padding: 10px;"></div>
-        </div>
-
-        <div class="card">
-            <h2>📊 Energía de la Sala</h2>
-            <canvas id="energyChart"></canvas>
+        
+        <div id="chat-box" class="card" style="height: 250px; overflow-y: auto;"></div>
+        
+        <div class="card" style="padding: 15px; display: flex; gap: 10px;">
+            <input type="text" id="msg-input" placeholder="Mensaje..." style="margin:0;">
+            <button onclick="sendMsg()" style="width: auto; padding: 0 20px;">➤</button>
         </div>
     </div>
 </div>
@@ -59,27 +90,18 @@
 <script>
     const socket = io("https://chat-online-110g.onrender.com");
     let currentRoomId = "global";
-    let map, mediaRecorder, audioChunks = [];
 
-    // Inicialización del Radar y Mapa
     function start() {
         const name = document.getElementById('username').value;
+        if (!name) return alert("Ingresa un apodo");
+        
         navigator.geolocation.getCurrentPosition(pos => {
             socket.emit('update_location', { username: name, lat: pos.coords.latitude, lng: pos.coords.longitude });
             document.getElementById('setup').style.display = 'none';
             document.getElementById('chat-ui').style.display = 'block';
-            
-            // Iniciar Mapa
-            map = L.map('map').setView([pos.coords.latitude, pos.coords.longitude], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map).bindPopup("Tú");
-
-            // Generar QR
-            new QRCode(document.getElementById("qrcode"), `GeoVibe-Ticket:${name}`);
         });
     }
 
-    // Funciones Musicales
     function addSong() {
         const uri = document.getElementById('song-input').value;
         socket.emit('add_song', { roomId: currentRoomId, uri });
@@ -89,35 +111,17 @@
         document.getElementById('spotify-player').src = `https://open.spotify.com/embed/track/${uri}`;
     });
 
-    // Chat y Voz
     function sendMsg() {
-        const msg = document.getElementById('msg-input').value;
-        socket.emit('chat_msg', { roomId: currentRoomId, msg, user: document.getElementById('username').value });
-        document.getElementById('msg-input').value = '';
-    }
-
-    async function toggleMic() {
-        if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.start();
-            audioChunks = [];
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.onstop = () => socket.emit('send_voice', { roomId: currentRoomId, audioBlob: new Blob(audioChunks) });
-        } else { mediaRecorder.stop(); }
+        const input = document.getElementById('msg-input');
+        if (!input.value) return;
+        socket.emit('chat_msg', { roomId: currentRoomId, msg: input.value, user: document.getElementById('username').value });
+        input.value = '';
     }
 
     socket.on('new_msg', (data) => {
-        document.getElementById('chat-box').innerHTML += `<div class="msg"><b>${data.user}:</b> ${data.msg}</div>`;
-    });
-
-    // Gráfica de Energía
-    const ctx = document.getElementById('energyChart').getContext('2d');
-    const chart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [{ label: 'Actividad', data: [], borderColor: '#10b981' }] } });
-    socket.on('update_stats', (val) => {
-        chart.data.labels.push(new Date().toLocaleTimeString().slice(-8));
-        chart.data.datasets[0].data.push(val);
-        chart.update();
+        const box = document.getElementById('chat-box');
+        box.innerHTML += `<div class="msg"><b>${data.user}</b>: ${data.msg}</div>`;
+        box.scrollTop = box.scrollHeight;
     });
 </script>
 </body>
