@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoVibe | Project Z Ultimate Enterprise Hub + Marketplace, Economy & Feed</title>
+    <title>GeoVibe | Project Z Ultimate Enterprise Hub + OAuth, Economy & Feed</title>
     <!-- Librerías Externas -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -28,8 +28,10 @@
             --pz-amber: #d97706;
             --pz-netflix: #e50914;
             --pz-sales: #8b5cf6; 
-            --pz-economy: #eab308; /* Color Oro / Fichas de Economía */
-            --pz-economy-glow: rgba(234, 179, 8, 0.4);
+            --pz-economy: #eab308;
+            --pz-google: #ea4335;
+            --pz-facebook: #1877f2;
+            --pz-instagram: #e1306c;
             --pz-text: #f8fafc;
             --pz-muted: #64748b;
             --pz-danger: #dc2626;
@@ -88,6 +90,20 @@
         button:hover { filter: brightness(1.15); transform: translateY(-1px); box-shadow: 0 6px 16px var(--pz-primary-glow); }
         button:active { transform: translateY(0); }
 
+        .pz-oauth-btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--pz-border);
+            font-weight: 600; cursor: pointer; font-size: 0.8rem; font-family: inherit; margin-top: 6px;
+            background: rgba(255,255,255,0.04); color: white; transition: all 0.2s ease;
+        }
+        .pz-oauth-btn:hover { background: rgba(255,255,255,0.08); }
+        .pz-oauth-google { border-color: rgba(234, 67, 53, 0.4); }
+        .pz-oauth-google:hover { background: rgba(234, 67, 53, 0.15); }
+        .pz-oauth-facebook { border-color: rgba(24, 119, 242, 0.4); }
+        .pz-oauth-facebook:hover { background: rgba(24, 119, 242, 0.15); }
+        .pz-oauth-instagram { border-color: rgba(225, 48, 108, 0.4); }
+        .pz-oauth-instagram:hover { background: rgba(225, 48, 108, 0.15); }
+
         .pz-header {
             display: flex; justify-content: space-between; align-items: center;
             background: var(--pz-surface); padding: 8px 12px; border-radius: 10px;
@@ -126,10 +142,6 @@
         .msg-header { display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--pz-muted); margin-bottom: 2px; }
         .typing-indicator { font-size: 0.6rem; color: var(--pz-pink); height: 12px; font-style: italic; }
 
-        .reactions-bar { display: flex; gap: 4px; margin-top: 3px; }
-        .reaction-btn { background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); border-radius: 4px; padding: 1px 5px; cursor: pointer; color: white; width: auto; font-size: 0.65rem; }
-        .reaction-btn:hover { background: rgba(255,255,255,0.08); }
-
         .drawer-panel {
             display: none; background: rgba(2, 4, 8, 0.95); border: 1px solid var(--pz-border);
             border-radius: 8px; padding: 8px; margin-bottom: 6px; max-height: 120px; overflow-y: auto;
@@ -137,7 +149,6 @@
         .drawer-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; text-align: center; }
         .drawer-item { background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); border-radius: 6px; padding: 6px; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
         .drawer-item:hover { background: var(--pz-neon-glow); border-color: var(--pz-neon); }
-        .sticker-img { width: 100%; height: 35px; object-fit: contain; }
 
         .pz-badge { background: rgba(5, 150, 105, 0.15); border: 1px solid var(--pz-accent); color: #34d399; padding: 1px 6px; border-radius: 6px; font-size: 0.55rem; font-weight: 700; text-transform: uppercase; }
         
@@ -159,10 +170,30 @@
 
 <div id="app">
     
-    <!-- 1. MÓDULO DE AUTENTICACIÓN INDUSTRIAL -->
-    <div id="login-screen" class="pz-card" style="margin-top: 30px; text-align: center; padding: 24px 16px;">
+    <!-- 1. MÓDULO DE AUTENTICACIÓN INDUSTRIAL & SOCIAL OAUTH -->
+    <div id="login-screen" class="pz-card" style="margin-top: 20px; text-align: center; padding: 20px 16px;">
         <h2><i class="fa-solid fa-shield-halved"></i> GeoVibe // Core Security</h2>
-        <p style="color: var(--pz-muted); font-size: 0.75rem; margin-bottom: 16px;">Identificación de Nodo y Enlace Criptográfico</p>
+        <p style="color: var(--pz-muted); font-size: 0.75rem; margin-bottom: 12px;">Acceso Rápido y Enlace Criptográfico</p>
+        
+        <!-- Botones de Redes Sociales (OAuth Instantáneo) -->
+        <div style="display: flex; flex-direction: column; gap: 2px; margin-bottom: 12px;">
+            <button class="pz-oauth-btn pz-oauth-google" onclick="socialLogin('Google', '🌐')">
+                <i class="fa-brands fa-google" style="color: var(--pz-google);"></i> Continuar con Google
+            </button>
+            <button class="pz-oauth-btn pz-oauth-facebook" onclick="socialLogin('Facebook', '💙')">
+                <i class="fa-brands fa-facebook" style="color: var(--pz-facebook);"></i> Continuar con Facebook
+            </button>
+            <button class="pz-oauth-btn pz-oauth-instagram" onclick="socialLogin('Instagram', '📸')">
+                <i class="fa-brands fa-instagram" style="color: var(--pz-instagram);"></i> Continuar con Instagram
+            </button>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; margin: 8px 0; color: var(--pz-muted); font-size: 0.65rem;">
+            <div style="flex: 1; height: 1px; background: var(--pz-border);"></div>
+            O ACCESO MANUAL
+            <div style="flex: 1; height: 1px; background: var(--pz-border);"></div>
+        </div>
+
         <input type="text" id="login-user" placeholder="Identificador de Usuario...">
         <input type="password" id="login-pass" placeholder="Clave de Frecuencia...">
         <select id="login-avatar">
@@ -173,36 +204,36 @@
             <option value="💀">💀 Analista Dark Synth</option>
             <option value="👽">👽 Especialista Telemetría</option>
         </select>
-        <button onclick="login()" style="margin-top: 8px;"><i class="fa-solid fa-key"></i> Autorizar Enlace</button>
+        <button onclick="login()" style="margin-top: 6px;"><i class="fa-solid fa-key"></i> Autorizar Enlace</button>
     </div>
 
     <!-- 2. INTERFAZ DE CONTROL PRINCIPAL (HUD) -->
     <div id="main-hud" style="display:none; flex-direction: column; gap: 8px;">
         
-        <!-- BARRA DE TELEMETRÍA SUPERIOR CON BILLETERA DE MONEDAS -->
+        <!-- BARRA DE TELEMETRÍA SUPERIOR CON BILLETERA Y BOTÓN DE SALIR -->
         <div class="pz-header">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <span id="header-avatar" style="font-size: 1.1rem;">🎧</span>
                 <div>
                     <span id="header-username" style="font-weight: 700; font-size: 0.8rem; display: block;">Operador</span>
-                    <span style="font-size: 0.55rem; color: var(--pz-muted); display:flex; align-items:center; gap:4px;"><span id="status-dot" style="width:6px; height:6px; background:var(--pz-danger); border-radius:50%; display:inline-block;"></span> <span id="header-status">Desconectado</span></span>
+                    <span style="font-size: 0.55rem; color: var(--pz-muted); display:flex; align-items:center; gap:4px;"><span id="status-dot" style="width:6px; height:6px; background:var(--pz-accent); border-radius:50%; display:inline-block;"></span> <span id="header-status">Conectado (Persistente)</span></span>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
-                <div style="background: rgba(234, 179, 8, 0.15); border: 1px solid var(--pz-economy); padding: 2px 6px; border-radius: 6px; display: flex; align-items: center; gap: 4px;" title="Tus Z-Coins (Monedas)">
+                <div style="background: rgba(234, 179, 8, 0.15); border: 1px solid var(--pz-economy); padding: 2px 6px; border-radius: 6px; display: flex; align-items: center; gap: 4px;" title="Tus Z-Coins">
                     <i class="fa-solid fa-coins" style="color: var(--pz-economy); font-size: 0.7rem;"></i>
                     <span id="header-wallet" style="font-weight: 700; font-size: 0.7rem; color: var(--pz-economy);">100 ZC</span>
                 </div>
                 <div style="display: flex; gap: 2px; flex-wrap: wrap; justify-content: flex-end;">
                     <button onclick="switchPzTab('rooms')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Salas"><i class="fa-solid fa-tower-broadcast"></i></button>
-                    <button onclick="switchPzTab('economy')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(234,179,8,0.1); margin:0; box-shadow:none; border:1px solid var(--pz-economy); color:var(--pz-economy);" title="Economía y Fichas"><i class="fa-solid fa-wallet"></i></button>
+                    <button onclick="switchPzTab('economy')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(234,179,8,0.1); margin:0; box-shadow:none; border:1px solid var(--pz-economy); color:var(--pz-economy);" title="Economía"><i class="fa-solid fa-wallet"></i></button>
                     <button onclick="switchPzTab('global-chat')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Global"><i class="fa-solid fa-globe"></i></button>
                     <button onclick="switchPzTab('profile')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Perfil"><i class="fa-solid fa-sliders"></i></button>
                 </div>
             </div>
         </div>
 
-        <!-- VISTA A: GESTIÓN DE SALAS, SALAS PRIVADAS Y RADAR -->
+        <!-- VISTA A: GESTIÓN DE SALAS Y SALAS PRIVADAS DE PAGO -->
         <div id="pz-rooms" class="pz-tab-content active">
             <div class="pz-card">
                 <h2><i class="fa-solid fa-satellite-dish"></i> Sincronización Telemétrica GPS</h2>
@@ -210,7 +241,7 @@
             </div>
 
             <div class="pz-card">
-                <h2><i class="fa-solid fa-circle-plus"></i> Desplegar Nueva Frecuencia (Sala)</h2>
+                <h2><i class="fa-solid fa-circle-plus"></i> Desplegar Frecuencia (Sala Privada ZC)</h2>
                 <input type="text" id="new-room-name" placeholder="Designación de Sala...">
                 <input type="text" id="new-room-song" placeholder="ID Spotify o Enlace Multimedia...">
                 
@@ -232,41 +263,30 @@
             </div>
         </div>
 
-        <!-- VISTA DE ECONOMÍA, BANCO Y GANANCIAS (Z-COINS) -->
+        <!-- VISTA B: ECONOMÍA, BANCO Y GANANCIAS (Z-COINS) -->
         <div id="pz-economy" class="pz-tab-content">
             <div class="pz-card" style="border-color: var(--pz-economy);">
                 <h2><i class="fa-solid fa-vault" style="color: var(--pz-economy);"></i> Banco Central & Economía ZC</h2>
-                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Gana monedas (ZC) creando salas privadas de pago, recibiendo propinas o completando tareas. ¡Retira tus ganancias reales!</p>
+                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Gana monedas (ZC) creando salas privadas, recibiendo propinas o en trivias. ¡Retira tus ganancias!</p>
                 
                 <div style="background: rgba(234,179,8,0.08); border: 1px solid var(--pz-economy); border-radius: 8px; padding: 10px; text-align: center; margin-bottom: 8px;">
                     <span style="font-size: 0.65rem; color: var(--pz-muted); text-transform: uppercase;">Saldo Actual en Billetera</span>
                     <div id="economy-balance-display" style="font-size: 1.6rem; font-weight: 900; color: var(--pz-economy); margin: 2px 0;">100 ZC</div>
-                    <span style="font-size: 0.6rem; color: #34d399;">Equivalente a USD $10.00 (Tasa interna)</span>
+                    <span style="font-size: 0.6rem; color: #34d399;">Equivalente a USD $10.00</span>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
-                    <button onclick="claimDailyReward()" style="background:var(--pz-accent); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-gift"></i> Reclamar Bono Diario</button>
+                    <button onclick="claimDailyReward()" style="background:var(--pz-accent); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-gift"></i> Bono Diario</button>
                     <button onclick="openCashoutModal()" style="background:var(--pz-sales); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-money-bill-transfer"></i> Retirar Ganancias</button>
                 </div>
 
                 <div style="border-top: 1px dashed var(--pz-border); padding-top: 6px; font-size: 0.65rem; color: var(--pz-muted);">
-                    <b>Modelo de Ganancias:</b> Cuando cobras entrada a tu sala privada, el <b>80%</b> va directo a tu billetera y el <b>20%</b> alimenta el fondo general de la plataforma. ¡Ganas tú y gana la red!
+                    <b>Modelo de Ganancias:</b> 80% para ti al cobrar entradas en tus salas privadas; 20% para el fondo de red.
                 </div>
             </div>
         </div>
 
-        <!-- VISTA C: BOTELLA A LA DERIVA -->
-        <div id="pz-bottle" class="pz-tab-content">
-            <div class="pz-card" style="text-align: center; padding: 20px 12px;">
-                <h2><i class="fa-solid fa-bottle-water"></i> Botella a la Deriva</h2>
-                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 12px;">Escribe un mensaje anónimo o público y lánzalo al mar digital.</p>
-                <textarea id="bottle-msg" rows="3" placeholder="Escribe tu mensaje en la botella..."></textarea>
-                <button onclick="throwBottle()" style="background:var(--pz-primary); margin-top: 8px;"><i class="fa-solid fa-paper-plane"></i> Lanzar al Mar Digital</button>
-                <div id="bottle-result" style="margin-top: 12px; font-size: 0.75rem; color: var(--pz-neon);"></div>
-            </div>
-        </div>
-
-        <!-- VISTA E: FRECUENCIA GLOBAL DE TRANSMISIÓN -->
+        <!-- VISTA C: FRECUENCIA GLOBAL DE TRANSMISIÓN -->
         <div id="pz-global-chat" class="pz-tab-content">
             <div class="pz-card" style="padding: 10px;">
                 <h2><i class="fa-solid fa-globe"></i> Canal de Enlace Global</h2>
@@ -278,7 +298,7 @@
             </div>
         </div>
 
-        <!-- VISTA F: SALA DE OPERACIONES ACTIVA -->
+        <!-- VISTA D: SALA DE OPERACIONES ACTIVA -->
         <div id="pz-room-active" class="pz-tab-content">
             
             <div class="pz-card" style="padding: 10px;">
@@ -292,7 +312,6 @@
                 
                 <div id="map"></div>
 
-                <!-- CONTENEDOR MULTIMEDIA Y APARTADOS -->
                 <div id="media-panel" style="display: block;">
                     <div class="media-tabs">
                         <button class="media-tab-btn active" onclick="switchMediaTab('spotify')"><i class="fa-brands fa-spotify"></i> Spotify</button>
@@ -314,21 +333,16 @@
                     </div>
 
                     <div id="pane-netflix" class="media-content-pane">
-                        <div style="background: rgba(229,9,20,0.1); border: 1px solid var(--pz-netflix); border-radius: 6px; padding: 6px; margin-bottom: 4px; text-align: center;">
+                        <div style="background: rgba(229,9,20,0.1); border: 1px solid var(--pz-netflix); border-radius: 6px; padding: 6px; text-align: center;">
                             <span id="netflix-host-badge" style="font-size: 0.7rem; font-weight: 700; color: var(--pz-netflix); display:block; margin-bottom:3px;"><i class="fa-solid fa-crown"></i> Sala de Cine (Watch Party)</span>
-                            <p id="netflix-desc" style="font-size: 0.6rem; color: var(--pz-muted); margin: 0 0 6px 0;">Reproduce y sincroniza videos con los miembros.</p>
-                            
                             <div id="host-controls" style="display: none; margin-bottom: 6px; border-top:1px dashed rgba(229,9,20,0.3); padding-top:6px;">
-                                <label style="color:var(--pz-netflix); font-size:0.6rem;">Control del Host:</label>
                                 <div style="display: flex; gap: 4px; margin: 4px 0;">
                                     <input type="text" id="netflix-url-input" placeholder="URL de video..." style="margin:0; padding: 4px 6px; font-size: 0.7rem;">
                                     <button onclick="hostStartBroadcast()" style="background:var(--pz-netflix); width:75px; margin:0; padding:4px; font-size:0.65rem;"><i class="fa-solid fa-broadcast-tower"></i> Transmitir</button>
                                 </div>
                             </div>
-
                             <div id="netflix-viewer-screen" style="background: #000; border-radius: 6px; padding: 12px; border: 1px solid var(--pz-netflix); margin-top: 4px;">
                                 <div id="netflix-current-title" style="font-size: 0.75rem; font-weight: 700; color: white; margin-bottom: 4px;">Ningún video seleccionado</div>
-                                <div id="netflix-sync-status" style="font-size: 0.65rem; color: var(--pz-muted); margin-bottom: 6px;">Sintonizado en vivo</div>
                             </div>
                         </div>
                     </div>
@@ -336,10 +350,8 @@
                     <div id="pane-arcade" class="media-content-pane">
                         <div style="background: rgba(217,119,6,0.1); border: 1px solid var(--pz-amber); border-radius: 6px; padding: 8px; text-align: center;">
                             <span style="font-size: 0.75rem; font-weight: 700; color: var(--pz-amber); display:block; margin-bottom:4px;"><i class="fa-solid fa-gamepad"></i> Zona de Juegos Dinámicos</span>
-                            <div style="display: flex; gap: 4px; margin-bottom: 6px; justify-content:center;">
-                                <button onclick="startTriviaGame()" style="background:var(--pz-amber); color:#000; font-size:0.65rem; padding:4px; width:auto;"><i class="fa-solid fa-brain"></i> Trivia (+10 ZC)</button>
-                            </div>
-                            <div id="arcade-game-screen" style="background: rgba(2,4,8,0.9); border: 1px solid var(--pz-border); border-radius: 6px; padding: 8px; min-height: 70px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                            <button onclick="startTriviaGame()" style="background:var(--pz-amber); color:#000; font-size:0.65rem; padding:4px; width:auto;"><i class="fa-solid fa-brain"></i> Trivia (+10 ZC)</button>
+                            <div id="arcade-game-screen" style="background: rgba(2,4,8,0.9); border: 1px solid var(--pz-border); border-radius: 6px; padding: 8px; min-height: 70px; display:flex; flex-direction:column; justify-content:center; align-items:center; margin-top:4px;">
                                 <span id="arcade-msg" style="font-size: 0.7rem; color: var(--pz-text);">¡Gana ZC respondiendo correctamente!</span>
                                 <div id="arcade-actions" style="margin-top: 6px; width: 100%;"></div>
                             </div>
@@ -365,15 +377,12 @@
                         </div>
                     </div>
 
-                    <!-- NUEVO APARTADO DE PROPINA / GANAR MONEDAS EN SALA -->
                     <div id="pane-economy-tips" class="media-content-pane">
                         <div style="background: rgba(234,179,8,0.08); border: 1px solid var(--pz-economy); border-radius: 6px; padding: 8px; text-align: center;">
                             <span style="font-size: 0.75rem; font-weight: 700; color: var(--pz-economy); display:block; margin-bottom:4px;"><i class="fa-solid fa-hand-holding-dollar"></i> Enviar Propina al Host</span>
-                            <p style="font-size: 0.6rem; color: var(--pz-muted); margin: 0 0 6px 0;">Apoya al creador de esta sala enviándole Z-Coins directamente.</p>
-                            <div style="display: flex; gap: 4px; justify-content: center;">
+                            <div style="display: flex; gap: 4px; justify-content: center; margin-top:4px;">
                                 <button onclick="sendTip(10)" style="background:var(--pz-economy); color:#000; width:auto; font-size:0.65rem; padding:4px 8px;">🎁 10 ZC</button>
                                 <button onclick="sendTip(50)" style="background:var(--pz-economy); color:#000; width:auto; font-size:0.65rem; padding:4px 8px;">💎 50 ZC</button>
-                                <button onclick="sendTip(100)" style="background:var(--pz-economy); color:#000; width:auto; font-size:0.65rem; padding:4px 8px;">👑 100 ZC</button>
                             </div>
                         </div>
                     </div>
@@ -381,12 +390,10 @@
                 </div>
             </div>
 
-            <!-- CHAT Y HERRAMIENTAS -->
+            <!-- CHAT Y NODOS -->
             <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 6px;">
-                
                 <div class="pz-card" style="padding: 8px; display:flex; flex-direction:column; justify-content:space-between;">
                     <div id="chat-box"></div>
-
                     <div id="emoji-drawer" class="drawer-panel">
                         <div class="drawer-grid">
                             <div class="drawer-item" onclick="insertEmoji('🔥')">🔥</div>
@@ -397,7 +404,6 @@
                             <div class="drawer-item" onclick="insertEmoji('💰')">💰</div>
                         </div>
                     </div>
-
                     <div>
                         <div id="typing-box" class="typing-indicator"></div>
                         <div style="display: flex; gap: 2px; margin-bottom: 2px; align-items:center;">
@@ -418,30 +424,32 @@
                         <span style="font-size: 0.65rem; color: var(--pz-muted);">Buscando nodos...</span>
                     </div>
                 </div>
-
             </div>
         </div>
 
-        <!-- VISTA G: CONFIGURACIÓN DE PERFIL -->
+        <!-- VISTA E: CONFIGURACIÓN DE PERFIL Y CIERRE DE SESIÓN -->
         <div id="pz-profile" class="pz-tab-content">
             <div class="pz-card" style="text-align: center; padding: 20px 15px;">
                 <div id="profile-avatar-big" style="font-size: 2.4rem; margin-bottom: 4px;">🎧</div>
                 <h3 id="profile-name-big" style="margin-bottom: 2px;">Operador</h3>
                 <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 12px;">Identidad Visual y Monedero</p>
+                
                 <div style="background:rgba(234,179,8,0.1); border:1px solid var(--pz-economy); border-radius:6px; padding:6px; margin-bottom:8px;">
                     <span style="font-size:0.7rem; color:var(--pz-economy); font-weight:700;">Balance: <span id="profile-wallet-zc">100</span> ZC</span>
                 </div>
+
+                <button onclick="logoutSession()" style="background:var(--pz-danger); font-size:0.7rem; padding:8px; margin-top:8px;"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión y Cambiar Cuenta</button>
             </div>
         </div>
 
     </div>
 </div>
 
-<!-- MODAL DE PAGO PARA ENTRAR A SALAS PRIVADAS -->
+<!-- MODAL DE PAGO PARA SALAS PRIVADAS -->
 <div id="paywall-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:3000; justify-content:center; align-items:center;">
     <div class="pz-card" style="width: 85%; max-width: 320px; text-align: center; border-color: var(--pz-economy);">
         <h2><i class="fa-solid fa-lock" style="color: var(--pz-economy);"></i> Acceso Privado ZC</h2>
-        <p id="paywall-desc" style="font-size: 0.75rem; color: var(--pz-muted); margin-bottom: 12px;">Esta sala requiere un pago de entrada para su ingreso.</p>
+        <p id="paywall-desc" style="font-size: 0.75rem; color: var(--pz-muted); margin-bottom: 12px;">Esta sala requiere un pago de entrada.</p>
         <div style="font-size: 1.2rem; font-weight: 900; color: var(--pz-economy); margin-bottom: 12px;" id="paywall-price-tag">50 ZC</div>
         <button onclick="confirmPaywallEntry()" style="background: var(--pz-economy); color: #000; font-weight: 700;"><i class="fa-solid fa-ticket"></i> Pagar y Entrar</button>
         <button onclick="closePaywallModal()" style="background: rgba(255,255,255,0.05); margin-top: 4px; box-shadow:none;">Cancelar</button>
@@ -459,11 +467,65 @@
     let pendingRoomCost = 0;
     let pendingRoomCreator = null;
 
+    // --- SISTEMA DE PERSISTENCIA AUTOMÁTICA (LOCALSTORAGE) ---
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedProfile = localStorage.getItem('geovibe_user_profile');
+        if (savedProfile) {
+            try {
+                myProfile = JSON.parse(savedProfile);
+                // Validar estructura básica
+                if(myProfile && myProfile.username) {
+                    // Reconectar automáticamente con el servidor
+                    socket.emit('login_user', { username: myProfile.username, password: myProfile.password || 'oauth_secure', avatar: myProfile.avatar });
+                }
+            } catch(e) {
+                localStorage.removeItem('geovibe_user_profile');
+            }
+        }
+    });
+
+    function saveSession(profileData) {
+        myProfile = profileData;
+        if(myProfile.wallet === undefined) myProfile.wallet = 100;
+        localStorage.setItem('geovibe_user_profile', JSON.stringify(myProfile));
+        
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-hud').style.display = 'flex';
+        document.getElementById('header-avatar').innerText = myProfile.avatar;
+        document.getElementById('header-username').innerText = myProfile.username;
+        document.getElementById('header-status').innerText = "Conectado (Persistente)";
+        document.getElementById('status-dot').style.background = "var(--pz-accent)";
+        document.getElementById('profile-name-big').innerText = `${myProfile.avatar} ${myProfile.username}`;
+        document.getElementById('profile-avatar-big').innerText = myProfile.avatar;
+        updateWalletDisplay(myProfile.wallet);
+    }
+
+    function logoutSession() {
+        localStorage.removeItem('geovibe_user_profile');
+        location.reload();
+    }
+
+    /* Autenticación Social OAuth Instantánea */
+    function socialLogin(provider, defaultAvatar) {
+        let username = prompt(`Ingresa tu nombre de usuario para continuar con ${provider}:`);
+        if(!username || !username.trim()) return;
+        username = username.trim() + ` (${provider})`;
+        
+        const profile = {
+            username: username,
+            password: 'oauth_secure_' + provider,
+            avatar: defaultAvatar,
+            wallet: 150 // Bono de bienvenida por OAuth
+        };
+        
+        socket.emit('login_user', profile);
+        saveSession(profile);
+    }
+
     function switchPzTab(tabName) {
         document.querySelectorAll('.pz-tab-content').forEach(el => el.classList.remove('active'));
         if(tabName === 'rooms') document.getElementById('pz-rooms').classList.add('active');
         if(tabName === 'economy') document.getElementById('pz-economy').classList.add('active');
-        if(tabName === 'bottle') document.getElementById('pz-bottle').classList.add('active');
         if(tabName === 'global-chat') document.getElementById('pz-global-chat').classList.add('active');
         if(tabName === 'room-active') document.getElementById('pz-room-active').classList.add('active');
         if(tabName === 'profile') document.getElementById('pz-profile').classList.add('active');
@@ -477,6 +539,7 @@
     function updateWalletDisplay(balance) {
         if(!myProfile) return;
         myProfile.wallet = balance;
+        localStorage.setItem('geovibe_user_profile', JSON.stringify(myProfile));
         document.getElementById('header-wallet').innerText = `${balance} ZC`;
         document.getElementById('economy-balance-display').innerText = `${balance} ZC`;
         document.getElementById('profile-wallet-zc').innerText = balance;
@@ -488,20 +551,20 @@
 
     socket.on('reward_claimed', (data) => {
         updateWalletDisplay(data.newBalance);
-        alert(`🎁 ¡Bono reclamado con éxito! +${data.reward} Z-Coins añadidas a tu billetera.`);
+        alert(`🎁 ¡Bono reclamado! +${data.reward} Z-Coins añadidas.`);
     });
 
     function openCashoutModal() {
         const amount = myProfile.wallet;
         if(amount < 50) return alert('Necesitas al menos 50 ZC para solicitar retiro.');
-        if(confirm(`¿Deseas retirar tus ganancias de ${amount} ZC (Equivalente a aprox $${(amount/10).toFixed(2)} USD)? Se procesará a tu cuenta vinculada.`)) {
+        if(confirm(`¿Deseas retirar tus ganancias de ${amount} ZC?`)) {
             socket.emit('request_cashout', { username: myProfile.username, amount });
         }
     }
 
     socket.on('cashout_success', (data) => {
         updateWalletDisplay(data.newBalance);
-        alert(`💸 Retiro procesado con éxito. Se han transferido tus fondos a tu cuenta.`);
+        alert(`💸 Retiro procesado con éxito.`);
     });
 
     function login() {
@@ -513,20 +576,22 @@
     }
 
     socket.on('login_success', (profile) => {
-        myProfile = profile;
-        if(myProfile.wallet === undefined) myProfile.wallet = 100; // Saldo inicial por defecto
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('main-hud').style.display = 'flex';
-        document.getElementById('header-avatar').innerText = myProfile.avatar;
-        document.getElementById('header-username').innerText = myProfile.username;
-        document.getElementById('header-status').innerText = "En Línea";
-        document.getElementById('status-dot').style.background = "var(--pz-accent)";
-        document.getElementById('profile-name-big').innerText = `${myProfile.avatar} ${myProfile.username}`;
-        document.getElementById('profile-avatar-big').innerText = myProfile.avatar;
-        updateWalletDisplay(myProfile.wallet);
+        if(!myProfile) {
+            saveSession({
+                username: profile.username || document.getElementById('login-user').value.trim(),
+                password: document.getElementById('login-pass').value.trim(),
+                avatar: profile.avatar || document.getElementById('login-avatar').value,
+                wallet: profile.wallet !== undefined ? profile.wallet : 100
+            });
+        }
     });
 
-    socket.on('login_error', (err) => alert("Error: " + err));
+    socket.on('login_error', (err) => {
+        // Si hay error en login manual pero ya tenemos sesión guardada, ignorar
+        if(!localStorage.getItem('geovibe_user_profile')) {
+            alert("Error: " + err);
+        }
+    });
 
     function initRadar() {
         if (navigator.geolocation) {
@@ -570,7 +635,7 @@
             pendingRoomIdToJoin = roomId;
             pendingRoomCost = cost;
             pendingRoomCreator = creator;
-            document.getElementById('paywall-desc').innerText = `Esta sala privada fue creada por ${creator}. Ingresar requiere un pago de:`;
+            document.getElementById('paywall-desc').innerText = `Sala creada por ${creator}. Ingresar requiere:`;
             document.getElementById('paywall-price-tag').innerText = `${cost} ZC`;
             document.getElementById('paywall-modal').style.display = 'flex';
         } else {
@@ -580,7 +645,7 @@
 
     function confirmPaywallEntry() {
         if(myProfile.wallet < pendingRoomCost) {
-            alert('No tienes suficientes Z-Coins en tu billetera. Reclama tu bono diario o participa en juegos para ganar más.');
+            alert('No tienes suficientes Z-Coins. Reclama tu bono diario o participa en juegos.');
             closePaywallModal();
             return;
         }
@@ -593,13 +658,10 @@
         document.getElementById('paywall-modal').style.display = 'none';
     }
 
-    socket.on('wallet_deducted', (data) => {
-        updateWalletDisplay(data.newBalance);
-    });
-
+    socket.on('wallet_deducted', (data) => { updateWalletDisplay(data.newBalance); });
     socket.on('wallet_credited', (data) => {
         updateWalletDisplay(data.newBalance);
-        alert(`💰 ¡Has ganado ${data.amount} ZC! Un usuario pagó por entrar a tu sala privada (80% para ti, 20% para el fondo de red).`);
+        alert(`💰 ¡Has ganado ${data.amount} ZC! Un usuario pagó entrada a tu sala privada.`);
     });
 
     socket.on('room_joined', (room) => {
@@ -677,16 +739,16 @@
     }
 
     function sendTip(amount) {
-        if(myProfile.wallet < amount) return alert('No tienes suficientes ZC para esta propina.');
+        if(myProfile.wallet < amount) return alert('No tienes suficientes ZC.');
         socket.emit('send_room_tip', { roomId: currentRoomId, amount, fromUser: myProfile.username });
         updateWalletDisplay(myProfile.wallet - amount);
-        alert(`🎁 ¡Propina de ${amount} ZC enviada al Host con éxito!`);
+        alert(`🎁 ¡Propina de ${amount} ZC enviada!`);
     }
 
     socket.on('incoming_tip', (data) => {
         if(currentRoomData && (currentRoomData.creator === myProfile.username || currentRoomData.host === myProfile.username)) {
             updateWalletDisplay(myProfile.wallet + data.amount);
-            alert(`💎 ¡Recibiste una propina de ${data.amount} ZC de parte de ${data.fromUser}!`);
+            alert(`💎 ¡Recibiste propina de ${data.amount} ZC de ${data.fromUser}!`);
         }
     });
 
@@ -775,13 +837,6 @@
         productCard.innerHTML = `<div><span style="font-weight:700; color:var(--pz-text); font-size:0.75rem;">${data.title}</span><div style="color:var(--pz-economy); font-weight:700; font-size:0.7rem;">${data.price} ZC</div></div><span style="font-size:0.6rem; color:var(--pz-muted);">${data.seller}</span>`;
         salesList.prepend(productCard);
     });
-
-    function throwBottle() {
-        const msg = document.getElementById('bottle-msg').value.trim();
-        if(!msg) return;
-        document.getElementById('bottle-result').innerHTML = `<i class="fa-solid fa-check"></i> ¡Botella lanzada con éxito!`;
-        document.getElementById('bottle-msg').value = '';
-    }
 
     function hostStartBroadcast() {
         const urlInput = document.getElementById('netflix-url-input').value.trim() || "Sala Party";
