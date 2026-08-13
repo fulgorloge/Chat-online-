@@ -492,11 +492,11 @@
     </div>
 </div>
 
-<!-- MODAL COMPRA ZC (CON REDIRECCIÓN A STRIPE REAL) -->
+<!-- MODAL COMPRA ZC (FORZADO A STRIPE REAL) -->
 <div id="buy-coins-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:3000; justify-content:center; align-items:center;">
     <div class="pz-card" style="width: 90%; max-width: 320px; border-color: var(--pz-primary);">
         <h2><i class="fa-solid fa-cart-shopping" style="color: var(--pz-primary);"></i> Comprar Z-Coins</h2>
-        <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Selecciona un paquete y método de pago para recargar:</p>
+        <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Selecciona un paquete para procesar el pago real por Stripe:</p>
         
         <label>Seleccionar Paquete</label>
         <select id="buy-package-select" style="margin-bottom:6px;">
@@ -505,15 +505,7 @@
             <option value="1200|95">1,200 ZC - $95.00 USD (Master)</option>
         </select>
 
-        <label>Método de Pago</label>
-        <select id="buy-method-select" style="margin-bottom:8px;">
-            <option value="Tarjeta Crédito / Débito">💳 Tarjeta Crédito / Débito (Stripe Real)</option>
-            <option value="PayPal">🅿️ PayPal</option>
-            <option value="PSE / Transferencia Bancaria">🏦 Transferencia Bancaria (PSE)</option>
-            <option value="Crypto (USDT)">⚡ Criptomoneda (USDT)</option>
-        </select>
-
-        <button onclick="executeBackendCheckout()" style="background: var(--pz-primary); font-weight: 700;"><i class="fa-solid fa-credit-card"></i> Pagar Ahora</button>
+        <button onclick="executeBackendCheckout()" style="background: var(--pz-primary); font-weight: 700; margin-top: 8px;"><i class="fa-solid fa-credit-card"></i> Pagar con Tarjeta (Stripe)</button>
         <button onclick="closeBuyModal()" style="background: rgba(255,255,255,0.05); margin-top: 4px; box-shadow:none;">Cerrar</button>
     </div>
 </div>
@@ -546,7 +538,6 @@
             }
         }
 
-        // Detección automática al volver de un pago exitoso por Stripe
         const urlParams = new URLSearchParams(window.location.search);
         if(urlParams.get('payment') === 'success') {
             const addedZc = urlParams.get('zc');
@@ -715,35 +706,33 @@
         document.getElementById('buy-coins-modal').style.display = 'none';
     }
 
+    // FUNCIÓN DE CHECKOUT FORZADA A STRIPE REAL
     async function executeBackendCheckout() {
         const packageVal = document.getElementById('buy-package-select').value.split('|');
         const zcAmount = parseInt(packageVal[0]);
         const priceUSD = parseFloat(packageVal[1]);
-        const paymentMethod = document.getElementById('buy-method-select').value;
 
-        if (paymentMethod.includes('Tarjeta')) {
-            try {
-                const response = await fetch('/api/create-stripe-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        username: myProfile.username,
-                        zcAmount: zcAmount,
-                        priceUSD: priceUSD
-                    })
-                });
+        try {
+            const response = await fetch('/api/create-stripe-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: myProfile.username,
+                    zcAmount: zcAmount,
+                    priceUSD: priceUSD
+                })
+            });
 
-                const result = await response.json();
-                if(result.success && result.url) {
-                    window.location.href = result.url;
-                } else {
-                    alert('Error al iniciar la pasarela de pago: ' + (result.error || 'Desconocido'));
-                }
-            } catch(e) {
-                alert('Error de conexión con el servidor de pagos.');
+            const result = await response.json();
+            
+            if (result.success && result.url) {
+                window.location.href = result.url;
+            } else {
+                alert('Error al iniciar la pasarela de pago: ' + (result.error || 'Clave de Stripe no configurada o inválida'));
             }
-        } else {
-            alert(`Redirigiendo a pasarela ${paymentMethod}...`);
+        } catch (e) {
+            alert('Error de conexión con el servidor backend.');
+            console.error(e);
         }
     }
 
