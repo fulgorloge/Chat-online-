@@ -5,14 +5,19 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
-
-app.use(express.static(path.join(__dirname, 'public')));
+const io = new Server(server, {
+    cors: {
+        origin: "*", // Permite conexiones desde tu frontend en Netlify
+        methods: ["GET", "POST"]
+    }
+});
 
 const activeUsers = new Map();
 const activeRooms = new Map();
 
 io.on('connection', (socket) => {
+    console.log(`Usuario conectado: ${socket.id}`);
+
     socket.on('update_location', (data) => {
         activeUsers.set(socket.id, { ...data, id: socket.id });
         io.emit('rooms_list', Array.from(activeRooms.values()));
@@ -29,8 +34,10 @@ io.on('connection', (socket) => {
 
     socket.on('join_room', (roomId) => {
         socket.join(roomId);
-        activeRooms.get(roomId).members.push(socket.id);
-        socket.emit('room_joined', activeRooms.get(roomId));
+        if(activeRooms.has(roomId)) {
+            activeRooms.get(roomId).members.push(socket.id);
+            socket.emit('room_joined', activeRooms.get(roomId));
+        }
     });
 
     socket.on('chat_msg', ({ roomId, msg, user }) => {
@@ -42,4 +49,5 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, () => console.log('Server running on http://localhost:3000'));
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
