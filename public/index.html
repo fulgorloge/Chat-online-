@@ -1,236 +1,290 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GeoVibe | Radar & Music Chat</title>
     <!-- Iconos FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        darkbg: '#08080a',
-                        cardbg: 'rgba(18, 18, 24, 0.85)',
-                        emeraldGlow: '#10b981',
-                    }
-                }
-            }
-        }
-    </script>
     <!-- Socket.io -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: #060608;
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.08) 0px, transparent 50%);
-            background-attachment: fixed;
             color: #f1f5f9;
+            min-height: 100vh;
+            padding: 16px;
         }
 
-        .glass-card {
-            background: rgba(15, 15, 20, 0.75);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+        header {
+            max-width: 800px;
+            margin: 0 auto 24px auto;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        header p {
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card {
+            background: rgba(18, 18, 24, 0.9);
             border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
         }
 
-        .glow-btn {
-            box-shadow: 0 0 20px -3px rgba(16, 185, 129, 0.4);
+        .card h2 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #10b981;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .glow-btn:hover {
-            box-shadow: 0 0 25px 0px rgba(16, 185, 129, 0.6);
+        input {
+            width: 100%;
+            background: #000000;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #fff;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            outline: none;
+            font-family: inherit;
         }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #08080a; }
-        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+        input:focus {
+            border-color: #10b981;
+        }
+
+        button {
+            width: 100%;
+            background: linear-gradient(to right, #10b981, #0d9488);
+            color: #030712;
+            border: none;
+            border-radius: 12px;
+            padding: 12px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            font-family: inherit;
+        }
+
+        button:active {
+            opacity: 0.8;
+        }
+
+        .secondary-btn {
+            background: #1e293b;
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .danger-btn {
+            background: rgba(244, 63, 94, 0.1);
+            color: #fb7185;
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            width: auto;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
+        .room-item {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .room-item h3 {
+            font-size: 0.95rem;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .room-item p {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+
+        .room-item button {
+            width: auto;
+            padding: 8px 16px;
+            font-size: 0.8rem;
+        }
+
+        #active-chat-room {
+            display: none;
+            flex-direction: column;
+            height: 500px;
+        }
+
+        #chat-messages {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 12px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .msg-bubble {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .msg-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+            color: #10b981;
+            font-weight: 700;
+        }
+
+        .msg-time {
+            color: #64748b;
+            font-weight: 400;
+        }
+
+        .msg-text {
+            font-size: 0.85rem;
+            color: #e2e8f0;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-row input {
+            margin-bottom: 0;
+        }
+
+        .chat-input-row button {
+            width: 80px;
+            margin-bottom: 0;
+        }
+
+        .hidden { display: none !important; }
     </style>
 </head>
-<body class="min-h-screen pb-10">
+<body>
 
-    <!-- Top Navigation Bar -->
-    <nav class="sticky top-0 z-50 glass-card border-b border-white/5 px-4 py-3.5 mb-6">
-        <div class="max-w-5xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center text-black font-black shadow-lg shadow-emerald-500/20">
-                    <i class="fa-solid fa-location-dot text-lg"></i>
-                </div>
-                <div>
-                    <h1 class="text-lg font-black tracking-tight bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">GeoVibe</h1>
-                    <p class="text-[10px] text-slate-400 font-medium">Radar de Proximidad & Chat</p>
-                </div>
-            </div>
-            <div id="status-badge" class="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span id="status-text">Conectando...</span>
-            </div>
-        </div>
-    </nav>
+    <header>
+        <h1>GeoVibe</h1>
+        <p>Radar de Proximidad & Chat Musical</p>
+    </header>
 
-    <!-- Main Container -->
-    <main class="max-w-5xl mx-auto px-4 grid grid-cols-1 md:grid-cols-12 gap-6">
-
-        <!-- Panel Izquierdo: Perfil y Usuarios Cercanos (4 cols) -->
-        <div class="md:col-span-5 space-y-6">
+    <div class="container">
+        
+        <!-- Vista Principal: Perfil y Salas -->
+        <div id="main-view" style="display: flex; flex-direction: column; gap: 16px;">
             
-            <!-- Tarjeta Perfil -->
-            <div class="glass-card rounded-2xl p-5 shadow-2xl relative overflow-hidden">
-                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl"></div>
-                
-                <h2 class="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-user-gear"></i> Tu Identidad
-                </h2>
-
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-xs text-slate-400 mb-1.5 block font-medium">Apodo en el Radar</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-at absolute left-3.5 top-3.5 text-slate-500 text-sm"></i>
-                            <input type="text" id="username" placeholder="Escribe tu apodo..." class="w-full bg-black/50 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition font-medium">
-                        </div>
-                    </div>
-
-                    <button id="btn-init" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold py-3 rounded-xl text-sm transition-all duration-300 flex items-center justify-center gap-2 glow-btn">
-                        <i class="fa-solid fa-crosshairs text-base"></i> Activar Radar GPS
-                    </button>
-                </div>
-            </div>
-
-            <!-- Tarjeta Radar de Usuarios Cerca -->
-            <div class="glass-card rounded-2xl p-5 shadow-2xl">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xs font-bold text-emerald-400 uppercase tracking-widest flex items-center gap-2">
-                        <i class="fa-solid fa-radar animate-spin" style="animation-duration: 8s;"></i> Personas Cercanas
-                    </h2>
-                    <span class="text-[10px] bg-white/5 border border-white/10 px-2 py-0.5 rounded-md text-slate-400">&lt; 10 km</span>
-                </div>
-
-                <div id="nearby-list" class="space-y-2.5 max-h-48 overflow-y-auto pr-1">
-                    <div class="text-center py-6 text-slate-500 text-xs">
-                        <i class="fa-solid fa-location-crosshairs text-2xl mb-2 text-slate-600 block"></i>
-                        Activa tu ubicación para detectar personas a tu alrededor.
-                    </div>
-                </div>
+            <!-- Perfil -->
+            <div class="card">
+                <h2><i class="fa-solid fa-user-gear"></i> Tu Identidad</h2>
+                <input type="text" id="username" placeholder="Escribe tu apodo...">
+                <button id="btn-init"><i class="fa-solid fa-crosshairs"></i> Activar Radar GPS</button>
             </div>
 
             <!-- Crear Sala -->
-            <div class="glass-card rounded-2xl p-5 shadow-2xl">
-                <h2 class="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-plus-circle"></i> Crear Nueva Sala
-                </h2>
+            <div class="card">
+                <h2><i class="fa-solid fa-plus-circle"></i> Crear Sala Musical</h2>
+                <input type="text" id="room-name-input" placeholder="Nombre de la sala (ej: Techno Zone)">
+                <input type="text" id="spotify-uri-input" placeholder="ID canción Spotify (opcional)">
+                <button id="btn-create-room" class="secondary-btn"><i class="fa-solid fa-music"></i> Crear y Entrar</button>
+            </div>
 
-                <div class="space-y-3">
-                    <input type="text" id="room-name-input" placeholder="Nombre de la sala (ej: Techno Zone)" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 transition">
-                    <input type="text" id="spotify-uri-input" placeholder="ID canción de Spotify (opcional)" class="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 transition">
-                    
-                    <button id="btn-create-room" class="w-full bg-slate-800 hover:bg-slate-700 border border-white/10 text-emerald-400 font-semibold py-2.5 rounded-xl text-sm transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-music"></i> Crear Sala Musical
-                    </button>
+            <!-- Lista de Salas -->
+            <div class="card">
+                <h2><i class="fa-solid fa-comments"></i> Salas Activas</h2>
+                <div id="rooms-container">
+                    <p style="color: #64748b; font-size: 0.85rem; text-align: center; padding: 20px;">No hay salas activas. ¡Crea una!</p>
                 </div>
             </div>
 
         </div>
 
-        <!-- Panel Derecho: Lista de Salas / Chat Activo (7 cols) -->
-        <div class="md:col-span-7">
-            
-            <!-- Vista 1: Explorador de Salas -->
-            <div id="rooms-explorer" class="glass-card rounded-2xl p-6 shadow-2xl min-h-[480px] flex flex-col">
-                <div class="flex justify-between items-center mb-6 pb-4 border-b border-white/5">
-                    <div>
-                        <h2 class="text-base font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-comments text-emerald-400"></i> Salas Activas
-                        </h2>
-                        <p class="text-xs text-slate-400">Únete a una sala disponible para chatear y escuchar música</p>
-                    </div>
-                </div>
-
-                <div id="rooms-container" class="grid grid-cols-1 gap-3.5 flex-1">
-                    <div class="text-center py-16 text-slate-500 text-sm flex flex-col items-center justify-center">
-                        <i class="fa-solid fa-ghost text-4xl mb-3 text-slate-700"></i>
-                        No hay salas creadas en este momento. ¡Sé el primero en crear una!
-                    </div>
-                </div>
+        <!-- Vista de Chat Activo -->
+        <div id="active-chat-room" class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <h2 id="room-title-display" style="margin-bottom: 0;">Sala de Chat</h2>
+                <button id="btn-leave-room" class="danger-btn">Salir <i class="fa-solid fa-arrow-right-from-bracket"></i></button>
             </div>
 
-            <!-- Vista 2: Sala de Chat Activa (Oculta por defecto) -->
-            <div id="active-chat-room" class="hidden glass-card rounded-2xl p-5 shadow-2xl h-[560px] flex flex-col">
-                
-                <!-- Room Header -->
-                <div class="flex justify-between items-center pb-4 mb-3 border-b border-white/10">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold">
-                            <i class="fa-solid fa-compact-disc text-lg animate-spin" style="animation-duration: 4s;"></i>
-                        </div>
-                        <div>
-                            <h2 id="room-title-display" class="font-bold text-white text-base">Nombre de la Sala</h2>
-                            <p class="text-[11px] text-emerald-400 flex items-center gap-1">
-                                <i class="fa-solid fa-circle text-[6px]"></i> En vivo con Spotify
-                            </p>
-                        </div>
-                    </div>
-                    <button id="btn-leave-room" class="bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white border border-rose-500/20 px-3 py-1.5 rounded-xl text-xs font-semibold transition">
-                        Salir <i class="fa-solid fa-arrow-right-from-bracket ml-1"></i>
-                    </button>
-                </div>
-
-                <!-- Reproductor de Spotify Integrado -->
-                <div id="spotify-widget-container" class="mb-3">
-                    <iframe id="spotify-player" style="border-radius:12px" src="" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-                </div>
-
-                <!-- Chat Stream -->
-                <div id="chat-messages" class="flex-1 bg-black/40 border border-white/5 rounded-xl p-3.5 overflow-y-auto space-y-3 mb-3 text-sm">
-                    <div class="text-center text-xs text-slate-500 italic py-2">
-                        Te has unido a la sala. Escribe un mensaje para empezar.
-                    </div>
-                </div>
-
-                <!-- Chat Input Bar -->
-                <div class="flex gap-2">
-                    <input type="text" id="chat-msg-input" placeholder="Escribe un mensaje..." class="flex-1 bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 transition">
-                    <button id="btn-send-msg" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-sm transition flex items-center gap-1.5 glow-btn">
-                        <i class="fa-solid fa-paper-plane"></i>
-                    </button>
-                </div>
-
+            <!-- Reproductor Spotify -->
+            <div style="margin-bottom: 12px;">
+                <iframe id="spotify-player" style="border-radius:12px" src="" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
             </div>
 
+            <!-- Mensajes -->
+            <div id="chat-messages">
+                <div style="text-align: center; color: #64748b; font-size: 0.8rem; padding: 10px;">Te has unido a la sala. ¡Escribe un mensaje!</div>
+            </div>
+
+            <!-- Input Mensaje -->
+            <div class="chat-input-row">
+                <input type="text" id="chat-msg-input" placeholder="Escribe un mensaje...">
+                <button id="btn-send-msg"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
         </div>
 
-    </main>
+    </div>
 
     <script>
-        // Servidor Backend desplegado en Render
         const BACKEND_URL = "https://chat-online-110g.onrender.com"; 
         const socket = io(BACKEND_URL);
 
         let currentRoomId = null;
 
-        // Elementos DOM
-        const statusBadge = document.getElementById('status-badge');
-        const statusText = document.getElementById('status-text');
         const usernameInput = document.getElementById('username');
         const btnInit = document.getElementById('btn-init');
-        const nearbyList = document.getElementById('nearby-list');
         const roomsContainer = document.getElementById('rooms-container');
         const btnCreateRoom = document.getElementById('btn-create-room');
         const roomNameInput = document.getElementById('room-name-input');
         const spotifyUriInput = document.getElementById('spotify-uri-input');
         
-        const roomsExplorer = document.getElementById('rooms-explorer');
+        const mainView = document.getElementById('main-view');
         const activeChatRoom = document.getElementById('active-chat-room');
         const roomTitleDisplay = document.getElementById('room-title-display');
         const spotifyPlayer = document.getElementById('spotify-player');
@@ -239,65 +293,43 @@
         const btnSendMsg = document.getElementById('btn-send-msg');
         const btnLeaveRoom = document.getElementById('btn-leave-room');
 
-        // Estado de conexión
-        socket.on('connect', () => {
-            statusText.textContent = "Conectado al Servidor";
-        });
-
-        socket.on('disconnect', () => {
-            statusBadge.className = "flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold";
-            statusText.textContent = "Desconectado";
-        });
-
-        // Activar GPS y compartir ubicación
         btnInit.onclick = () => {
             const name = usernameInput.value.trim() || 'Viajero_' + Math.floor(Math.random() * 1000);
-            
             if (navigator.geolocation) {
-                btnInit.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Obteniendo GPS...`;
+                btnInit.textContent = "Obteniendo GPS...";
                 navigator.geolocation.getCurrentPosition(pos => {
                     socket.emit('update_location', { 
                         lat: pos.coords.latitude, 
                         lng: pos.coords.longitude,
                         username: name 
                     });
-                    btnInit.innerHTML = `<i class="fa-solid fa-check"></i> Radar Activo`;
-                    btnInit.className = "w-full bg-slate-800 text-emerald-400 font-bold py-3 rounded-xl text-sm border border-emerald-500/30 flex items-center justify-center gap-2";
+                    btnInit.textContent = "✓ Radar Activo";
+                    btnInit.style.background = "#1e293b";
+                    btnInit.style.color = "#34d399";
                 }, () => {
-                    alert('Por favor permite el acceso a la ubicación para ver personas cercanas.');
-                    btnInit.innerHTML = `<i class="fa-solid fa-crosshairs"></i> Reintentar GPS`;
+                    alert('Permite el acceso a la ubicación.');
+                    btnInit.textContent = "Reintentar GPS";
                 });
             }
         };
 
-        // Escuchar lista de salas
         socket.on('rooms_list', rooms => {
             if (rooms.length === 0) {
-                roomsContainer.innerHTML = `
-                    <div class="text-center py-16 text-slate-500 text-sm flex flex-col items-center justify-center">
-                        <i class="fa-solid fa-ghost text-4xl mb-3 text-slate-700"></i>
-                        No hay salas activas. ¡Crea una tú mismo!
-                    </div>
-                `;
+                roomsContainer.innerHTML = '<p style="color: #64748b; font-size: 0.85rem; text-align: center; padding: 20px;">No hay salas activas. ¡Crea una!</p>';
                 return;
             }
 
             roomsContainer.innerHTML = rooms.map(r => `
-                <div class="bg-black/40 border border-white/5 p-4 rounded-xl flex justify-between items-center hover:border-emerald-500/30 transition">
+                <div class="room-item">
                     <div>
-                        <h3 class="font-bold text-white text-sm">${r.name}</h3>
-                        <p class="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-                            <i class="fa-solid fa-users text-[10px] text-emerald-400"></i> ${r.members ? r.members.length : 1} miembros
-                        </p>
+                        <h3>${r.name}</h3>
+                        <p>${r.members ? r.members.length : 1} miembros</p>
                     </div>
-                    <button onclick="joinRoom('${r.id}')" class="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 border border-emerald-500/30 px-4 py-2 rounded-xl text-xs font-bold transition">
-                        Unirse
-                    </button>
+                    <button onclick="joinRoom('${r.id}')">Unirse</button>
                 </div>
             `).join('');
         });
 
-        // Crear Sala
         btnCreateRoom.onclick = () => {
             const roomName = roomNameInput.value.trim() || 'Sala Musical';
             const trackUri = spotifyUriInput.value.trim() || '4cOdK2wGLETKBW3PvgPWqT';
@@ -318,15 +350,14 @@
 
         function enterRoomUI(room) {
             currentRoomId = room.id;
-            roomsExplorer.classList.add('hidden');
-            activeChatRoom.classList.remove('hidden');
+            mainView.style.display = 'none';
+            activeChatRoom.style.display = 'flex';
             roomTitleDisplay.textContent = room.name;
 
             const cleanTrack = room.trackUri ? room.trackUri.replace('spotify:track:', '') : '4cOdK2wGLETKBW3PvgPWqT';
             spotifyPlayer.src = `https://open.spotify.com/embed/track/${cleanTrack}?utm_source=generator&theme=0`;
         }
 
-        // Chat
         btnSendMsg.onclick = sendMsg;
         chatMsgInput.onkeypress = (e) => { if (e.key === 'Enter') sendMsg(); };
 
@@ -341,12 +372,12 @@
 
         socket.on('new_msg', data => {
             chatMessages.innerHTML += `
-                <div class="bg-white/5 border border-white/5 rounded-xl p-2.5">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-bold text-xs text-emerald-400">${data.user}</span>
-                        <span class="text-[10px] text-slate-500">${data.time}</span>
+                <div class="msg-bubble">
+                    <div class="msg-header">
+                        <span>${data.user}</span>
+                        <span class="msg-time">${data.time}</span>
                     </div>
-                    <p class="text-slate-200 text-sm">${data.msg}</p>
+                    <div class="msg-text">${data.msg}</div>
                 </div>
             `;
             chatMessages.scrollTop = chatMessages.scrollHeight;
