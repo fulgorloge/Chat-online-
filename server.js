@@ -124,13 +124,13 @@ io.on('connection', (socket) => {
     socket.on('create_room', (data) => {
         const roomId = Math.random().toString(36).substring(7);
         const initialTrack = data.trackUri || '4cOdK2wGLETKBW3PvgPWqT';
-        const isPrivate = data.isPrivate || false;
-        const entryCost = data.entryCost || 0;
+        const isPrivate = Boolean(data.isPrivate);
+        const entryCost = parseInt(data.entryCost) || 0;
         const creator = data.creator || (socket.userProfile ? socket.userProfile.username : 'Anónimo');
         
         rooms[roomId] = { 
-            name: data.name, 
-            members: { [socket.id]: socket.userData || { username: creator } }, 
+            name: data.name || 'Sala Operativa', 
+            members: { [socket.id]: socket.userData || { username: creator, avatar: socket.userProfile ? socket.userProfile.avatar : '🎧' } }, 
             playlist: [initialTrack], 
             currentTrackIndex: 0,
             isPrivate,
