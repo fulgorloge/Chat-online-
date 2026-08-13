@@ -3,51 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoVibe | Music Hub</title>
+    <title>GeoVibe | Music Hub Pro</title>
+    <!-- Librerías Necesarias -->
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body { background: #0f172a; color: white; font-family: sans-serif; padding: 20px; }
         .card { background: #1e293b; padding: 20px; border-radius: 20px; margin-bottom: 15px; }
-        .msg { background: #334155; padding: 10px; border-radius: 10px; margin: 5px 0; }
-        input { width: 100%; padding: 10px; margin: 5px 0; border-radius: 8px; border: none; }
-        button { width: 100%; padding: 10px; background: #10b981; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .msg { background: #334155; padding: 10px; border-radius: 10px; margin: 5px 0; font-size: 0.9rem; }
+        input { width: 100%; padding: 10px; margin: 5px 0; border-radius: 8px; border: none; background: #0f172a; color: white; }
+        button { width: 100%; padding: 10px; background: #10b981; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 5px; }
+        #map { height: 200px; border-radius: 15px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-<div id="app">
+<div id="app" style="max-width: 500px; margin: auto;">
+    <!-- Setup Inicial -->
     <div id="setup" class="card">
         <h2>GeoVibe 🌍</h2>
         <input type="text" id="username" placeholder="Tu Apodo">
         <button onclick="start()">Entrar al Radar</button>
     </div>
 
+    <!-- UI Principal -->
     <div id="chat-ui" style="display:none;">
         <div class="card">
-            <h3 id="room-title">Mi Sala</h3>
-            <iframe id="spotify-player" src="" width="100%" height="80" frameborder="0"></iframe>
-            <input type="text" id="song-input" placeholder="ID de canción Spotify (ej: 4cOdK2wGLETKBW3PvgPWqT)">
+            <h3 id="room-title">Mi Sala Musical</h3>
+            <div id="map"></div>
+            <iframe id="spotify-player" src="" width="100%" height="80" frameborder="0" style="border-radius: 10px;"></iframe>
+            <input type="text" id="song-input" placeholder="ID de Spotify...">
             <button onclick="addSong()" style="background:#1db954;">Añadir Canción</button>
         </div>
+
         <div id="chat-box" class="card" style="height: 200px; overflow-y: auto;"></div>
         <input type="text" id="msg-input" placeholder="Mensaje...">
         <button onclick="sendMsg()">Enviar Mensaje</button>
+        <button onclick="toggleMic()" style="background:#8b5cf6;">🎤 Nota de Voz</button>
+
+        <div class="card">
+            <h2>🎟 Ticket QR</h2>
+            <div id="qrcode" style="display:flex; justify-content:center; padding: 10px;"></div>
+        </div>
+
+        <div class="card">
+            <h2>📊 Energía de la Sala</h2>
+            <canvas id="energyChart"></canvas>
+        </div>
     </div>
 </div>
 
 <script>
-    const socket = io("https://tu-backend-en-render.onrender.com");
+    const socket = io("https://chat-online-110g.onrender.com");
     let currentRoomId = "global";
+    let map, mediaRecorder, audioChunks = [];
 
+    // Inicialización del Radar y Mapa
     function start() {
         const name = document.getElementById('username').value;
         navigator.geolocation.getCurrentPosition(pos => {
             socket.emit('update_location', { username: name, lat: pos.coords.latitude, lng: pos.coords.longitude });
             document.getElementById('setup').style.display = 'none';
             document.getElementById('chat-ui').style.display = 'block';
+            
+            // Iniciar Mapa
+            map = L.map('map').setView([pos.coords.latitude, pos.coords.longitude], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            L.marker([pos.coords.latitude, pos.coords.longitude]).addTo(map).bindPopup("Tú");
+
+            // Generar QR
+            new QRCode(document.getElementById("qrcode"), `GeoVibe-Ticket:${name}`);
         });
     }
 
+    // Funciones Musicales
     function addSong() {
         const uri = document.getElementById('song-input').value;
         socket.emit('add_song', { roomId: currentRoomId, uri });
@@ -57,15 +89,35 @@
         document.getElementById('spotify-player').src = `https://open.spotify.com/embed/track/${uri}`;
     });
 
+    // Chat y Voz
     function sendMsg() {
         const msg = document.getElementById('msg-input').value;
         socket.emit('chat_msg', { roomId: currentRoomId, msg, user: document.getElementById('username').value });
         document.getElementById('msg-input').value = '';
     }
 
+    async function toggleMic() {
+        if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            audioChunks = [];
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = () => socket.emit('send_voice', { roomId: currentRoomId, audioBlob: new Blob(audioChunks) });
+        } else { mediaRecorder.stop(); }
+    }
+
     socket.on('new_msg', (data) => {
-        const box = document.getElementById('chat-box');
-        box.innerHTML += `<div class="msg"><b>${data.user}:</b> ${data.msg}</div>`;
+        document.getElementById('chat-box').innerHTML += `<div class="msg"><b>${data.user}:</b> ${data.msg}</div>`;
+    });
+
+    // Gráfica de Energía
+    const ctx = document.getElementById('energyChart').getContext('2d');
+    const chart = new Chart(ctx, { type: 'line', data: { labels: [], datasets: [{ label: 'Actividad', data: [], borderColor: '#10b981' }] } });
+    socket.on('update_stats', (val) => {
+        chart.data.labels.push(new Date().toLocaleTimeString().slice(-8));
+        chart.data.datasets[0].data.push(val);
+        chart.update();
     });
 </script>
 </body>
