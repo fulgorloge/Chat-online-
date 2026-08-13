@@ -126,7 +126,6 @@
         .pz-list-item:hover { background: rgba(6, 182, 212, 0.03); border-color: var(--pz-border-glow); }
         .pz-list-item button { width: auto; padding: 3px 8px; font-size: 0.65rem; margin: 0; box-shadow: none; }
 
-        /* Estilos del Muro Estilo Instagram */
         .ig-post-card {
             background: var(--pz-surface); border: 1px solid var(--pz-border);
             border-radius: 10px; margin-bottom: 10px; overflow: hidden;
@@ -302,11 +301,11 @@
             </div>
         </div>
 
-        <!-- VISTA B: ECONOMÍA, BANCO ZC & MERCADO P2P (COMPRA Y VENTA DE MONEDAS) -->
+        <!-- VISTA B: ECONOMÍA, BANCO ZC & PASARELA DE PAGO (COMPRA DE MONEDAS) -->
         <div id="pz-economy" class="pz-tab-content">
             <div class="pz-card" style="border-color: var(--pz-economy);">
-                <h2><i class="fa-solid fa-vault" style="color: var(--pz-economy);"></i> Banco Central & Mercado P2P</h2>
-                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Compra ZC con dinero real o publica tus propias ofertas para vender monedas a otros usuarios de forma segura.</p>
+                <h2><i class="fa-solid fa-vault" style="color: var(--pz-economy);"></i> Banco Central & Recargas ZC</h2>
+                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Adquiere Z-Coins mediante pasarela de pago segura o reclama tu bono diario.</p>
                 
                 <div style="background: rgba(234,179,8,0.08); border: 1px solid var(--pz-economy); border-radius: 8px; padding: 10px; text-align: center; margin-bottom: 8px;">
                     <span style="font-size: 0.65rem; color: var(--pz-muted); text-transform: uppercase;">Saldo Actual en Billetera</span>
@@ -314,20 +313,9 @@
                     <span style="font-size: 0.6rem; color: #34d399;">Tasa: 10 ZC = USD $1.00</span>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 4px;">
                     <button onclick="claimDailyReward()" style="background:var(--pz-accent); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-gift"></i> Bono Diario</button>
                     <button onclick="openBuyModal()" style="background:var(--pz-primary); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-cart-shopping"></i> Comprar ZC</button>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 8px;">
-                    <button onclick="openSellModal()" style="background:var(--pz-sales); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-store"></i> Publicar Oferta de Venta P2P</button>
-                </div>
-            </div>
-
-            <!-- SECCIÓN DE OFERTAS P2P ACTIVAS -->
-            <div class="pz-card">
-                <h2><i class="fa-solid fa-handshake"></i> Mercado P2P (Ofertas de la Comunidad)</h2>
-                <div id="p2p-market-container" style="max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
-                    <p style="text-align: center; color: var(--pz-muted); font-size: 0.7rem;">Cargando ofertas de cambio...</p>
                 </div>
             </div>
         </div>
@@ -510,50 +498,34 @@
     </div>
 </div>
 
-<!-- MODAL PARA COMPRAR MONEDAS ZC -->
+<!-- MODAL PARA COMPRAR MONEDAS ZC (CON PASARELA DE PAGO REST) -->
 <div id="buy-coins-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:3000; justify-content:center; align-items:center;">
     <div class="pz-card" style="width: 90%; max-width: 320px; border-color: var(--pz-primary);">
         <h2><i class="fa-solid fa-cart-shopping" style="color: var(--pz-primary);"></i> Comprar Z-Coins</h2>
-        <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Selecciona un paquete para recargar tu saldo instantáneamente:</p>
+        <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Selecciona un paquete y método de pago para recargar:</p>
         
-        <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
-            <div class="pz-list-item" onclick="buyCoinsPackage(100, 10)" style="cursor:pointer;">
-                <div><b>100 ZC</b><div style="font-size:0.6rem; color:var(--pz-muted);">Paquete Básico</div></div>
-                <span style="color:var(--pz-economy); font-weight:700;">$10.00 USD</span>
-            </div>
-            <div class="pz-list-item" onclick="buyCoinsPackage(500, 45)" style="cursor:pointer; border-color:var(--pz-economy);">
-                <div><b>500 ZC</b><div style="font-size:0.6rem; color:var(--pz-economy);">Paquete Pro (10% Dto)</div></div>
-                <span style="color:var(--pz-economy); font-weight:700;">$45.00 USD</span>
-            </div>
-            <div class="pz-list-item" onclick="buyCoinsPackage(1200, 95)" style="cursor:pointer; border-color:var(--pz-neon);">
-                <div><b>1,200 ZC</b><div style="font-size:0.6rem; color:var(--pz-neon);">Paquete Master (20% Dto)</div></div>
-                <span style="color:var(--pz-economy); font-weight:700;">$95.00 USD</span>
-            </div>
-        </div>
+        <label>Seleccionar Paquete</label>
+        <select id="buy-package-select" style="margin-bottom:6px;">
+            <option value="100|10">100 ZC - $10.00 USD (Básico)</option>
+            <option value="500|45">500 ZC - $45.00 USD (Pro)</option>
+            <option value="1200|95">1,200 ZC - $95.00 USD (Master)</option>
+        </select>
 
+        <label>Método de Pago</label>
+        <select id="buy-method-select" style="margin-bottom:8px;">
+            <option value="Tarjeta Crédito / Débito">💳 Tarjeta Crédito / Débito</option>
+            <option value="PayPal">🅿️ PayPal</option>
+            <option value="PSE / Transferencia Bancaria">🏦 Transferencia Bancaria (PSE)</option>
+            <option value="Crypto (USDT)">⚡ Criptomoneda (USDT)</option>
+        </select>
+
+        <button onclick="executeBackendCheckout()" style="background: var(--pz-primary); font-weight: 700;"><i class="fa-solid fa-credit-card"></i> Pagar Ahora</button>
         <button onclick="closeBuyModal()" style="background: rgba(255,255,255,0.05); margin-top: 4px; box-shadow:none;">Cerrar</button>
     </div>
 </div>
 
-<!-- MODAL PARA PUBLICAR OFERTA DE VENTA P2P -->
-<div id="sell-coins-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:3000; justify-content:center; align-items:center;">
-    <div class="pz-card" style="width: 90%; max-width: 320px; border-color: var(--pz-sales);">
-        <h2><i class="fa-solid fa-store" style="color: var(--pz-sales);"></i> Vender ZC (Mercado P2P)</h2>
-        <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Pon a la venta tus Z-Coins para que otros usuarios las compren:</p>
-        
-        <label>Cantidad de ZC a Vender</label>
-        <input type="number" id="p2p-sell-amount" placeholder="Ej: 50" style="margin-bottom:6px;">
-        
-        <label>Precio en USD ($)</label>
-        <input type="number" id="p2p-sell-price" placeholder="Ej: 5.00" style="margin-bottom:6px;">
-        
-        <button onclick="submitP2PSellOffer()" style="background: var(--pz-sales); font-weight: 700;"><i class="fa-solid fa-bullhorn"></i> Publicar Oferta</button>
-        <button onclick="closeSellModal()" style="background: rgba(255,255,255,0.05); margin-top: 4px; box-shadow:none;">Cancelar</button>
-    </div>
-</div>
-
 <script>
-    const socket = io("https://chat-online-110g.onrender.com");
+    const socket = io(); // Conectado al mismo servidor backend actual
     let currentRoomId = null;
     let myProfile = null;
     let currentRoomData = null;
@@ -564,16 +536,14 @@
     let pendingRoomCreator = null;
     let tempIgMediaData = null;
     let igPostsStore = [];
-    let p2pOffersStore = [];
     let isRegisterMode = false;
 
-    // --- SISTEMA DE PERSISTENCIA Y REGISTRO REAL ---
     window.addEventListener('DOMContentLoaded', () => {
         const activeSession = localStorage.getItem('geovibe_active_session');
         if (activeSession) {
             try {
                 myProfile = JSON.parse(activeSession);
-                if(myProfile && myProfile.email) {
+                if(myProfile && myProfile.username) {
                     activateUserHud(myProfile);
                     socket.emit('login_user', { username: myProfile.username, password: myProfile.password, avatar: myProfile.avatar });
                 }
@@ -581,7 +551,6 @@
                 localStorage.removeItem('geovibe_active_session');
             }
         }
-        loadP2POffers();
     });
 
     function toggleAuthMode() {
@@ -610,14 +579,13 @@
     function handleAuthSubmit() {
         const identifier = document.getElementById('auth-user').value.trim();
         const password = document.getElementById('auth-pass').value.trim();
-        
         if(!identifier || !password) return alert('Por favor ingresa los datos requeridos.');
 
         let registeredUsers = JSON.parse(localStorage.getItem('geovibe_users_db') || '{}');
 
         if(isRegisterMode) {
             if(registeredUsers[identifier]) {
-                return alert('Este usuario o correo ya está registrado. Inicia sesión directamente.');
+                return alert('Este usuario o correo ya está registrado.');
             }
             const avatar = document.getElementById('auth-avatar').value;
             const newUser = {
@@ -629,19 +597,15 @@
             };
             registeredUsers[identifier] = newUser;
             localStorage.setItem('geovibe_users_db', JSON.stringify(registeredUsers));
-            
-            alert('¡Cuenta creada y registrada con éxito! Iniciando sesión...');
             completeLogin(newUser);
         } else {
             let foundUser = registeredUsers[identifier];
             if(!foundUser) {
                 foundUser = Object.values(registeredUsers).find(u => u.username === identifier || u.email === identifier);
             }
-
             if(!foundUser || foundUser.password !== password) {
-                return alert('Credenciales incorrectas o cuenta no encontrada. Regístrate si aún no tienes cuenta.');
+                return alert('Credenciales incorrectas o cuenta no encontrada.');
             }
-
             completeLogin(foundUser);
         }
     }
@@ -665,7 +629,6 @@
             registeredUsers[identifier] = user;
             localStorage.setItem('geovibe_users_db', JSON.stringify(registeredUsers));
         }
-
         completeLogin(user);
     }
 
@@ -673,7 +636,6 @@
         myProfile = userProfile;
         if(myProfile.wallet === undefined) myProfile.wallet = 100;
         localStorage.setItem('geovibe_active_session', JSON.stringify(myProfile));
-        
         socket.emit('login_user', { username: myProfile.username, password: myProfile.password, avatar: myProfile.avatar });
         activateUserHud(myProfile);
     }
@@ -734,120 +696,55 @@
         alert(`🎁 ¡Bono reclamado! +${data.reward} Z-Coins añadidas.`);
     });
 
-    function openCashoutModal() {
-        const amount = myProfile.wallet;
-        if(amount < 50) return alert('Necesitas al menos 50 ZC para solicitar retiro.');
-        if(confirm(`¿Deseas retirar tus ganancias de ${amount} ZC?`)) {
-            socket.emit('request_cashout', { username: myProfile.username, amount });
-        }
-    }
-
-    socket.on('cashout_success', (data) => {
-        updateWalletDisplay(data.newBalance);
-        alert(`💸 Retiro procesado con éxito.`);
-    });
-
-    // --- FUNCIONES DE COMPRA Y VENTA DE MONEDAS (MERCADO P2P Y RECARGA) ---
+    // --- INTEGRACIÓN CON PASARELA DE PAGO REST ---
     function openBuyModal() {
         document.getElementById('buy-coins-modal').style.display = 'flex';
     }
     function closeBuyModal() {
         document.getElementById('buy-coins-modal').style.display = 'none';
     }
-    function buyCoinsPackage(zcAmount, usdPrice) {
-        if(confirm(`¿Deseas comprar ${zcAmount} ZC por $${usdPrice}.00 USD con tu método de pago vinculado?`)) {
-            updateWalletDisplay(myProfile.wallet + zcAmount);
-            closeBuyModal();
-            alert(`🎉 ¡Compra exitosa! Se han acreditado ${zcAmount} Z-Coins a tu billetera.`);
+
+    async function executeBackendCheckout() {
+        const packageVal = document.getElementById('buy-package-select').value.split('|');
+        const zcAmount = parseInt(packageVal[0]);
+        const usdPrice = parseFloat(packageVal[1]);
+        const paymentMethod = document.getElementById('buy-method-select').value;
+
+        try {
+            const response = await fetch('/api/buy-coins', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: myProfile.username,
+                    zcAmount: zcAmount,
+                    usdPrice: usdPrice,
+                    paymentMethod: paymentMethod
+                })
+            });
+
+            const result = await response.json();
+            if(result.success) {
+                updateWalletDisplay(result.newBalance);
+                closeBuyModal();
+                alert(`🎉 ¡Pago procesado con éxito vía ${paymentMethod}! Se acreditaron ${zcAmount} Z-Coins.`);
+            } else {
+                alert('Error en la pasarela de pago: ' + (result.error || 'Desconocido'));
+            }
+        } catch(e) {
+            alert('Error de conexión con el servidor de pagos.');
         }
     }
 
-    function openSellModal() {
-        document.getElementById('sell-coins-modal').style.display = 'flex';
-    }
-    function closeSellModal() {
-        document.getElementById('sell-coins-modal').style.display = 'none';
-    }
+    // Receptor vía WebSocket cuando la pasarela del servidor confirma acreditación externa
+    socket.on('wallet_credited_external', (data) => {
+        updateWalletDisplay(data.newBalance);
+    });
 
-    function submitP2PSellOffer() {
-        const amount = parseInt(document.getElementById('p2p-sell-amount').value);
-        const price = parseFloat(document.getElementById('p2p-sell-price').value);
-
-        if(!amount || amount <= 0 || !price || price <= 0) return alert('Ingresa valores válidos.');
-        if(myProfile.wallet < amount) return alert('No tienes suficientes Z-Coins para vender esta cantidad.');
-
-        // Descontar temporalmente las monedas mientras están en oferta P2P
-        updateWalletDisplay(myProfile.wallet - amount);
-
-        const newOffer = {
-            id: 'p2p_' + Date.now(),
-            seller: `${myProfile.avatar} ${myProfile.username}`,
-            amount: amount,
-            price: price
-        };
-
-        p2pOffersStore.unshift(newOffer);
-        saveAndRenderP2POffers();
-        closeSellModal();
-        document.getElementById('p2p-sell-amount').value = '';
-        document.getElementById('p2p-sell-price').value = '';
-        alert('✅ ¡Oferta de venta P2P publicada con éxito en el mercado!');
-    }
-
-    function loadP2POffers() {
-        const saved = localStorage.getItem('geovibe_p2p_offers');
-        if(saved) {
-            try { p2pOffersStore = JSON.parse(saved); } catch(e) { p2pOffersStore = []; }
-        } else {
-            // Ofertas de ejemplo iniciales
-            p2pOffersStore = [
-                { id: 'p2p_1', seller: '🚀 Oficial Alex', amount: 50, price: 4.50 },
-                { id: 'p2p_2', seller: '⚡ CyberSam', amount: 200, price: 18.00 }
-            ];
-        }
-        renderP2POffers();
-    }
-
-    function saveAndRenderP2POffers() {
-        localStorage.setItem('geovibe_p2p_offers', JSON.stringify(p2pOffersStore));
-        renderP2POffers();
-    }
-
-    function renderP2POffers() {
-        const container = document.getElementById('p2p-market-container');
-        if(!container) return;
-        if(p2pOffersStore.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: var(--pz-muted); font-size: 0.7rem;">No hay ofertas P2P activas en este momento.</p>';
-            return;
-        }
-
-        container.innerHTML = p2pOffersStore.map(o => `
-            <div class="pz-list-item">
-                <div>
-                    <span style="font-weight:700; color:var(--pz-economy);">${o.amount} ZC</span> <span style="font-size:0.65rem; color:var(--pz-muted);">por $${o.price.toFixed(2)} USD</span>
-                    <div style="font-size:0.6rem; color:var(--pz-muted);">Vendedor: ${o.seller}</div>
-                </div>
-                <button onclick="buyP2POffer('${o.id}')" style="background:var(--pz-accent); font-size:0.65rem;"><i class="fa-solid fa-coins"></i> Comprar</button>
-            </div>
-        `).join('');
-    }
-
-    function buyP2POffer(offerId) {
-        const index = p2pOffersStore.findIndex(o => o.id === offerId);
-        if(index === -1) return alert('La oferta ya no está disponible.');
-        const offer = p2pOffersStore[index];
-
-        if(offer.seller.includes(myProfile.username)) return alert('No puedes comprar tu propia oferta.');
-        if(confirm(`¿Deseas comprar ${offer.amount} ZC a ${offer.seller} por $${offer.price.toFixed(2)} USD?`)) {
-            updateWalletDisplay(myProfile.wallet + offer.amount);
-            p2pOffersStore.splice(index, 1);
-            saveAndRenderP2POffers();
-            alert(`🎉 ¡Intercambio P2P completado! Has adquirido ${offer.amount} ZC.`);
-        }
-    }
-
-    socket.on('login_success', (profile) => {});
-    socket.on('login_error', (err) => {});
+    socket.on('wallet_deducted', (data) => { updateWalletDisplay(data.newBalance); });
+    socket.on('wallet_credited', (data) => {
+        updateWalletDisplay(data.newBalance);
+        alert(`💰 ¡Has ganado ${data.amount} ZC! Un usuario pagó entrada a tu sala.`);
+    });
 
     function initRadar() {
         if (navigator.geolocation) {
@@ -914,12 +811,6 @@
         document.getElementById('paywall-modal').style.display = 'none';
     }
 
-    socket.on('wallet_deducted', (data) => { updateWalletDisplay(data.newBalance); });
-    socket.on('wallet_credited', (data) => {
-        updateWalletDisplay(data.newBalance);
-        alert(`💰 ¡Has ganado ${data.amount} ZC! Un usuario pagó entrada a tu sala.`);
-    });
-
     socket.on('room_joined', (room) => {
         currentRoomId = room.id;
         currentRoomData = room;
@@ -970,7 +861,6 @@
         });
     });
 
-    // --- LÓGICA DEL MURO TIPO INSTAGRAM ---
     function previewIgUpload(event) {
         const file = event.target.files[0];
         if(!file) return;
