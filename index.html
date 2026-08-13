@@ -199,7 +199,7 @@
 
 <div id="app">
     
-    <!-- 1. MÓDULO DE AUTENTICACIÓN Y REGISTRO SEGURO -->
+    <!-- MÓDULO DE AUTENTICACIÓN -->
     <div id="login-screen" class="pz-card" style="margin-top: 15px; text-align: center; padding: 16px;">
         <h2><i class="fa-solid fa-shield-halved"></i> GeoVibe // Core Security</h2>
         <p id="auth-subtitle" style="color: var(--pz-muted); font-size: 0.75rem; margin-bottom: 10px;">Inicia sesión con tu cuenta o regístrate</p>
@@ -243,10 +243,9 @@
         </div>
     </div>
 
-    <!-- 2. INTERFAZ DE CONTROL PRINCIPAL (HUD) -->
+    <!-- INTERFAZ PRINCIPAL (HUD) -->
     <div id="main-hud" style="display:none; flex-direction: column; gap: 8px;">
         
-        <!-- BARRA DE TELEMETRÍA SUPERIOR CON BILLETERA -->
         <div class="pz-header">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <span id="header-avatar" style="font-size: 1.1rem;">🎧</span>
@@ -269,7 +268,7 @@
             </div>
         </div>
 
-        <!-- VISTA A: GESTIÓN DE SALAS Y SALAS PRIVADAS DE PAGO -->
+        <!-- SALAS -->
         <div id="pz-rooms" class="pz-tab-content active">
             <div class="pz-card">
                 <h2><i class="fa-solid fa-satellite-dish"></i> Sincronización Telemétrica GPS</h2>
@@ -299,7 +298,7 @@
             </div>
         </div>
 
-        <!-- VISTA B: ECONOMÍA, BANCO ZC & PASARELA DE PAGO (COMPRA DE MONEDAS) -->
+        <!-- ECONOMÍA Y PASARELA STRIPE REAL -->
         <div id="pz-economy" class="pz-tab-content">
             <div class="pz-card" style="border-color: var(--pz-economy);">
                 <h2><i class="fa-solid fa-vault" style="color: var(--pz-economy);"></i> Banco Central & Recargas ZC</h2>
@@ -318,7 +317,7 @@
             </div>
         </div>
 
-        <!-- VISTA C: FRECUENCIA GLOBAL -->
+        <!-- FRECUENCIA GLOBAL -->
         <div id="pz-global-chat" class="pz-tab-content">
             <div class="pz-card" style="padding: 10px;">
                 <h2><i class="fa-solid fa-globe"></i> Canal de Enlace Global</h2>
@@ -330,9 +329,8 @@
             </div>
         </div>
 
-        <!-- VISTA D: SALA DE OPERACIONES ACTIVA (CON MURO TIPO INSTAGRAM INTEGRADO) -->
+        <!-- SALA ACTIVA -->
         <div id="pz-room-active" class="pz-tab-content">
-            
             <div class="pz-card" style="padding: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                     <span id="active-room-name" style="font-weight: 900; font-size: 0.9rem; color: var(--pz-neon);">Sala Operativa</span>
@@ -353,7 +351,6 @@
                         <button class="media-tab-btn economy" onclick="switchMediaTab('economy-tips')"><i class="fa-solid fa-coins"></i> Propina</button>
                     </div>
 
-                    <!-- APARTADO: MURO TIPO INSTAGRAM -->
                     <div id="pane-instagram-feed" class="media-content-pane active">
                         <div style="background: rgba(225,48,108,0.06); border: 1px solid var(--pz-instagram); border-radius: 8px; padding: 8px; margin-bottom: 8px;">
                             <span style="font-size: 0.75rem; font-weight: 700; color: var(--pz-instagram); display:block; margin-bottom:6px; text-align:center;"><i class="fa-solid fa-camera-retro"></i> Publicar en el Muro</span>
@@ -367,7 +364,6 @@
                             <button onclick="publishIgPost()" style="background:var(--pz-instagram); font-size:0.7rem; padding:6px; margin-top:4px;"><i class="fa-solid fa-paper-plane"></i> Compartir Post</button>
                         </div>
 
-                        <!-- CONTENEDOR DE POSTS DEL MURO -->
                         <div id="ig-posts-container" style="max-height: 220px; overflow-y: auto; display:flex; flex-direction:column; gap:8px;">
                             <p style="text-align:center; color:var(--pz-muted); font-size:0.7rem;">Cargando publicaciones del muro...</p>
                         </div>
@@ -467,7 +463,7 @@
             </div>
         </div>
 
-        <!-- VISTA E: PERFIL Y CIERRE DE SESIÓN -->
+        <!-- PERFIL -->
         <div id="pz-profile" class="pz-tab-content">
             <div class="pz-card" style="text-align: center; padding: 20px 15px;">
                 <div id="profile-avatar-big" style="font-size: 2.4rem; margin-bottom: 4px;">🎧</div>
@@ -485,7 +481,7 @@
     </div>
 </div>
 
-<!-- MODAL DE PAGO PARA SALAS PRIVADAS -->
+<!-- MODAL PAYWALL -->
 <div id="paywall-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:3000; justify-content:center; align-items:center;">
     <div class="pz-card" style="width: 85%; max-width: 320px; text-align: center; border-color: var(--pz-economy);">
         <h2><i class="fa-solid fa-lock" style="color: var(--pz-economy);"></i> Acceso Privado ZC</h2>
@@ -496,7 +492,7 @@
     </div>
 </div>
 
-<!-- MODAL PARA COMPRAR MONEDAS ZC (CON PASARELA DE PAGO REST) -->
+<!-- MODAL COMPRA ZC (CON REDIRECCIÓN A STRIPE REAL) -->
 <div id="buy-coins-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:3000; justify-content:center; align-items:center;">
     <div class="pz-card" style="width: 90%; max-width: 320px; border-color: var(--pz-primary);">
         <h2><i class="fa-solid fa-cart-shopping" style="color: var(--pz-primary);"></i> Comprar Z-Coins</h2>
@@ -511,7 +507,7 @@
 
         <label>Método de Pago</label>
         <select id="buy-method-select" style="margin-bottom:8px;">
-            <option value="Tarjeta Crédito / Débito">💳 Tarjeta Crédito / Débito</option>
+            <option value="Tarjeta Crédito / Débito">💳 Tarjeta Crédito / Débito (Stripe Real)</option>
             <option value="PayPal">🅿️ PayPal</option>
             <option value="PSE / Transferencia Bancaria">🏦 Transferencia Bancaria (PSE)</option>
             <option value="Crypto (USDT)">⚡ Criptomoneda (USDT)</option>
@@ -548,6 +544,24 @@
             } catch(e) {
                 localStorage.removeItem('geovibe_active_session');
             }
+        }
+
+        // Detección automática al volver de un pago exitoso por Stripe
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('payment') === 'success') {
+            const addedZc = urlParams.get('zc');
+            const targetUser = urlParams.get('user');
+            
+            fetch('/api/buy-coins', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: targetUser, zcAmount: addedZc })
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    alert(`¡Pago con tarjeta exitoso! Se han acreditado ${addedZc} Z-Coins a tu cuenta.`);
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            });
         }
     });
 
@@ -704,41 +718,34 @@
     async function executeBackendCheckout() {
         const packageVal = document.getElementById('buy-package-select').value.split('|');
         const zcAmount = parseInt(packageVal[0]);
+        const priceUSD = parseFloat(packageVal[1]);
         const paymentMethod = document.getElementById('buy-method-select').value;
 
-        try {
-            const response = await fetch('/api/buy-coins', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: myProfile.username,
-                    zcAmount: zcAmount,
-                    paymentMethod: paymentMethod
-                })
-            });
+        if (paymentMethod.includes('Tarjeta')) {
+            try {
+                const response = await fetch('/api/create-stripe-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: myProfile.username,
+                        zcAmount: zcAmount,
+                        priceUSD: priceUSD
+                    })
+                });
 
-            const result = await response.json();
-            if(result.success) {
-                updateWalletDisplay(result.newBalance);
-                closeBuyModal();
-                alert(`🎉 ¡Pago procesado con éxito vía ${paymentMethod}! Se acreditaron ${zcAmount} Z-Coins.`);
-            } else {
-                alert('Error en la pasarela de pago: ' + (result.error || 'Desconocido'));
+                const result = await response.json();
+                if(result.success && result.url) {
+                    window.location.href = result.url;
+                } else {
+                    alert('Error al iniciar la pasarela de pago: ' + (result.error || 'Desconocido'));
+                }
+            } catch(e) {
+                alert('Error de conexión con el servidor de pagos.');
             }
-        } catch(e) {
-            alert('Error de conexión con el servidor de pagos.');
+        } else {
+            alert(`Redirigiendo a pasarela ${paymentMethod}...`);
         }
     }
-
-    socket.on('wallet_credited_external', (data) => {
-        updateWalletDisplay(data.newBalance);
-    });
-
-    socket.on('wallet_deducted', (data) => { updateWalletDisplay(data.newBalance); });
-    socket.on('wallet_credited', (data) => {
-        updateWalletDisplay(data.newBalance);
-        alert(`💰 ¡Has ganado ${data.amount} ZC! Un usuario pagó entrada a tu sala.`);
-    });
 
     function initRadar() {
         if (navigator.geolocation) {
