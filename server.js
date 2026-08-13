@@ -4,7 +4,7 @@ const { Server } = require('socket.io');
 const Stripe = require('stripe');
 const path = require('path');
 
-// Inicializa Stripe con tu clave secreta
+// Inicializa Stripe con tu clave secreta (usa variables de entorno en producción)
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_tu_clave_secreta_aqui');
 
 const app = express();
@@ -14,19 +14,19 @@ const io = new Server(server);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir la interfaz HTML directamente desde la raíz o una carpeta public
+// Ruta raíz para servir la interfaz visual unificada y evitar errores 404
 app.get('/', (req, res) => {
     res.send(HTML_CONTENT);
 });
 
-// Base de datos en memoria
+// Base de datos en memoria para el funcionamiento en tiempo real
 const db = {
     users: {},     
     rooms: {},     
     locations: {}  
 };
 
-// 1. Endpoint para pasarela de pago real en Stripe
+// 1. Endpoint para crear la sesión de pago real en Stripe
 app.post('/api/create-stripe-session', async (req, res) => {
     try {
         const { username, zcAmount, priceUSD } = req.body;
@@ -61,7 +61,7 @@ app.post('/api/create-stripe-session', async (req, res) => {
     }
 });
 
-// 2. Endpoint para acreditar Z-Coins tras pago exitoso
+// 2. Endpoint para acreditar Z-Coins tras confirmar el pago exitoso
 app.post('/api/buy-coins', (req, res) => {
     const { username, zcAmount } = req.body;
     if (!username || !zcAmount) return res.status(400).json({ success: false });
@@ -76,7 +76,7 @@ app.post('/api/buy-coins', (req, res) => {
     res.json({ success: true, newBalance: db.users[username].wallet });
 });
 
-// 3. Socket.io tiempo real
+// 3. Configuración de Socket.io para la comunicación en tiempo real
 io.on('connection', (socket) => {
     console.log(`[Socket] Conectado: ${socket.id}`);
 
@@ -245,13 +245,13 @@ function broadcastRoomMembers(roomId) {
     io.to(roomId).emit('update_members_map', members);
 }
 
-// 2. HTML embebido para evitar errores 404 o "Cannot GET /"
+// Interfaz Frontend Completa Embebida
 const HTML_CONTENT = `<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoVibe | Project Z Ultimate Enterprise Hub + P2P ZC Exchange, Auth & IG Feed</title>
+    <title>GeoVibe // Enterprise Hub & Social Engine</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="/socket.io/socket.io.js"></script>
@@ -263,7 +263,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
             --pz-border: #1a2336; --pz-border-glow: #25334d; --pz-primary: #2563eb;
             --pz-primary-glow: rgba(37, 99, 235, 0.4); --pz-accent: #059669; --pz-neon: #06b6d4;
             --pz-neon-glow: rgba(6, 182, 212, 0.25); --pz-pink: #db2777; --pz-amber: #d97706;
-            --pz-netflix: #e50914; --pz-sales: #8b5cf6; --pz-economy: #eab308;
+            --pz-sales: #8b5cf6; --pz-economy: #eab308;
             --pz-google: #ea4335; --pz-facebook: #1877f2; --pz-instagram: #e1306c;
             --pz-text: #f8fafc; --pz-muted: #64748b; --pz-danger: #dc2626;
         }
@@ -296,7 +296,6 @@ const HTML_CONTENT = `<!DOCTYPE html>
         #chat-box { height: 130px; overflow-y: auto; margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px; }
         .msg-bubble { background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 8px; border-left: 2px solid var(--pz-neon); font-size: 0.8rem; }
         .msg-header { display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--pz-muted); margin-bottom: 2px; }
-        .pz-badge { background: rgba(5, 150, 105, 0.15); border: 1px solid var(--pz-accent); color: #34d399; padding: 1px 6px; border-radius: 6px; font-size: 0.55rem; font-weight: 700; text-transform: uppercase; }
         .pz-tab-content { display: none; flex-direction: column; gap: 8px; }
         .pz-tab-content.active { display: flex; }
     </style>
@@ -475,7 +474,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
 
 <script>
     const socket = io();
-    let currentRoomId = null, myProfile = null, tempIgMediaData = null, igPostsStore = [], isRegisterMode = false, map = null, markers = [];
+    let currentRoomId = null, myProfile = null, tempIgMediaData = null, igPostsStore = [], isRegisterMode = false, map = null;
     let pendingRoomIdToJoin = null, pendingRoomCost = 0, pendingRoomCreator = null;
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -529,7 +528,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
     }
 
     function socialAuth(provider, avatar) {
-        let id = prompt(`Correo/Usuario para ${provider}:`);
+        let id = prompt('Correo/Usuario para ' + provider + ':');
         if(!id) return;
         let users = JSON.parse(localStorage.getItem('geovibe_users_db') || '{}');
         let user = users[id] || { username: id.split('@')[0], avatar, wallet: 200 };
@@ -550,15 +549,15 @@ const HTML_CONTENT = `<!DOCTYPE html>
         document.getElementById('main-hud').style.display = 'flex';
         document.getElementById('header-avatar').innerText = p.avatar;
         document.getElementById('header-username').innerText = p.username;
-        document.getElementById('profile-name-big').innerText = `${p.avatar} ${p.username}`;
+        document.getElementById('profile-name-big').innerText = p.avatar + ' ' + p.username;
         updateWallet(p.wallet);
     }
 
     function updateWallet(w) {
         myProfile.wallet = w;
         localStorage.setItem('geovibe_active_session', JSON.stringify(myProfile));
-        document.getElementById('header-wallet').innerText = `${w} ZC`;
-        document.getElementById('economy-balance-display').innerText = `${w} ZC`;
+        document.getElementById('header-wallet').innerText = w + ' ZC';
+        document.getElementById('economy-balance-display').innerText = w + ' ZC';
     }
 
     function logoutSession() { localStorage.removeItem('geovibe_active_session'); location.reload(); }
@@ -568,6 +567,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
     }
     function togglePrivateCost() { document.getElementById('room-entry-cost').disabled = !document.getElementById('room-is-private').checked; }
     function claimDailyReward() { socket.emit('claim_daily_reward', { username: myProfile.username }); }
+    function openBuyModal() { document.getElementById('buy-coins-modal').style.display = 'flex'; }
     socket.on('reward_claimed', d => { updateWallet(d.newBalance); alert('¡Bono reclamado!'); });
 
     async function executeBackendCheckout() {
@@ -612,8 +612,8 @@ const HTML_CONTENT = `<!DOCTYPE html>
     function tryJoinRoom(id, cost, creator) {
         if(cost > 0 && creator !== myProfile.username) {
             pendingRoomIdToJoin = id; pendingRoomCost = cost; pendingRoomCreator = creator;
-            document.getElementById('paywall-desc').innerText = `Creado por ${creator}. Costo:`;
-            document.getElementById('paywall-price-tag').innerText = `${cost} ZC`;
+            document.getElementById('paywall-desc').innerText = 'Creado por ' + creator + '. Costo:';
+            document.getElementById('paywall-price-tag').innerText = cost + ' ZC';
             document.getElementById('paywall-modal').style.display = 'flex';
         } else { socket.emit('join_room', id); }
     }
@@ -629,7 +629,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
         currentRoomId = room.id;
         switchPzTab('room-active');
         document.getElementById('active-room-name').innerText = room.name;
-        document.getElementById('spotify-player').src = \`https://open.spotify.com/embed/track/\${room.currentTrack}?utm_source=generator&theme=0\`;
+        document.getElementById('spotify-player').src = 'https://open.spotify.com/embed/track/' + room.currentTrack + '?utm_source=generator&theme=0';
         setTimeout(() => {
             if(!map) { map = L.map('map').setView([6.217, -75.567], 13); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map); }
             else map.invalidateSize();
@@ -645,7 +645,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
         reader.onload = ev => {
             tempIgMediaData = { type: file.type, data: ev.target.result };
             document.getElementById('ig-preview-container').style.display = 'block';
-            document.getElementById('ig-preview-container').innerHTML = `<img src="\${ev.target.result}" style="max-height:80px; border-radius:4px;">`;
+            document.getElementById('ig-preview-container').innerHTML = '<img src="' + ev.target.result + '" style="max-height:80px; border-radius:4px;">';
         };
         reader.readAsDataURL(file);
     }
@@ -670,14 +670,14 @@ const HTML_CONTENT = `<!DOCTYPE html>
     });
 
     function renderIg() {
-        document.getElementById('ig-posts-container').innerHTML = igPostsStore.map(p => \`
+        document.getElementById('ig-posts-container').innerHTML = igPostsStore.map(p => `
             <div class="ig-post-card">
-                <div class="ig-post-header"><b>\${p.user}</b></div>
-                <img src="\${p.mediaData}" class="ig-post-media">
-                <div class="ig-post-actions"><i class="fa-regular fa-heart" onclick="socket.emit('toggle_ig_like', {roomId: currentRoomId, postId: '\${p.id}', username: myProfile.username})"></i> \${p.likes}</div>
-                <div style="font-size:0.75rem; padding:4px 10px;">\${p.caption || ''}</div>
+                <div class="ig-post-header"><b>${p.user}</b></div>
+                <img src="${p.mediaData}" class="ig-post-media">
+                <div class="ig-post-actions"><i class="fa-regular fa-heart" onclick="socket.emit('toggle_ig_like', {roomId: currentRoomId, postId: '${p.id}', username: myProfile.username})"></i> ${p.likes}</div>
+                <div style="font-size:0.75rem; padding:4px 10px;">${p.caption || ''}</div>
             </div>
-        \`).join('');
+        `).join('');
     }
 
     function switchMediaTab(t) {
@@ -689,7 +689,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
 
     function startTriviaGame() {
         document.getElementById('arcade-msg').innerText = "¿Protocolo raíz en Termux?";
-        document.getElementById('arcade-actions').innerHTML = `<button onclick="socket.emit('award_user_zc', {username: myProfile.username, amount: 10}); alert('¡Correcto! +10 ZC');" style="background:var(--pz-accent); font-size:0.6rem;">su / tsu</button>`;
+        document.getElementById('arcade-actions').innerHTML = '<button onclick="socket.emit(\\'award_user_zc\\', {username: myProfile.username, amount: 10}); alert(\\'¡Correcto! +10 ZC\\');" style="background:var(--pz-accent); font-size:0.6rem;">su / tsu</button>';
     }
 
     function publishProduct() {
@@ -702,7 +702,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
     }
 
     socket.on('incoming_product', d => {
-        document.getElementById('sales-products-list').innerHTML += `<div style="font-size:0.7rem;"><b>\${d.title}</b> - \${d.price} ZC (\${d.seller})</div>`;
+        document.getElementById('sales-products-list').innerHTML += '<div style="font-size:0.7rem;"><b>' + d.title + '</b> - ' + d.price + ' ZC (' + d.seller + ')</div>';
     });
 
     function addSong() {
@@ -710,7 +710,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
         if(uri) socket.emit('add_song', { roomId: currentRoomId, uri });
     }
     socket.on('play_now', uri => {
-        document.getElementById('spotify-player').src = \`https://open.spotify.com/embed/track/\${uri.replace('spotify:track:', '')}?utm_source=generator&theme=0\`;
+        document.getElementById('spotify-player').src = 'https://open.spotify.com/embed/track/' + uri.replace('spotify:track:', '') + '?utm_source=generator&theme=0';
     });
 
     function sendMsg() {
@@ -723,7 +723,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
     }
     socket.on('new_msg', d => {
         const box = d.roomId === 'global' ? document.getElementById('global-chat-box') : document.getElementById('chat-box');
-        if(box) { box.innerHTML += \`<div class="msg-bubble"><div class="msg-header"><span><b>\${d.user}</b></span><span>\${d.time}</span></div><div>\${d.msg}</div></div>\`; box.scrollTop = box.scrollHeight; }
+        if(box) { box.innerHTML += '<div class="msg-bubble"><div class="msg-header"><span><b>' + d.user + '</b></span><span>' + d.time + '</span></div><div>' + d.msg + '</div></div>'; box.scrollTop = box.scrollHeight; }
     });
 </script>
 </body>
