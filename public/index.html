@@ -3,125 +3,402 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoVibe | Premium Experience</title>
+    <title>GeoVibe | Supreme Hub Pro</title>
+    <!-- Librerías Externas -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root {
-            --primary: #6366f1;
-            --glass: rgba(255, 255, 255, 0.05);
-            --bg: #0f172a;
+        :root { 
+            --primary: #6366f1; 
+            --glass: rgba(255, 255, 255, 0.05); 
+            --bg: #030014; 
         }
 
         body { 
-            background: #030014; color: white; font-family: 'Outfit', sans-serif;
-            margin: 0; display: flex; justify-content: center; min-height: 100vh;
-            overflow-x: hidden;
+            background: var(--bg); color: white; font-family: 'Outfit', sans-serif; 
+            margin: 0; padding: 20px; display: flex; justify-content: center; 
+            transition: background 0.4s ease;
         }
 
-        /* Animación de entrada suave */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        #app { width: 90%; max-width: 420px; padding-top: 50px; animation: fadeIn 0.8s ease-out; }
+        #app { width: 100%; max-width: 480px; }
 
         .card { 
-            background: var(--glass); backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1); padding: 25px;
-            border-radius: 30px; margin-bottom: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            background: var(--glass); backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255,255,255,0.1); padding: 20px; 
+            border-radius: 25px; margin-bottom: 15px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
-        h2 { font-weight: 900; font-size: 2rem; margin-bottom: 10px; letter-spacing: -1px; }
+        h2, h3 { margin-top: 0; font-weight: 900; }
+        h2 { font-size: 1.8rem; background: linear-gradient(90deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        input { 
-            width: 100%; padding: 15px; border-radius: 15px; border: 2px solid transparent;
-            background: rgba(0,0,0,0.3); color: white; box-sizing: border-box;
-            transition: 0.3s; margin-bottom: 10px;
+        input, select { 
+            width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); 
+            background: rgba(0,0,0,0.4); color: white; box-sizing: border-box; margin: 6px 0; font-family: inherit;
         }
-        input:focus { border-color: var(--primary); outline: none; background: rgba(0,0,0,0.5); }
+        input:focus, select:focus { border-color: var(--primary); outline: none; }
 
         button { 
-            width: 100%; padding: 15px; border-radius: 15px; border: none;
-            background: linear-gradient(135deg, var(--primary), #a855f7);
-            color: white; font-weight: 700; cursor: pointer;
-            transition: transform 0.2s, filter 0.3s;
+            width: 100%; padding: 12px; border-radius: 12px; border: none; 
+            background: var(--primary); color: white; font-weight: 700; cursor: pointer; 
+            margin-top: 6px; transition: transform 0.2s, filter 0.2s;
         }
-        button:hover { transform: translateY(-2px); filter: brightness(1.2); }
+        button:hover { transform: translateY(-2px); filter: brightness(1.15); }
 
-        .msg { 
-            padding: 12px 18px; border-radius: 20px; margin: 8px 0;
-            background: rgba(255,255,255,0.08); font-size: 0.95rem;
-            animation: fadeIn 0.4s ease;
+        #map { height: 180px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.1); }
+
+        .room-item {
+            background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px; padding: 12px; display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 8px;
         }
+        .room-item button { width: auto; padding: 6px 14px; font-size: 0.8rem; margin: 0; }
 
-        /* Indicador de "Streaming" */
-        .spotify-container { border-radius: 20px; overflow: hidden; margin-top: 15px; box-shadow: 0 0 20px rgba(29, 185, 84, 0.2); }
+        .msg-bubble { 
+            background: rgba(255,255,255,0.08); padding: 12px; border-radius: 16px; margin: 8px 0; 
+            position: relative; border-left: 4px solid var(--primary);
+        }
+        .msg-header { display: flex; justify-content: space-between; font-size: 0.75rem; opacity: 0.7; margin-bottom: 4px; }
+        .msg-text { font-size: 0.95rem; margin-bottom: 6px; }
+
+        .reactions-bar { display: flex; gap: 6px; margin-top: 4px; }
+        .reaction-btn { background: rgba(255,255,255,0.1); border: none; border-radius: 8px; padding: 2px 8px; cursor: pointer; color: white; width: auto; font-size: 0.8rem; }
+
+        #chat-box { height: 200px; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 4px; }
+        .typing-indicator { font-size: 0.75rem; color: #a855f7; height: 16px; font-style: italic; margin-bottom: 4px; }
+        .playlist-box { font-size: 0.8rem; opacity: 0.8; margin-top: 8px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <div id="setup" class="card">
-        <h2>GeoVibe</h2>
-        <p style="opacity: 0.6; margin-bottom: 20px;">Sincronización espacial en tiempo real.</p>
-        <input type="text" id="username" placeholder="¿Cómo te llamas?">
-        <button onclick="start()">Conectar al Radar</button>
+    
+    <!-- 1. LOGIN / AUTENTICACIÓN -->
+    <div id="login-card" class="card">
+        <h2>GeoVibe 🌍</h2>
+        <p style="opacity: 0.7; font-size: 0.9rem; margin-bottom: 15px;">Acceso a la Red Social y Musical.</p>
+        <input type="text" id="login-user" placeholder="Nombre de usuario...">
+        <input type="password" id="login-pass" placeholder="Contraseña...">
+        <select id="login-avatar">
+            <option value="🎧">🎧 DJ / Productor</option>
+            <option value="🚀">🚀 Explorador</option>
+            <option value="🔥">🔥 Raver</option>
+            <option value="⚡">⚡ Cyberpunk</option>
+        </select>
+        <button onclick="login()">Ingresar al Sistema</button>
     </div>
 
-    <div id="chat-ui" style="display:none;">
-        <div class="card">
-            <h3 style="margin-top:0;">Ahora sonando</h3>
-            <div class="spotify-container">
-                <iframe id="spotify-player" src="" width="100%" height="80" frameborder="0"></iframe>
-            </div>
-            <input type="text" id="song-input" placeholder="Spotify Track ID" style="margin-top:15px;">
-            <button onclick="addSong()">Actualizar Track</button>
+    <!-- 2. VISTA PRINCIPAL (RADAR Y SALAS) -->
+    <div id="main-app" style="display:none;">
+        <div class="card" style="padding: 12px 20px;">
+            <select id="theme-selector" onchange="changeTheme()" style="margin:0;">
+                <option value="cyberpunk">Tema: Neon Cyberpunk (Oscuro)</option>
+                <option value="techno">Tema: Deep Techno (Violeta)</option>
+                <option value="minimal">Tema: Minimalista Absoluto</option>
+            </select>
         </div>
-        
-        <div id="chat-box" class="card" style="height: 250px; overflow-y: auto;"></div>
-        
-        <div class="card" style="padding: 15px; display: flex; gap: 10px;">
-            <input type="text" id="msg-input" placeholder="Mensaje..." style="margin:0;">
-            <button onclick="sendMsg()" style="width: auto; padding: 0 20px;">➤</button>
+
+        <div class="card">
+            <h2><i class="fa-solid fa-crosshairs"></i> Estado del Radar GPS</h2>
+            <button id="btn-init" style="background:#334155; color:#34d399;" onclick="initRadar()">Activar Ubicación GPS</button>
+        </div>
+
+        <div class="card">
+            <h2><i class="fa-solid fa-circle-plus"></i> Crear Sala Musical</h2>
+            <input type="text" id="new-room-name" placeholder="Nombre de la sala (ej: Techno Zone)">
+            <input type="text" id="new-room-song" placeholder="ID canción Spotify...">
+            <button onclick="createRoom()"><i class="fa-solid fa-music"></i> Crear Sala</button>
+        </div>
+
+        <div class="card">
+            <h2><i class="fa-solid fa-tower-broadcast"></i> Salas Activas</h2>
+            <div id="rooms-container">
+                <p style="opacity: 0.6; font-size: 0.8rem; text-align: center;">Buscando salas...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. VISTA DE SALA ACTIVA (CHAT, MÚSICA, MAPA, DMs) -->
+    <div id="active-chat" style="display:none;">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 id="room-title" style="margin:0;">Sala</h3>
+                <button onclick="location.reload()" style="width: auto; padding: 6px 12px; background: #f43f5e; font-size: 0.75rem;">Salir</button>
+            </div>
+            
+            <div id="map"></div>
+
+            <iframe id="spotify-player" src="" width="100%" height="80" frameborder="0" style="border-radius: 12px; margin-bottom: 8px;"></iframe>
+            
+            <div style="display: flex; gap: 6px;">
+                <input type="text" id="song-input" placeholder="ID de Spotify..." style="margin:0;">
+                <button onclick="addSong()" style="background:#1db954; width:80px; margin:0;">Añadir</button>
+                <button onclick="skipSong()" style="background:#f59e0b; color:#000; width:80px; margin:0;">Saltar</button>
+            </div>
+            <div id="playlist-container" class="playlist-box">Cola vacía</div>
+        </div>
+
+        <!-- TICKET QR -->
+        <div class="card" style="text-align: center; padding: 15px;">
+            <h3 style="font-size: 0.9rem; margin-bottom: 8px;">🎟 Tu Ticket Vibe (QR)</h3>
+            <div id="qrcode" style="display:inline-block; background:white; padding:8px; border-radius:8px;"></div>
+        </div>
+
+        <!-- CHAT Y VOZ -->
+        <div class="card">
+            <div id="chat-box"></div>
+            <div id="typing-box" class="typing-indicator"></div>
+            
+            <div style="display: flex; gap: 6px;">
+                <input type="text" id="msg-input" placeholder="Escribe un mensaje..." style="margin:0;" oninput="handleTyping()" onkeypress="if(event.key==='Enter') sendMsg()">
+                <button onclick="sendMsg()" style="width: 50px; margin:0;"><i class="fa-solid fa-paper-plane"></i></button>
+                <button id="mic-btn" onclick="toggleMic()" style="width: 50px; background:#8b5cf6; margin:0;" title="Nota de voz"><i class="fa-solid fa-microphone"></i></button>
+            </div>
+        </div>
+
+        <!-- ENERGÍA DE SALA -->
+        <div class="card">
+            <h3 style="font-size: 0.9rem; margin-bottom: 6px;">📊 Actividad de la Sala</h3>
+            <canvas id="energyChart"></canvas>
         </div>
     </div>
 </div>
 
 <script>
     const socket = io("https://chat-online-110g.onrender.com");
-    let currentRoomId = "global";
+    let currentRoomId = null;
+    let myProfile = null;
+    let map = null;
+    let markers = [];
+    let mediaRecorder, audioChunks = [];
+    let typingTimeout = null;
 
-    function start() {
-        const name = document.getElementById('username').value;
-        if (!name) return alert("Ingresa un apodo");
-        
-        navigator.geolocation.getCurrentPosition(pos => {
-            socket.emit('update_location', { username: name, lat: pos.coords.latitude, lng: pos.coords.longitude });
-            document.getElementById('setup').style.display = 'none';
-            document.getElementById('chat-ui').style.display = 'block';
-        });
+    function changeTheme() {
+        const theme = document.getElementById('theme-selector').value;
+        const body = document.body;
+        if (theme === 'cyberpunk') body.style.background = '#030014';
+        if (theme === 'techno') body.style.background = '#12071f';
+        if (theme === 'minimal') body.style.background = '#000000';
     }
+
+    function login() {
+        const username = document.getElementById('login-user').value.trim();
+        const password = document.getElementById('login-pass').value.trim();
+        const avatar = document.getElementById('login-avatar').value;
+        if (!username || !password) return alert('Escribe usuario y contraseña.');
+        socket.emit('login_user', { username, password, avatar });
+    }
+
+    socket.on('login_success', (profile) => {
+        myProfile = profile;
+        document.getElementById('login-card').style.display = 'none';
+        document.getElementById('main-app').style.display = 'block';
+    });
+
+    socket.on('login_error', (err) => alert(err));
+
+    function initRadar() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                socket.emit('update_location', { 
+                    lat: pos.coords.latitude, 
+                    lng: pos.coords.longitude, 
+                    username: `${myProfile.avatar} ${myProfile.username}` 
+                });
+                document.getElementById('btn-init').innerText = "✓ GPS Activo";
+                document.getElementById('btn-init').style.background = "#1e293b";
+            }, () => {
+                alert('GPS denegado.');
+                socket.emit('update_location', { lat: null, lng: null, username: `${myProfile.avatar} ${myProfile.username}` });
+            });
+        }
+    }
+
+    socket.on('rooms_list', (rooms) => {
+        const container = document.getElementById('rooms-container');
+        if (rooms.length === 0) {
+            container.innerHTML = '<p style="opacity: 0.6; font-size: 0.8rem; text-align: center;">No hay salas activas.</p>';
+            return;
+        }
+        container.innerHTML = rooms.map(r => `
+            <div class="room-item">
+                <div>
+                    <h3 style="font-size: 0.9rem; margin:0;">${r.name}</h3>
+                    <p style="font-size: 0.75rem; opacity:0.6; margin:0;">${r.count} conectados</p>
+                </div>
+                <button onclick="joinRoom('${r.id}')">Unirse</button>
+            </div>
+        `).join('');
+    });
+
+    function createRoom() {
+        const name = document.getElementById('new-room-name').value.trim() || 'Sala Musical';
+        let trackUri = document.getElementById('new-room-song').value.trim() || '4cOdK2wGLETKBW3PvgPWqT';
+        if(trackUri.includes('spotify.com')) trackUri = trackUri.split('/').pop().split('?')[0];
+        socket.emit('create_room', { name, trackUri });
+    }
+
+    function joinRoom(roomId) {
+        socket.emit('join_room', roomId);
+    }
+
+    socket.on('room_joined', (room) => {
+        currentRoomId = room.id;
+        document.getElementById('main-app').style.display = 'none';
+        document.getElementById('active-chat').style.display = 'block';
+        document.getElementById('room-title').innerText = room.name;
+
+        const cleanUri = (room.currentTrack || '4cOdK2wGLETKBW3PvgPWqT').replace('spotify:track:', '');
+        document.getElementById('spotify-player').src = `https://open.spotify.com/embed/track/${cleanUri}?utm_source=generator&theme=0`;
+
+        document.getElementById("qrcode").innerHTML = "";
+        new QRCode(document.getElementById("qrcode"), {
+            text: `GeoVibe-Ticket:${myProfile.username}:${room.id}`,
+            width: 100, height: 100
+        });
+
+        setTimeout(() => {
+            if (!map) {
+                map = L.map('map').setView([6.217, -75.567], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            } else {
+                map.invalidateSize();
+            }
+        }, 300);
+    });
+
+    socket.on('update_members_map', (members) => {
+        if (!map) return;
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
+        members.forEach(m => {
+            if (m.lat && m.lng) {
+                const marker = L.marker([m.lat, m.lng]).addTo(map).bindPopup(m.username);
+                markers.push(marker);
+            }
+        });
+    });
 
     function addSong() {
-        const uri = document.getElementById('song-input').value;
-        socket.emit('add_song', { roomId: currentRoomId, uri });
+        let input = document.getElementById('song-input').value.trim();
+        if (!input) return;
+        if(input.includes('spotify.com')) input = input.split('/').pop().split('?')[0];
+        socket.emit('add_song', { roomId: currentRoomId, uri: input });
+        document.getElementById('song-input').value = '';
     }
 
+    function skipSong() { socket.emit('skip_song', currentRoomId); }
+
     socket.on('play_now', (uri) => {
-        document.getElementById('spotify-player').src = `https://open.spotify.com/embed/track/${uri}`;
+        const cleanUri = uri.replace('spotify:track:', '');
+        document.getElementById('spotify-player').src = `https://open.spotify.com/embed/track/${cleanUri}?utm_source=generator&theme=0`;
+    });
+
+    socket.on('playlist_updated', (playlist) => {
+        document.getElementById('playlist-container').innerHTML = `🎵 <b>Cola (${playlist.length}):</b> ` + playlist.slice(-3).join(" | ");
     });
 
     function sendMsg() {
-        const input = document.getElementById('msg-input');
-        if (!input.value) return;
-        socket.emit('chat_msg', { roomId: currentRoomId, msg: input.value, user: document.getElementById('username').value });
-        input.value = '';
+        const msg = document.getElementById('msg-input').value.trim();
+        if (!msg) return;
+        socket.emit('chat_msg', { roomId: currentRoomId, msg, user: `${myProfile.avatar} ${myProfile.username}` });
+        document.getElementById('msg-input').value = '';
+        socket.emit('typing', { roomId: currentRoomId, user: myProfile.username, isTyping: false });
     }
+
+    function handleTyping() {
+        socket.emit('typing', { roomId: currentRoomId, user: myProfile.username, isTyping: true });
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => {
+            socket.emit('typing', { roomId: currentRoomId, user: myProfile.username, isTyping: false });
+        }, 1500);
+    }
+
+    socket.on('display_typing', (data) => {
+        document.getElementById('typing-box').innerText = data.isTyping ? `✏️ ${data.user} está escribiendo...` : "";
+    });
+
+    function react(msgId, emoji) { socket.emit('react_msg', { roomId: currentRoomId, msgId, emoji }); }
+
+    socket.on('msg_reacted', (data) => {
+        const el = document.getElementById(`reactions-${data.msgId}`);
+        if(el) el.innerHTML += `<span style="background:rgba(255,255,255,0.15); padding:2px 6px; border-radius:6px; font-size:0.75rem;">${data.emoji}</span>`;
+    });
 
     socket.on('new_msg', (data) => {
         const box = document.getElementById('chat-box');
-        box.innerHTML += `<div class="msg"><b>${data.user}</b>: ${data.msg}</div>`;
+        box.innerHTML += `
+            <div class="msg-bubble">
+                <div class="msg-header"><span><b>${data.user}</b></span><span>${data.time}</span></div>
+                <div style="font-size:0.65rem; opacity:0.6; margin-bottom:4px;">📍 ${data.distance}</div>
+                <div class="msg-text">${data.msg}</div>
+                <div class="reactions-bar" id="reactions-${data.id}">
+                    <button class="reaction-btn" onclick="react('${data.id}', '🔥')">🔥</button>
+                    <button class="reaction-btn" onclick="react('${data.id}', '❤️')">❤️</button>
+                    <button class="reaction-btn" onclick="react('${data.id}', '🎵')">🎵</button>
+                </div>
+            </div>
+        `;
         box.scrollTop = box.scrollHeight;
+    });
+
+    async function toggleMic() {
+        const micBtn = document.getElementById('mic-btn');
+        if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.start();
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    socket.emit('send_voice', { roomId: currentRoomId, audioBlob: blob });
+                };
+                micBtn.style.background = "#ef4444";
+                micBtn.innerHTML = '<i class="fa-solid fa-stop"></i>';
+            } catch (e) { alert('Micrófono denegado.'); }
+        } else {
+            mediaRecorder.stop();
+            micBtn.style.background = "#8b5cf6";
+            micBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+        }
+    }
+
+    socket.on('incoming_voice', (data) => {
+        const url = URL.createObjectURL(new Blob([data.audioBlob], { type: 'audio/webm' }));
+        const box = document.getElementById('chat-box');
+        box.innerHTML += `
+            <div class="msg-bubble">
+                <div class="msg-header"><span>🔊 Nota de voz de ${data.from}</span></div>
+                <audio src="${url}" controls style="width:100%; height:30px; margin-top:4px;"></audio>
+            </div>
+        `;
+        box.scrollTop = box.scrollHeight;
+    });
+
+    socket.on('incoming_dm', (data) => { alert(`Mensaje Privado de ${data.from}: ${data.msg}`); });
+
+    const ctx = document.getElementById('energyChart').getContext('2d');
+    const energyChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Actividad', data: [], borderColor: '#6366f1', tension: 0.3 }] },
+        options: { responsive: true, scales: { x: { display: false } } }
+    });
+
+    socket.on('update_stats', (val) => {
+        energyChart.data.labels.push(new Date().toLocaleTimeString().slice(-5));
+        energyChart.data.datasets[0].data.push(val);
+        if (energyChart.data.labels.length > 6) {
+            energyChart.data.labels.shift();
+            energyChart.data.datasets[0].data.shift();
+        }
+        energyChart.update();
     });
 </script>
 </body>
