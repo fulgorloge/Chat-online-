@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoVibe | Music & Proximity</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body { background: #0a0a0a; color: #e5e5e5; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(20, 20, 20, 0.7); backdrop-filter: blur(10px); border: 1px solid #333; }
+        .gradient-text { background: linear-gradient(to right, #10b981, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <header class="max-w-4xl mx-auto mb-8 text-center">
+        <h1 class="text-5xl font-extrabold mb-2 gradient-text">GeoVibe</h1>
+        <p class="text-slate-400">Conecta con personas cerca y comparte tu música</p>
+    </header>
+
+    <div id="app" class="max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
+        <!-- Setup Section -->
+        <div class="glass p-6 rounded-2xl shadow-xl">
+            <h2 class="text-xl font-bold mb-4">Tu Perfil</h2>
+            <input type="text" id="username" placeholder="Tu nombre..." class="w-full bg-black border border-slate-700 p-3 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+            <button id="btn-init" class="w-full bg-emerald-600 hover:bg-emerald-700 p-3 rounded-xl font-bold transition">Activar Ubicación y Empezar</button>
+        </div>
+
+        <!-- Rooms List -->
+        <div class="glass p-6 rounded-2xl shadow-xl">
+            <h2 class="text-xl font-bold mb-4">Salas Cercanas</h2>
+            <div id="rooms-container" class="space-y-3">
+                <p class="text-slate-500 text-sm">Activa tu ubicación para ver salas cercanas...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        document.getElementById('btn-init').onclick = () => {
+            navigator.geolocation.getCurrentPosition(pos => {
+                socket.emit('update_location', { 
+                    lat: pos.coords.latitude, 
+                    lng: pos.coords.longitude,
+                    name: document.getElementById('username').value || 'Anónimo'
+                });
+                alert('Ubicación compartida. ¡Ya puedes ver y crear salas!');
+            }, () => {
+                alert('No se pudo obtener la ubicación.');
+            });
+        };
+
+        socket.on('rooms_list', rooms => {
+            const container = document.getElementById('rooms-container');
+            if (rooms.length === 0) {
+                container.innerHTML = '<p class="text-slate-500 text-sm">No hay salas activas.</p>';
+                return;
+            }
+            container.innerHTML = rooms.map(r => `
+                <div class="p-4 bg-slate-900 rounded-xl flex justify-between items-center border border-slate-800">
+                    <span class="font-medium">${r.name}</span>
+                    <button class="bg-emerald-600/20 text-emerald-400 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-emerald-600 hover:text-white transition">Unirse</button>
+                </div>
+            `).join('');
+        });
+    </script>
+</body>
+</html>
