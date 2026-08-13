@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoVibe | Project Z Ultimate Enterprise Hub + Communities & Match</title>
+    <title>GeoVibe | Project Z Ultimate Enterprise Hub + Marketplace, Economy & Feed</title>
     <!-- Librerías Externas -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -27,6 +27,9 @@
             --pz-pink: #db2777;
             --pz-amber: #d97706;
             --pz-netflix: #e50914;
+            --pz-sales: #8b5cf6; 
+            --pz-economy: #eab308; /* Color Oro / Fichas de Economía */
+            --pz-economy-glow: rgba(234, 179, 8, 0.4);
             --pz-text: #f8fafc;
             --pz-muted: #64748b;
             --pz-danger: #dc2626;
@@ -102,15 +105,19 @@
         .pz-list-item:hover { background: rgba(6, 182, 212, 0.03); border-color: var(--pz-border-glow); }
         .pz-list-item button { width: auto; padding: 3px 8px; font-size: 0.65rem; margin: 0; box-shadow: none; }
 
-        .media-tabs { display: flex; gap: 4px; margin-bottom: 6px; }
-        .media-tab-btn { flex: 1; padding: 5px; font-size: 0.7rem; background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); border-radius: 6px; color: var(--pz-muted); cursor: pointer; text-align: center; }
+        .media-tabs { display: flex; gap: 3px; margin-bottom: 6px; overflow-x: auto; }
+        .media-tab-btn { flex: 1; padding: 5px 2px; font-size: 0.58rem; background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); border-radius: 6px; color: var(--pz-muted); cursor: pointer; text-align: center; white-space: nowrap; }
         .media-tab-btn.active { background: var(--pz-surface); color: var(--pz-neon); border-color: var(--pz-neon); font-weight: 700; }
         .media-tab-btn.netflix.active { color: var(--pz-netflix); border-color: var(--pz-netflix); }
+        .media-tab-btn.arcade.active { color: var(--pz-amber); border-color: var(--pz-amber); }
+        .media-tab-btn.feed.active { color: var(--pz-pink); border-color: var(--pz-pink); }
+        .media-tab-btn.sales.active { color: var(--pz-sales); border-color: var(--pz-sales); }
+        .media-tab-btn.economy.active { color: var(--pz-economy); border-color: var(--pz-economy); }
 
         .media-content-pane { display: none; }
         .media-content-pane.active { display: block; }
 
-        #chat-box { height: 160px; overflow-y: auto; margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; }
+        #chat-box { height: 130px; overflow-y: auto; margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; }
         .msg-bubble { 
             background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 8px; 
             border-left: 2px solid var(--pz-neon); font-size: 0.8rem;
@@ -172,7 +179,7 @@
     <!-- 2. INTERFAZ DE CONTROL PRINCIPAL (HUD) -->
     <div id="main-hud" style="display:none; flex-direction: column; gap: 8px;">
         
-        <!-- BARRA DE TELEMETRÍA SUPERIOR -->
+        <!-- BARRA DE TELEMETRÍA SUPERIOR CON BILLETERA DE MONEDAS -->
         <div class="pz-header">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <span id="header-avatar" style="font-size: 1.1rem;">🎧</span>
@@ -181,17 +188,21 @@
                     <span style="font-size: 0.55rem; color: var(--pz-muted); display:flex; align-items:center; gap:4px;"><span id="status-dot" style="width:6px; height:6px; background:var(--pz-danger); border-radius:50%; display:inline-block;"></span> <span id="header-status">Desconectado</span></span>
                 </div>
             </div>
-            <div style="display: flex; gap: 2px; flex-wrap: wrap; justify-content: flex-end;">
-                <button onclick="switchPzTab('rooms')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Salas"><i class="fa-solid fa-tower-broadcast"></i></button>
-                <button onclick="switchPzTab('circles')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Círculos Temáticos"><i class="fa-solid fa-circle-nodes"></i></button>
-                <button onclick="switchPzTab('bottle')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Botella a la Deriva"><i class="fa-solid fa-bottle-water"></i></button>
-                <button onclick="switchPzTab('match')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Sistema Meet"><i class="fa-solid fa-heart-pulse"></i></button>
-                <button onclick="switchPzTab('global-chat')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Global"><i class="fa-solid fa-globe"></i></button>
-                <button onclick="switchPzTab('profile')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Perfil"><i class="fa-solid fa-sliders"></i></button>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <div style="background: rgba(234, 179, 8, 0.15); border: 1px solid var(--pz-economy); padding: 2px 6px; border-radius: 6px; display: flex; align-items: center; gap: 4px;" title="Tus Z-Coins (Monedas)">
+                    <i class="fa-solid fa-coins" style="color: var(--pz-economy); font-size: 0.7rem;"></i>
+                    <span id="header-wallet" style="font-weight: 700; font-size: 0.7rem; color: var(--pz-economy);">100 ZC</span>
+                </div>
+                <div style="display: flex; gap: 2px; flex-wrap: wrap; justify-content: flex-end;">
+                    <button onclick="switchPzTab('rooms')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Salas"><i class="fa-solid fa-tower-broadcast"></i></button>
+                    <button onclick="switchPzTab('economy')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(234,179,8,0.1); margin:0; box-shadow:none; border:1px solid var(--pz-economy); color:var(--pz-economy);" title="Economía y Fichas"><i class="fa-solid fa-wallet"></i></button>
+                    <button onclick="switchPzTab('global-chat')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Global"><i class="fa-solid fa-globe"></i></button>
+                    <button onclick="switchPzTab('profile')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Perfil"><i class="fa-solid fa-sliders"></i></button>
+                </div>
             </div>
         </div>
 
-        <!-- VISTA A: GESTIÓN DE SALAS Y RADAR -->
+        <!-- VISTA A: GESTIÓN DE SALAS, SALAS PRIVADAS Y RADAR -->
         <div id="pz-rooms" class="pz-tab-content active">
             <div class="pz-card">
                 <h2><i class="fa-solid fa-satellite-dish"></i> Sincronización Telemétrica GPS</h2>
@@ -199,9 +210,17 @@
             </div>
 
             <div class="pz-card">
-                <h2><i class="fa-solid fa-circle-plus"></i> Desplegar Nueva Frecuencia</h2>
-                <input type="text" id="new-room-name" placeholder="Designación de Sala (ej: Netflix & Chill Party)">
-                <input type="text" id="new-room-song" placeholder="ID Spotify o Enlace Netflix de la Película...">
+                <h2><i class="fa-solid fa-circle-plus"></i> Desplegar Nueva Frecuencia (Sala)</h2>
+                <input type="text" id="new-room-name" placeholder="Designación de Sala...">
+                <input type="text" id="new-room-song" placeholder="ID Spotify o Enlace Multimedia...">
+                
+                <div style="display: flex; gap: 6px; margin: 4px 0; align-items: center;">
+                    <label style="display:flex; align-items:center; gap:4px; cursor:pointer; color:var(--pz-economy); font-size:0.7rem;">
+                        <input type="checkbox" id="room-is-private" onchange="togglePrivateCost()" style="width:auto; margin:0;"> 🔒 Sala Privada de Pago
+                    </label>
+                    <input type="number" id="room-entry-cost" placeholder="Costo ZC (ej: 10)" value="10" disabled style="margin:0; padding:4px; font-size:0.7rem;">
+                </div>
+
                 <button onclick="createRoom()"><i class="fa-solid fa-bolt"></i> Inicializar Red Local</button>
             </div>
 
@@ -213,68 +232,37 @@
             </div>
         </div>
 
-        <!-- VISTA B: CÍRCULOS TEMÁTICOS (Comunidades Anime, Música, Videojuegos, Arte, etc.) -->
-        <div id="pz-circles" class="pz-tab-content">
-            <div class="pz-card">
-                <h2><i class="fa-solid fa-circle-nodes"></i> Círculos Temáticos</h2>
-                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Comunidades creadas por usuarios centradas en intereses específicos.</p>
+        <!-- VISTA DE ECONOMÍA, BANCO Y GANANCIAS (Z-COINS) -->
+        <div id="pz-economy" class="pz-tab-content">
+            <div class="pz-card" style="border-color: var(--pz-economy);">
+                <h2><i class="fa-solid fa-vault" style="color: var(--pz-economy);"></i> Banco Central & Economía ZC</h2>
+                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Gana monedas (ZC) creando salas privadas de pago, recibiendo propinas o completando tareas. ¡Retira tus ganancias reales!</p>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
-                    <div class="pz-list-item" style="flex-direction:column; align-items:flex-start; cursor:pointer;" onclick="joinCircle('Anime & Manga ⛩️')">
-                        <span style="font-weight:700; color:var(--pz-neon);">⛩️ Anime & Manga</span>
-                        <span style="font-size:0.6rem; color:var(--pz-muted);">Debates, arte y reseñas</span>
-                    </div>
-                    <div class="pz-list-item" style="flex-direction:column; align-items:flex-start; cursor:pointer;" onclick="joinCircle('Videojuegos & RPG 🎮')">
-                        <span style="font-weight:700; color:var(--pz-neon);">🎮 Videojuegos & RPG</span>
-                        <span style="font-size:0.6rem; color:var(--pz-muted);">Multijugador y trucos</span>
-                    </div>
-                    <div class="pz-list-item" style="flex-direction:column; align-items:flex-start; cursor:pointer;" onclick="joinCircle('Música & Underground 🎧')">
-                        <span style="font-weight:700; color:var(--pz-neon);">🎧 Música & Underground</span>
-                        <span style="font-size:0.6rem; color:var(--pz-muted);">Sets, techno y synth</span>
-                    </div>
-                    <div class="pz-list-item" style="flex-direction:column; align-items:flex-start; cursor:pointer;" onclick="joinCircle('Arte & Cyberpunk ⚡')">
-                        <span style="font-weight:700; color:var(--pz-neon);">⚡ Arte & Cyberpunk</span>
-                        <span style="font-size:0.6rem; color:var(--pz-muted);">Ilustración y diseño</span>
-                    </div>
+                <div style="background: rgba(234,179,8,0.08); border: 1px solid var(--pz-economy); border-radius: 8px; padding: 10px; text-align: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.65rem; color: var(--pz-muted); text-transform: uppercase;">Saldo Actual en Billetera</span>
+                    <div id="economy-balance-display" style="font-size: 1.6rem; font-weight: 900; color: var(--pz-economy); margin: 2px 0;">100 ZC</div>
+                    <span style="font-size: 0.6rem; color: #34d399;">Equivalente a USD $10.00 (Tasa interna)</span>
                 </div>
-                
-                <input type="text" id="new-circle-name" placeholder="Crear nuevo Círculo temático...">
-                <button onclick="createNewCircle()" style="background:var(--pz-accent);"><i class="fa-solid fa-plus"></i> Lanzar Círculo</button>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
+                    <button onclick="claimDailyReward()" style="background:var(--pz-accent); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-gift"></i> Reclamar Bono Diario</button>
+                    <button onclick="openCashoutModal()" style="background:var(--pz-sales); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-money-bill-transfer"></i> Retirar Ganancias</button>
+                </div>
+
+                <div style="border-top: 1px dashed var(--pz-border); padding-top: 6px; font-size: 0.65rem; color: var(--pz-muted);">
+                    <b>Modelo de Ganancias:</b> Cuando cobras entrada a tu sala privada, el <b>80%</b> va directo a tu billetera y el <b>20%</b> alimenta el fondo general de la plataforma. ¡Ganas tú y gana la red!
+                </div>
             </div>
         </div>
 
-        <!-- VISTA C: BOTELLA A LA DERIVA (Mensajes Anónimos) -->
+        <!-- VISTA C: BOTELLA A LA DERIVA -->
         <div id="pz-bottle" class="pz-tab-content">
             <div class="pz-card" style="text-align: center; padding: 20px 12px;">
                 <h2><i class="fa-solid fa-bottle-water"></i> Botella a la Deriva</h2>
-                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 12px;">Escribe un mensaje en una botella virtual y lánzalo al ciberespacio para conectar con alguien aleatorio.</p>
-                <textarea id="bottle-msg" rows="3" placeholder="Escribe tu mensaje anónimo o público aquí..."></textarea>
+                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 12px;">Escribe un mensaje anónimo o público y lánzalo al mar digital.</p>
+                <textarea id="bottle-msg" rows="3" placeholder="Escribe tu mensaje en la botella..."></textarea>
                 <button onclick="throwBottle()" style="background:var(--pz-primary); margin-top: 8px;"><i class="fa-solid fa-paper-plane"></i> Lanzar al Mar Digital</button>
                 <div id="bottle-result" style="margin-top: 12px; font-size: 0.75rem; color: var(--pz-neon);"></div>
-            </div>
-        </div>
-
-        <!-- VISTA D: SISTEMA DE COINCIDENCIA (MEET / AFINIDAD) -->
-        <div id="pz-match" class="pz-tab-content">
-            <div class="pz-card">
-                <h2><i class="fa-solid fa-heart-pulse"></i> Sistema Meet // Afinidad</h2>
-                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Sugerencias automáticas de perfiles basados en tus gustos y aficiones seleccionadas.</p>
-                <div id="match-list" style="display: flex; flex-direction: column; gap: 6px;">
-                    <div class="pz-list-item">
-                        <div>
-                            <span style="font-weight:700; color:var(--pz-text);">👽 CyberViper</span>
-                            <div style="font-size:0.6rem; color:var(--pz-muted);">Intereses: Cyberpunk, Synthwave, RPG</div>
-                        </div>
-                        <span class="pz-badge" style="background:rgba(219,39,119,0.2); border-color:var(--pz-pink); color:#f472b6;">94% Afinidad</span>
-                    </div>
-                    <div class="pz-list-item">
-                        <div>
-                            <span style="font-weight:700; color:var(--pz-text);">🎧 TUCNAK_Official</span>
-                            <div style="font-size:0.6rem; color:var(--pz-muted);">Intereses: Industrial Techno, Producción</div>
-                        </div>
-                        <span class="pz-badge" style="background:rgba(219,39,119,0.2); border-color:var(--pz-pink); color:#f472b6;">88% Afinidad</span>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -290,25 +278,29 @@
             </div>
         </div>
 
-        <!-- VISTA F: SALA DE OPERACIONES ACTIVA (HUD Z CON WATCH PARTY, VOZ Y CHAT) -->
+        <!-- VISTA F: SALA DE OPERACIONES ACTIVA -->
         <div id="pz-room-active" class="pz-tab-content">
             
             <div class="pz-card" style="padding: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                     <span id="active-room-name" style="font-weight: 900; font-size: 0.9rem; color: var(--pz-neon);">Sala Operativa</span>
                     <div style="display: flex; gap: 4px;">
-                        <button onclick="toggleMediaControl()" style="width: auto; padding: 2px 6px; background: rgba(255,255,255,0.06); font-size: 0.65rem; margin:0; border:1px solid var(--pz-border); box-shadow:none;"><i class="fa-solid fa-clapperboard"></i> Media</button>
+                        <button onclick="toggleMediaControl()" style="width: auto; padding: 2px 6px; background: rgba(255,255,255,0.06); font-size: 0.65rem; margin:0; border:1px solid var(--pz-border); box-shadow:none;"><i class="fa-solid fa-clapperboard"></i> Hub</button>
                         <button onclick="leaveRoom()" style="width: auto; padding: 2px 6px; background: var(--pz-danger); font-size: 0.65rem; margin:0; box-shadow:none;"><i class="fa-solid fa-power-off"></i> Salir</button>
                     </div>
                 </div>
                 
                 <div id="map"></div>
 
-                <!-- CONTENEDOR MULTIMEDIA UNIFICADO (Spotify & Netflix Watch Party + Chat de Voz) -->
+                <!-- CONTENEDOR MULTIMEDIA Y APARTADOS -->
                 <div id="media-panel" style="display: block;">
                     <div class="media-tabs">
                         <button class="media-tab-btn active" onclick="switchMediaTab('spotify')"><i class="fa-brands fa-spotify"></i> Spotify</button>
-                        <button class="media-tab-btn netflix" onclick="switchMediaTab('netflix')"><i class="fa-solid fa-film"></i> Sala de Cine</button>
+                        <button class="media-tab-btn netflix" onclick="switchMediaTab('netflix')"><i class="fa-solid fa-film"></i> Cine</button>
+                        <button class="media-tab-btn arcade" onclick="switchMediaTab('arcade')"><i class="fa-solid fa-gamepad"></i> Juegos</button>
+                        <button class="media-tab-btn feed" onclick="switchMediaTab('feed')"><i class="fa-solid fa-photo-film"></i> Muro</button>
+                        <button class="media-tab-btn sales" onclick="switchMediaTab('sales')"><i class="fa-solid fa-store"></i> Ventas</button>
+                        <button class="media-tab-btn economy" onclick="switchMediaTab('economy-tips')"><i class="fa-solid fa-coins"></i> Propina</button>
                     </div>
 
                     <div id="pane-spotify" class="media-content-pane active">
@@ -321,41 +313,80 @@
                         <div id="playlist-container" style="font-size: 0.65rem; color: var(--pz-muted); margin-top: 3px;">Cola de reproducción vacía</div>
                     </div>
 
-                    <!-- SALA DE CINE / WATCH PARTY & VOZ -->
                     <div id="pane-netflix" class="media-content-pane">
                         <div style="background: rgba(229,9,20,0.1); border: 1px solid var(--pz-netflix); border-radius: 6px; padding: 6px; margin-bottom: 4px; text-align: center;">
                             <span id="netflix-host-badge" style="font-size: 0.7rem; font-weight: 700; color: var(--pz-netflix); display:block; margin-bottom:3px;"><i class="fa-solid fa-crown"></i> Sala de Cine (Watch Party)</span>
-                            <p id="netflix-desc" style="font-size: 0.6rem; color: var(--pz-muted); margin: 0 0 6px 0;">Reproduce y sincroniza videos o películas con los miembros de la sala mientras hablas por los canales de voz o texto.</p>
+                            <p id="netflix-desc" style="font-size: 0.6rem; color: var(--pz-muted); margin: 0 0 6px 0;">Reproduce y sincroniza videos con los miembros.</p>
                             
                             <div id="host-controls" style="display: none; margin-bottom: 6px; border-top:1px dashed rgba(229,9,20,0.3); padding-top:6px;">
-                                <label style="color:var(--pz-netflix); font-size:0.6rem;">Panel de Control del Host:</label>
+                                <label style="color:var(--pz-netflix); font-size:0.6rem;">Control del Host:</label>
                                 <div style="display: flex; gap: 4px; margin: 4px 0;">
-                                    <input type="text" id="netflix-url-input" placeholder="URL de video o Título Netflix..." style="margin:0; padding: 4px 6px; font-size: 0.7rem;">
+                                    <input type="text" id="netflix-url-input" placeholder="URL de video..." style="margin:0; padding: 4px 6px; font-size: 0.7rem;">
                                     <button onclick="hostStartBroadcast()" style="background:var(--pz-netflix); width:75px; margin:0; padding:4px; font-size:0.65rem;"><i class="fa-solid fa-broadcast-tower"></i> Transmitir</button>
-                                </div>
-                                <div style="display: flex; justify-content: center; gap: 4px;">
-                                    <button onclick="hostSendState('play')" style="width: auto; padding: 3px 8px; background: rgba(255,255,255,0.1); font-size: 0.6rem;"><i class="fa-solid fa-play"></i> Play</button>
-                                    <button onclick="hostSendState('pause')" style="width: auto; padding: 3px 8px; background: rgba(255,255,255,0.1); font-size: 0.6rem;"><i class="fa-solid fa-pause"></i> Pause</button>
                                 </div>
                             </div>
 
                             <div id="netflix-viewer-screen" style="background: #000; border-radius: 6px; padding: 12px; border: 1px solid var(--pz-netflix); margin-top: 4px;">
-                                <div id="netflix-current-title" style="font-size: 0.75rem; font-weight: 700; color: white; margin-bottom: 4px;">Ninguna película seleccionada</div>
-                                <div id="netflix-sync-status" style="font-size: 0.65rem; color: var(--pz-muted); margin-bottom: 6px;">Canal de voz y sincronización listos</div>
-                                <a id="netflix-open-link" href="https://www.netflix.com" target="_blank" style="text-decoration: none;"><button style="background: var(--pz-netflix); padding: 4px 10px; font-size: 0.65rem; margin:0;"><i class="fa-solid fa-external-link"></i> Abrir Netflix / Video</button></a>
+                                <div id="netflix-current-title" style="font-size: 0.75rem; font-weight: 700; color: white; margin-bottom: 4px;">Ningún video seleccionado</div>
+                                <div id="netflix-sync-status" style="font-size: 0.65rem; color: var(--pz-muted); margin-bottom: 6px;">Sintonizado en vivo</div>
                             </div>
                         </div>
                     </div>
+
+                    <div id="pane-arcade" class="media-content-pane">
+                        <div style="background: rgba(217,119,6,0.1); border: 1px solid var(--pz-amber); border-radius: 6px; padding: 8px; text-align: center;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--pz-amber); display:block; margin-bottom:4px;"><i class="fa-solid fa-gamepad"></i> Zona de Juegos Dinámicos</span>
+                            <div style="display: flex; gap: 4px; margin-bottom: 6px; justify-content:center;">
+                                <button onclick="startTriviaGame()" style="background:var(--pz-amber); color:#000; font-size:0.65rem; padding:4px; width:auto;"><i class="fa-solid fa-brain"></i> Trivia (+10 ZC)</button>
+                            </div>
+                            <div id="arcade-game-screen" style="background: rgba(2,4,8,0.9); border: 1px solid var(--pz-border); border-radius: 6px; padding: 8px; min-height: 70px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                                <span id="arcade-msg" style="font-size: 0.7rem; color: var(--pz-text);">¡Gana ZC respondiendo correctamente!</span>
+                                <div id="arcade-actions" style="margin-top: 6px; width: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="pane-feed" class="media-content-pane">
+                        <div style="background: rgba(219,39,119,0.08); border: 1px solid var(--pz-pink); border-radius: 6px; padding: 8px;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--pz-pink); display:block; margin-bottom:4px; text-align:center;"><i class="fa-solid fa-photo-film"></i> Muro de Publicaciones</span>
+                            <input type="file" id="room-media-upload" accept="image/*,video/*" style="display:none;" onchange="publishMediaToFeed(event)">
+                            <button onclick="document.getElementById('room-media-upload').click()" style="background:var(--pz-pink); font-size:0.65rem; padding:5px;"><i class="fa-solid fa-cloud-arrow-up"></i> Subir Contenido al Muro</button>
+                            <div id="room-media-feed" style="max-height: 120px; overflow-y: auto; display:flex; flex-direction:column; gap:6px; margin-top:4px;"></div>
+                        </div>
+                    </div>
+
+                    <div id="pane-sales" class="media-content-pane">
+                        <div style="background: rgba(139,92,246,0.08); border: 1px solid var(--pz-sales); border-radius: 6px; padding: 8px;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--pz-sales); display:block; margin-bottom:4px; text-align:center;"><i class="fa-solid fa-store"></i> Marketplace ZC</span>
+                            <input type="text" id="sales-item-title" placeholder="Título..." style="margin:2px 0; padding:4px; font-size:0.7rem;">
+                            <input type="text" id="sales-item-price" placeholder="Precio en ZC..." style="margin:2px 0; padding:4px; font-size:0.7rem;">
+                            <button onclick="publishProduct()" style="background:var(--pz-sales); font-size:0.65rem; padding:5px; margin-top:4px;"><i class="fa-solid fa-tag"></i> Publicar Artículo</button>
+                            <div id="sales-products-list" style="max-height: 100px; overflow-y: auto; display:flex; flex-direction:column; gap:4px; margin-top:4px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- NUEVO APARTADO DE PROPINA / GANAR MONEDAS EN SALA -->
+                    <div id="pane-economy-tips" class="media-content-pane">
+                        <div style="background: rgba(234,179,8,0.08); border: 1px solid var(--pz-economy); border-radius: 6px; padding: 8px; text-align: center;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--pz-economy); display:block; margin-bottom:4px;"><i class="fa-solid fa-hand-holding-dollar"></i> Enviar Propina al Host</span>
+                            <p style="font-size: 0.6rem; color: var(--pz-muted); margin: 0 0 6px 0;">Apoya al creador de esta sala enviándole Z-Coins directamente.</p>
+                            <div style="display: flex; gap: 4px; justify-content: center;">
+                                <button onclick="sendTip(10)" style="background:var(--pz-economy); color:#000; width:auto; font-size:0.65rem; padding:4px 8px;">🎁 10 ZC</button>
+                                <button onclick="sendTip(50)" style="background:var(--pz-economy); color:#000; width:auto; font-size:0.65rem; padding:4px 8px;">💎 50 ZC</button>
+                                <button onclick="sendTip(100)" style="background:var(--pz-economy); color:#000; width:auto; font-size:0.65rem; padding:4px 8px;">👑 100 ZC</button>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
-            <!-- CHAT CON SOPORTE PARA FOTOS, VIDEOS, EMOJIS, STICKERS Y SONIDOS -->
+            <!-- CHAT Y HERRAMIENTAS -->
             <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 6px;">
                 
                 <div class="pz-card" style="padding: 8px; display:flex; flex-direction:column; justify-content:space-between;">
                     <div id="chat-box"></div>
 
-                    <!-- Panel desplegable de Emojis -->
                     <div id="emoji-drawer" class="drawer-panel">
                         <div class="drawer-grid">
                             <div class="drawer-item" onclick="insertEmoji('🔥')">🔥</div>
@@ -363,107 +394,57 @@
                             <div class="drawer-item" onclick="insertEmoji('💀')">💀</div>
                             <div class="drawer-item" onclick="insertEmoji('🎵')">🎵</div>
                             <div class="drawer-item" onclick="insertEmoji('⚡')">⚡</div>
-                            <div class="drawer-item" onclick="insertEmoji('🍿')">🍿</div>
-                            <div class="drawer-item" onclick="insertEmoji('🎉')">🎉</div>
-                            <div class="drawer-item" onclick="insertEmoji('👽')">👽</div>
-                            <div class="drawer-item" onclick="insertEmoji('💥')">💥</div>
-                            <div class="drawer-item" onclick="insertEmoji('❤️')">❤️</div>
-                            <div class="drawer-item" onclick="insertEmoji('☕')">☕</div>
-                            <div class="drawer-item" onclick="insertEmoji('🌟')">🌟</div>
-                        </div>
-                    </div>
-
-                    <!-- Panel desplegable de Stickers -->
-                    <div id="sticker-drawer" class="drawer-panel">
-                        <div class="drawer-grid" style="grid-template-columns: repeat(3, 1fr);">
-                            <div class="drawer-item" onclick="sendSticker('https://media.giphy.com/media/3o7TKSjRrfIPjeiOkM/giphy.gif')"><img src="https://media.giphy.com/media/3o7TKSjRrfIPjeiOkM/giphy.gif" class="sticker-img"></div>
-                            <div class="drawer-item" onclick="sendSticker('https://media.giphy.com/media/l0HlRnAWXxn0MhOBK/giphy.gif')"><img src="https://media.giphy.com/media/l0HlRnAWXxn0MhOBK/giphy.gif" class="sticker-img"></div>
-                            <div class="drawer-item" onclick="sendSticker('https://media.giphy.com/media/xT9IgzoKnwFNmISR8I/giphy.gif')"><img src="https://media.giphy.com/media/xT9IgzoKnwFNmISR8I/giphy.gif" class="sticker-img"></div>
-                        </div>
-                    </div>
-
-                    <!-- Panel desplegable de Sonidos de Red -->
-                    <div id="sound-drawer" class="drawer-panel">
-                        <div style="font-size: 0.65rem; color: var(--pz-neon); margin-bottom: 4px; font-weight: 700;"><i class="fa-solid fa-volume-high"></i> Disparar Efecto de Sonido a la Sala:</div>
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
-                            <button onclick="sendSoundEffect('airhorn')" style="margin:0; padding:4px; font-size:0.6rem; background:var(--pz-primary);">📢 Airhorn</button>
-                            <button onclick="sendSoundEffect('laser')" style="margin:0; padding:4px; font-size:0.6rem; background:var(--pz-neon); color:#000;">⚡ Laser</button>
-                            <button onclick="sendSoundEffect('success')" style="margin:0; padding:4px; font-size:0.6rem; background:var(--pz-accent);">🎉 Win</button>
+                            <div class="drawer-item" onclick="insertEmoji('💰')">💰</div>
                         </div>
                     </div>
 
                     <div>
                         <div id="typing-box" class="typing-indicator"></div>
-                        <!-- Barra de herramientas de Chat (Emojis, Stickers, Sonidos, Multimedia y Enviar) -->
                         <div style="display: flex; gap: 2px; margin-bottom: 2px; align-items:center;">
                             <button onclick="toggleDrawer('emoji-drawer')" style="width: auto; padding: 2px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Emojis">😊</button>
-                            <button onclick="toggleDrawer('sticker-drawer')" style="width: auto; padding: 2px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Stickers/GIFs">🖼️</button>
-                            <button onclick="toggleDrawer('sound-drawer')" style="width: auto; padding: 2px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Efectos de Sonido">🔊</button>
-                            <!-- Input oculto para enviar Fotos y Videos -->
                             <input type="file" id="media-file-input" accept="image/*,video/*" style="display:none;" onchange="handleMediaUpload(event)">
-                            <button onclick="document.getElementById('media-file-input').click()" style="width: auto; padding: 2px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Enviar Foto o Video"><i class="fa-solid fa-photo-film"></i> Archivo</button>
+                            <button onclick="document.getElementById('media-file-input').click()" style="width: auto; padding: 2px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Archivo"><i class="fa-solid fa-photo-film"></i></button>
                         </div>
                         <div style="display: flex; gap: 3px;">
-                            <input type="text" id="msg-input" placeholder="Mensaje de red o chat de voz..." style="margin:0; padding:6px 8px; font-size:0.75rem;" oninput="handleTyping()" onkeypress="if(event.key==='Enter') sendMsg()">
+                            <input type="text" id="msg-input" placeholder="Mensaje..." style="margin:0; padding:6px 8px; font-size:0.75rem;" oninput="handleTyping()" onkeypress="if(event.key==='Enter') sendMsg()">
                             <button onclick="sendMsg()" style="width: 35px; margin:0; padding:6px; font-size:0.75rem;"><i class="fa-solid fa-paper-plane"></i></button>
-                            <button id="mic-btn" onclick="toggleMic()" style="width: 35px; background:var(--pz-pink); margin:0; padding:6px; font-size:0.75rem;" title="Canal de Voz en Vivo"><i class="fa-solid fa-microphone"></i></button>
                         </div>
                     </div>
                 </div>
 
                 <div class="pz-card" style="padding: 8px; display:flex; flex-direction:column;">
                     <span style="font-size: 0.7rem; font-weight: 700; color: var(--pz-muted); margin-bottom: 4px;"><i class="fa-solid fa-users-line"></i> Nodos Online</span>
-                    <div id="room-members-list" style="max-height: 170px; overflow-y: auto; display:flex; flex-direction:column; gap:3px;">
+                    <div id="room-members-list" style="max-height: 150px; overflow-y: auto; display:flex; flex-direction:column; gap:3px;">
                         <span style="font-size: 0.65rem; color: var(--pz-muted);">Buscando nodos...</span>
                     </div>
                 </div>
 
             </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-                <div class="pz-card" style="text-align: center; padding: 8px;">
-                    <span style="font-size: 0.65rem; color: var(--pz-muted); display:block; margin-bottom:3px;"><i class="fa-solid fa-ticket"></i> Credencial QR</span>
-                    <div id="qrcode" style="display:inline-block; background:white; padding:3px; border-radius:4px;"></div>
-                </div>
-                <div class="pz-card" style="padding: 8px;">
-                    <span style="font-size: 0.65rem; color: var(--pz-muted); display:block; margin-bottom:3px;"><i class="fa-solid fa-chart-line"></i> Telemetría de Red</span>
-                    <canvas id="energyChart" style="max-height: 65px;"></canvas>
-                </div>
-            </div>
-
         </div>
 
-        <!-- VISTA G: CONFIGURACIÓN DE PERFIL Y ESTADO -->
+        <!-- VISTA G: CONFIGURACIÓN DE PERFIL -->
         <div id="pz-profile" class="pz-tab-content">
             <div class="pz-card" style="text-align: center; padding: 20px 15px;">
                 <div id="profile-avatar-big" style="font-size: 2.4rem; margin-bottom: 4px;">🎧</div>
                 <h3 id="profile-name-big" style="margin-bottom: 2px;">Operador</h3>
-                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 12px;">Identidad Visual y Aficiones</p>
-                
-                <div style="text-align: left;">
-                    <label style="font-size: 0.65rem; color: var(--pz-muted);">Biografía / Estado del Nodo:</label>
-                    <textarea id="profile-bio" rows="2" placeholder="Estado operativo actual..."></textarea>
-                    
-                    <label style="font-size: 0.65rem; color: var(--pz-muted); margin-top: 6px; display: block;">Intereses y Círculos (Anime, Música, etc.):</label>
-                    <input type="text" id="profile-genre" placeholder="Ej: Anime, Manga, Techno, Videojuegos...">
+                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 12px;">Identidad Visual y Monedero</p>
+                <div style="background:rgba(234,179,8,0.1); border:1px solid var(--pz-economy); border-radius:6px; padding:6px; margin-bottom:8px;">
+                    <span style="font-size:0.7rem; color:var(--pz-economy); font-weight:700;">Balance: <span id="profile-wallet-zc">100</span> ZC</span>
                 </div>
-                <button onclick="saveProfile()" style="background:var(--pz-accent); margin-top: 12px;"><i class="fa-solid fa-floppy-disk"></i> Guardar Configuración</button>
             </div>
         </div>
 
     </div>
 </div>
 
-<!-- 3. MÓDULO DE COMUNICACIÓN PRIVADA (DM MODAL) -->
-<div id="dm-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:2000; justify-content:center; align-items:center;">
-    <div class="pz-card" style="width: 85%; max-width: 340px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span id="dm-target-title" style="font-weight: 700; font-size: 0.85rem; color: var(--pz-neon);"><i class="fa-solid fa-lock"></i> Canal Privado (DM)</span>
-            <button onclick="closeDmModal()" style="width:auto; padding:2px 6px; background:var(--pz-danger); font-size:0.6rem; margin:0; box-shadow:none;">✕</button>
-        </div>
-        <div id="dm-box" style="height: 120px; overflow-y: auto; background:rgba(2, 4, 8, 0.6); border-radius:6px; padding:6px; margin-bottom:6px; font-size:0.75rem; border:1px solid var(--pz-border);"></div>
-        <input type="text" id="dm-input" placeholder="Mensaje seguro cifrado..." style="margin:0; padding:6px; font-size:0.75rem;" onkeypress="if(event.key==='Enter') sendDm()">
-        <button onclick="sendDm()" style="padding:6px; font-size:0.75rem; margin-top:4px;"><i class="fa-solid fa-paper-plane"></i> Enviar Mensaje</button>
+<!-- MODAL DE PAGO PARA ENTRAR A SALAS PRIVADAS -->
+<div id="paywall-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:3000; justify-content:center; align-items:center;">
+    <div class="pz-card" style="width: 85%; max-width: 320px; text-align: center; border-color: var(--pz-economy);">
+        <h2><i class="fa-solid fa-lock" style="color: var(--pz-economy);"></i> Acceso Privado ZC</h2>
+        <p id="paywall-desc" style="font-size: 0.75rem; color: var(--pz-muted); margin-bottom: 12px;">Esta sala requiere un pago de entrada para su ingreso.</p>
+        <div style="font-size: 1.2rem; font-weight: 900; color: var(--pz-economy); margin-bottom: 12px;" id="paywall-price-tag">50 ZC</div>
+        <button onclick="confirmPaywallEntry()" style="background: var(--pz-economy); color: #000; font-weight: 700;"><i class="fa-solid fa-ticket"></i> Pagar y Entrar</button>
+        <button onclick="closePaywallModal()" style="background: rgba(255,255,255,0.05); margin-top: 4px; box-shadow:none;">Cancelar</button>
     </div>
 </div>
 
@@ -474,222 +455,85 @@
     let currentRoomData = null;
     let map = null;
     let markers = [];
-    let mediaRecorder, audioChunks = [];
-    let typingTimeout = null;
-    let currentTargetDmUser = null;
+    let pendingRoomIdToJoin = null;
+    let pendingRoomCost = 0;
+    let pendingRoomCreator = null;
 
     function switchPzTab(tabName) {
         document.querySelectorAll('.pz-tab-content').forEach(el => el.classList.remove('active'));
         if(tabName === 'rooms') document.getElementById('pz-rooms').classList.add('active');
-        if(tabName === 'circles') document.getElementById('pz-circles').classList.add('active');
+        if(tabName === 'economy') document.getElementById('pz-economy').classList.add('active');
         if(tabName === 'bottle') document.getElementById('pz-bottle').classList.add('active');
-        if(tabName === 'match') document.getElementById('pz-match').classList.add('active');
         if(tabName === 'global-chat') document.getElementById('pz-global-chat').classList.add('active');
         if(tabName === 'room-active') document.getElementById('pz-room-active').classList.add('active');
         if(tabName === 'profile') document.getElementById('pz-profile').classList.add('active');
     }
 
-    function toggleMediaControl() {
-        const panel = document.getElementById('media-panel');
-        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    function togglePrivateCost() {
+        const isChecked = document.getElementById('room-is-private').checked;
+        document.getElementById('room-entry-cost').disabled = !isChecked;
     }
 
-    function switchMediaTab(mediaType) {
-        document.querySelectorAll('.media-tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.media-content-pane').forEach(p => p.classList.remove('active'));
-        
-        if(mediaType === 'spotify') {
-            document.querySelector('.media-tab-btn:nth-child(1)').classList.add('active');
-            document.getElementById('pane-spotify').classList.add('active');
-        } else if(mediaType === 'netflix') {
-            document.querySelector('.media-tab-btn.netflix').classList.add('active');
-            document.getElementById('pane-netflix').classList.add('active');
-        }
+    function updateWalletDisplay(balance) {
+        if(!myProfile) return;
+        myProfile.wallet = balance;
+        document.getElementById('header-wallet').innerText = `${balance} ZC`;
+        document.getElementById('economy-balance-display').innerText = `${balance} ZC`;
+        document.getElementById('profile-wallet-zc').innerText = balance;
     }
 
-    function toggleDrawer(drawerId) {
-        ['emoji-drawer', 'sticker-drawer', 'sound-drawer'].forEach(id => {
-            const el = document.getElementById(id);
-            if(id === drawerId) {
-                el.style.display = el.style.display === 'block' ? 'none' : 'block';
-            } else {
-                el.style.display = 'none';
-            }
-        });
+    function claimDailyReward() {
+        socket.emit('claim_daily_reward', { username: myProfile.username });
     }
 
-    function insertEmoji(emoji) {
-        const input = document.getElementById('msg-input');
-        input.value += emoji;
-        input.focus();
-        document.getElementById('emoji-drawer').style.display = 'none';
-    }
-
-    function sendSticker(url) {
-        document.getElementById('sticker-drawer').style.display = 'none';
-        socket.emit('chat_msg', { 
-            roomId: currentRoomId, 
-            msg: `<img src="${url}" style="max-width:120px; border-radius:6px; margin-top:2px;" alt="Sticker">`, 
-            user: `${myProfile.avatar} ${myProfile.username}` 
-        });
-    }
-
-    function handleMediaUpload(event) {
-        const file = event.target.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const base64Data = e.target.result;
-            let htmlContent = "";
-            if(file.type.startsWith('image/')) {
-                htmlContent = `<div style="margin-top:3px;"><img src="${base64Data}" style="max-width:160px; max-height:140px; border-radius:6px;" alt="Imagen compartida"></div>`;
-            } else if(file.type.startsWith('video/')) {
-                htmlContent = `<div style="margin-top:3px;"><video src="${base64Data}" controls style="max-width:180px; max-height:140px; border-radius:6px;"></video></div>`;
-            }
-            if(htmlContent) {
-                socket.emit('chat_msg', { roomId: currentRoomId, msg: htmlContent, user: `${myProfile.avatar} ${myProfile.username}` });
-            }
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function sendSoundEffect(type) {
-        document.getElementById('sound-drawer').style.display = 'none';
-        socket.emit('play_sound_effect', { roomId: currentRoomId, type: type, user: myProfile.username });
-        playLocalAudio(type);
-    }
-
-    function playLocalAudio(type) {
-        let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        let osc = audioCtx.createOscillator();
-        let gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        if(type === 'airhorn') {
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-            osc.frequency.setValueAtTime(554.37, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.3);
-        } else if(type === 'laser') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.2);
-        } else if(type === 'success') {
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-            osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
-            osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
-            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.35);
-        }
-    }
-
-    socket.on('incoming_sound_effect', (data) => {
-        playLocalAudio(data.type);
-        const box = document.getElementById('chat-box');
-        if(box) {
-            box.innerHTML += `<div style="font-size:0.65rem; color:var(--pz-neon); font-style:italic; margin:2px 0;">🔊 ${data.user} disparó sonido: [${data.type.toUpperCase()}]</div>`;
-            box.scrollTop = box.scrollHeight;
-        }
+    socket.on('reward_claimed', (data) => {
+        updateWalletDisplay(data.newBalance);
+        alert(`🎁 ¡Bono reclamado con éxito! +${data.reward} Z-Coins añadidas a tu billetera.`);
     });
 
-    /* Funciones para Círculos Temáticos y Botella a la Deriva */
-    function joinCircle(circleName) {
-        alert(`Conectando al Círculo temático: ${circleName}`);
-        joinRoom(circleName);
-    }
-
-    function createNewCircle() {
-        const name = document.getElementById('new-circle-name').value.trim();
-        if(!name) return alert('Ingresa el nombre del círculo.');
-        joinCircle(name + ' 🌟');
-    }
-
-    function throwBottle() {
-        const msg = document.getElementById('bottle-msg').value.trim();
-        if(!msg) return alert('Escribe un mensaje para tu botella.');
-        document.getElementById('bottle-result').innerHTML = `<i class="fa-solid fa-check"></i> ¡Botella lanzada con éxito al mar digital! Esperando respuesta anónima...`;
-        document.getElementById('bottle-msg').value = '';
-    }
-
-    /* Funciones Netamente Sincronizadas de Watch Party / Cine */
-    function hostStartBroadcast() {
-        const urlInput = document.getElementById('netflix-url-input').value.trim() || "Sala de Cine Party";
-        socket.emit('netflix_sync', { roomId: currentRoomId, action: 'load', title: urlInput, user: myProfile.username });
-        document.getElementById('netflix-current-title').innerText = `🍿 Transmitiendo en Sala de Cine: ${urlInput}`;
-        document.getElementById('netflix-sync-status').innerText = `Estado: Sincronizado en vivo (Host activo)`;
-    }
-
-    function hostSendState(action) {
-        socket.emit('netflix_sync', { roomId: currentRoomId, action: action, user: myProfile.username });
-        document.getElementById('netflix-sync-status').innerText = `Estado: ${action === 'play' ? '▶️ Reproduciendo' : '⏸️ Pausado'} por el Host`;
-    }
-
-    socket.on('netflix_action_broadcast', (data) => {
-        const titleEl = document.getElementById('netflix-current-title');
-        const statusEl = document.getElementById('netflix-sync-status');
-        if(data.action === 'load') {
-            titleEl.innerText = `🍿 Cine / Video del Host: "${data.title}"`;
-            statusEl.innerText = `Sincronizado con la señal de ${data.user}`;
-        } else if(data.action === 'play') {
-            statusEl.innerText = `▶️ El Host (${data.user}) dio PLAY`;
-        } else if(data.action === 'pause') {
-            statusEl.innerText = `⏸️ El Host (${data.user}) dio PAUSE`;
+    function openCashoutModal() {
+        const amount = myProfile.wallet;
+        if(amount < 50) return alert('Necesitas al menos 50 ZC para solicitar retiro.');
+        if(confirm(`¿Deseas retirar tus ganancias de ${amount} ZC (Equivalente a aprox $${(amount/10).toFixed(2)} USD)? Se procesará a tu cuenta vinculada.`)) {
+            socket.emit('request_cashout', { username: myProfile.username, amount });
         }
+    }
+
+    socket.on('cashout_success', (data) => {
+        updateWalletDisplay(data.newBalance);
+        alert(`💸 Retiro procesado con éxito. Se han transferido tus fondos a tu cuenta.`);
     });
 
     function login() {
         const username = document.getElementById('login-user').value.trim();
         const password = document.getElementById('login-pass').value.trim();
         const avatar = document.getElementById('login-avatar').value;
-        if (!username || !password) return alert('Se requiere identificación y clave de acceso.');
+        if (!username || !password) return alert('Se requiere identificación y clave.');
         socket.emit('login_user', { username, password, avatar });
     }
 
     socket.on('login_success', (profile) => {
         myProfile = profile;
+        if(myProfile.wallet === undefined) myProfile.wallet = 100; // Saldo inicial por defecto
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-hud').style.display = 'flex';
         document.getElementById('header-avatar').innerText = myProfile.avatar;
         document.getElementById('header-username').innerText = myProfile.username;
-        document.getElementById('header-status').innerText = "En Línea / Conectado";
+        document.getElementById('header-status').innerText = "En Línea";
         document.getElementById('status-dot').style.background = "var(--pz-accent)";
         document.getElementById('profile-name-big').innerText = `${myProfile.avatar} ${myProfile.username}`;
         document.getElementById('profile-avatar-big').innerText = myProfile.avatar;
-        document.getElementById('profile-bio').value = profile.bio || '';
-        document.getElementById('profile-genre').value = profile.genre || '';
+        updateWalletDisplay(myProfile.wallet);
     });
 
-    socket.on('login_error', (err) => alert("Error de Autenticación: " + err));
-
-    function saveProfile() {
-        const bio = document.getElementById('profile-bio').value.trim();
-        const genre = document.getElementById('profile-genre').value.trim();
-        socket.emit('update_profile', { username: myProfile.username, bio, genre });
-        myProfile.bio = bio;
-        myProfile.genre = genre;
-        alert('Parámetros de perfil sincronizados con éxito.');
-    }
+    socket.on('login_error', (err) => alert("Error: " + err));
 
     function initRadar() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(pos => {
-                socket.emit('update_location', { 
-                    lat: pos.coords.latitude, 
-                    lng: pos.coords.longitude, 
-                    username: `${myProfile.avatar} ${myProfile.username}` 
-                });
+                socket.emit('update_location', { lat: pos.coords.latitude, lng: pos.coords.longitude, username: `${myProfile.avatar} ${myProfile.username}` });
                 document.getElementById('btn-init').innerText = "✓ Coordenadas Sincronizadas";
-                document.getElementById('header-status').innerText = "GPS Activo / Telemetría OK";
             }, () => {
-                alert('Acceso a GPS denegado por el navegador.');
                 socket.emit('update_location', { lat: null, lng: null, username: `${myProfile.avatar} ${myProfile.username}` });
             });
         }
@@ -698,30 +542,65 @@
     socket.on('rooms_list', (rooms) => {
         const container = document.getElementById('rooms-container');
         if (!rooms || rooms.length === 0) {
-            container.innerHTML = '<p style="color: var(--pz-muted); font-size: 0.75rem; text-align: center;">No hay redes activas disponibles.</p>';
+            container.innerHTML = '<p style="color: var(--pz-muted); font-size: 0.75rem; text-align: center;">No hay redes activas.</p>';
             return;
         }
         container.innerHTML = rooms.map(r => `
             <div class="pz-list-item">
                 <div>
-                    <span style="font-weight:700; color:var(--pz-text);">${r.name}</span>
-                    <div style="font-size:0.6rem; color:var(--pz-muted);">${r.count} nodos conectados</div>
+                    <span style="font-weight:700; color:var(--pz-text);">${r.name} ${r.isPrivate ? '🔒' : ''}</span>
+                    <div style="font-size:0.6rem; color:var(--pz-muted);">${r.count} nodos ${r.isPrivate ? `• Costo: ${r.entryCost} ZC` : ''}</div>
                 </div>
-                <button onclick="joinRoom('${r.id}')"><i class="fa-solid fa-plug"></i> Conectar</button>
+                <button onclick="tryJoinRoom('${r.id}', ${r.isPrivate ? r.entryCost : 0}, '${r.creator || 'Anónimo'}')"><i class="fa-solid fa-plug"></i> ${r.isPrivate ? 'Entrar (Pago)' : 'Conectar'}</button>
             </div>
         `).join('');
     });
 
     function createRoom() {
-        const name = document.getElementById('new-room-name').value.trim() || 'Sala Watch Party';
+        const name = document.getElementById('new-room-name').value.trim() || 'Sala Comercial';
         let trackUri = document.getElementById('new-room-song').value.trim() || '4cOdK2wGLETKBW3PvgPWqT';
-        if(trackUri.includes('spotify.com')) trackUri = trackUri.split('/').pop().split('?')[0];
-        socket.emit('create_room', { name, trackUri });
+        const isPrivate = document.getElementById('room-is-private').checked;
+        const entryCost = isPrivate ? parseInt(document.getElementById('room-entry-cost').value) || 10 : 0;
+        
+        socket.emit('create_room', { name, trackUri, isPrivate, entryCost, creator: myProfile.username });
     }
 
-    function joinRoom(roomId) {
-        socket.emit('join_room', roomId);
+    function tryJoinRoom(roomId, cost, creator) {
+        if(cost > 0 && creator !== myProfile.username) {
+            pendingRoomIdToJoin = roomId;
+            pendingRoomCost = cost;
+            pendingRoomCreator = creator;
+            document.getElementById('paywall-desc').innerText = `Esta sala privada fue creada por ${creator}. Ingresar requiere un pago de:`;
+            document.getElementById('paywall-price-tag').innerText = `${cost} ZC`;
+            document.getElementById('paywall-modal').style.display = 'flex';
+        } else {
+            socket.emit('join_room', roomId);
+        }
     }
+
+    function confirmPaywallEntry() {
+        if(myProfile.wallet < pendingRoomCost) {
+            alert('No tienes suficientes Z-Coins en tu billetera. Reclama tu bono diario o participa en juegos para ganar más.');
+            closePaywallModal();
+            return;
+        }
+        socket.emit('pay_room_entry', { roomId: pendingRoomIdToJoin, cost: pendingRoomCost, username: myProfile.username, creator: pendingRoomCreator });
+        closePaywallModal();
+        socket.emit('join_room', pendingRoomIdToJoin);
+    }
+
+    function closePaywallModal() {
+        document.getElementById('paywall-modal').style.display = 'none';
+    }
+
+    socket.on('wallet_deducted', (data) => {
+        updateWalletDisplay(data.newBalance);
+    });
+
+    socket.on('wallet_credited', (data) => {
+        updateWalletDisplay(data.newBalance);
+        alert(`💰 ¡Has ganado ${data.amount} ZC! Un usuario pagó por entrar a tu sala privada (80% para ti, 20% para el fondo de red).`);
+    });
 
     socket.on('room_joined', (room) => {
         currentRoomId = room.id;
@@ -730,26 +609,14 @@
         switchPzTab('room-active');
 
         const isHost = room.host === myProfile.username || room.creator === myProfile.username || !room.host;
-        const hostControlsEl = document.getElementById('host-controls');
-        const badgeEl = document.getElementById('netflix-host-badge');
-        const descEl = document.getElementById('netflix-desc');
-
-        if(isHost) {
-            hostControlsEl.style.display = 'block';
-            badgeEl.innerHTML = `<i class="fa-solid fa-crown"></i> Sala de Cine (Tú eres el Host)`;
-            descEl.innerText = `Reproduce y sincroniza videos para toda la sala mientras charláis por texto o voz.`;
-        } else {
-            hostControlsEl.style.display = 'none';
-            badgeEl.innerHTML = `<i class="fa-solid fa-film"></i> Sala de Cine (Espectador)`;
-            descEl.innerText = `Sintonizado con la Watch Party del Host. Canal de voz y chat abiertos.`;
-        }
+        document.getElementById('host-controls').style.display = isHost ? 'block' : 'none';
 
         const cleanUri = (room.currentTrack || '4cOdK2wGLETKBW3PvgPWqT').replace('spotify:track:', '');
         document.getElementById('spotify-player').src = `https://open.spotify.com/embed/track/${cleanUri}?utm_source=generator&theme=0`;
 
         document.getElementById("qrcode").innerHTML = "";
         new QRCode(document.getElementById("qrcode"), {
-            text: `GeoVibe-Enterprise-Ticket:${myProfile.username}:${room.id}`,
+            text: `GeoVibe-Ticket:${myProfile.username}:${room.id}`,
             width: 75, height: 75
         });
 
@@ -776,8 +643,8 @@
         const membersContainer = document.getElementById('room-members-list');
         membersContainer.innerHTML = members.map(m => `
             <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:3px 6px; border-radius:4px;">
-                <span style="font-size:0.7rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70px;">${m.username}</span>
-                ${m.username !== `${myProfile.avatar} ${myProfile.username}` ? `<button onclick="openDmModal('${m.username}')" style="width:auto; padding:1px 5px; font-size:0.55rem; margin:0; background:var(--pz-primary); box-shadow:none;">DM</button>` : '<span class="pz-badge">Tú</span>'}
+                <span style="font-size:0.7rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:85px;">${m.username}</span>
+                <span class="pz-badge">Activo</span>
             </div>
         `).join('');
 
@@ -789,31 +656,138 @@
         });
     });
 
-    function openDmModal(username) {
-        currentTargetDmUser = username;
-        document.getElementById('dm-target-title').innerHTML = `<i class="fa-solid fa-lock"></i> DM: ${username}`;
-        document.getElementById('dm-box').innerHTML = '';
-        document.getElementById('dm-modal').style.display = 'flex';
+    function startTriviaGame() {
+        document.getElementById('arcade-msg').innerText = "🧠 Trivia ZC: ¿Cuál es el protocolo raíz en Termux?";
+        document.getElementById('arcade-actions').innerHTML = `
+            <div style="display:flex; gap:4px; justify-content:center;">
+                <button onclick="answerTrivia(false)" style="background:var(--pz-danger); font-size:0.6rem; padding:4px;">pkg update</button>
+                <button onclick="answerTrivia(true)" style="background:var(--pz-accent); font-size:0.6rem; padding:4px;">su / tsu</button>
+            </div>
+        `;
     }
 
-    function closeDmModal() {
-        document.getElementById('dm-modal').style.display = 'none';
-    }
-
-    function sendDm() {
-        const msg = document.getElementById('dm-input').value.trim();
-        if(!msg) return;
-        socket.emit('private_msg', { targetUser: currentTargetDmUser, msg });
-        document.getElementById('dm-box').innerHTML += `<div style="text-align:right; margin:3px 0;"><span style="background:var(--pz-primary); padding:3px 6px; border-radius:6px; display:inline-block;">Tú: ${msg}</span></div>`;
-        document.getElementById('dm-input').value = '';
-    }
-
-    socket.on('incoming_dm', (data) => {
-        if(document.getElementById('dm-modal').style.display !== 'flex' || currentTargetDmUser !== data.from) {
-            openDmModal(data.from);
+    function answerTrivia(isCorrect) {
+        if(isCorrect) {
+            document.getElementById('arcade-msg').innerText = "🎉 ¡Correcto! +10 ZC ganados.";
+            socket.emit('award_user_zc', { username: myProfile.username, amount: 10 });
+        } else {
+            document.getElementById('arcade-msg').innerText = "❌ Incorrecto.";
         }
-        document.getElementById('dm-box').innerHTML += `<div style="text-align:left; margin:3px 0;"><span style="background:rgba(255,255,255,0.08); padding:3px 6px; border-radius:6px; display:inline-block;">${data.from}: ${data.msg}</span></div>`;
+        document.getElementById('arcade-actions').innerHTML = '';
+    }
+
+    function sendTip(amount) {
+        if(myProfile.wallet < amount) return alert('No tienes suficientes ZC para esta propina.');
+        socket.emit('send_room_tip', { roomId: currentRoomId, amount, fromUser: myProfile.username });
+        updateWalletDisplay(myProfile.wallet - amount);
+        alert(`🎁 ¡Propina de ${amount} ZC enviada al Host con éxito!`);
+    }
+
+    socket.on('incoming_tip', (data) => {
+        if(currentRoomData && (currentRoomData.creator === myProfile.username || currentRoomData.host === myProfile.username)) {
+            updateWalletDisplay(myProfile.wallet + data.amount);
+            alert(`💎 ¡Recibiste una propina de ${data.amount} ZC de parte de ${data.fromUser}!`);
+        }
     });
+
+    function switchMediaTab(mediaType) {
+        document.querySelectorAll('.media-tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.media-content-pane').forEach(p => p.classList.remove('active'));
+        
+        if(mediaType === 'spotify') {
+            document.querySelector('.media-tab-btn:nth-child(1)').classList.add('active');
+            document.getElementById('pane-spotify').classList.add('active');
+        } else if(mediaType === 'netflix') {
+            document.querySelector('.media-tab-btn.netflix').classList.add('active');
+            document.getElementById('pane-netflix').classList.add('active');
+        } else if(mediaType === 'arcade') {
+            document.querySelector('.media-tab-btn.arcade').classList.add('active');
+            document.getElementById('pane-arcade').classList.add('active');
+        } else if(mediaType === 'feed') {
+            document.querySelector('.media-tab-btn.feed').classList.add('active');
+            document.getElementById('pane-feed').classList.add('active');
+        } else if(mediaType === 'sales') {
+            document.querySelector('.media-tab-btn.sales').classList.add('active');
+            document.getElementById('pane-sales').classList.add('active');
+        } else if(mediaType === 'economy-tips') {
+            document.querySelector('.media-tab-btn.economy').classList.add('active');
+            document.getElementById('pane-economy-tips').classList.add('active');
+        }
+    }
+
+    function toggleDrawer(drawerId) {
+        const el = document.getElementById(drawerId);
+        el.style.display = el.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function insertEmoji(emoji) {
+        const input = document.getElementById('msg-input');
+        input.value += emoji;
+        input.focus();
+        document.getElementById('emoji-drawer').style.display = 'none';
+    }
+
+    function handleMediaUpload(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            let htmlContent = file.type.startsWith('image/') ? `<img src="${e.target.result}" style="max-width:160px; max-height:140px; border-radius:6px;" alt="Imagen">` : `<video src="${e.target.result}" controls style="max-width:180px; max-height:140px; border-radius:6px;"></video>`;
+            socket.emit('chat_msg', { roomId: currentRoomId, msg: htmlContent, user: `${myProfile.avatar} ${myProfile.username}` });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function publishMediaToFeed(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            socket.emit('publish_feed_media', { roomId: currentRoomId, fileType: file.type, fileData: e.target.result, user: `${myProfile.avatar} ${myProfile.username}` });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    socket.on('incoming_feed_media', (data) => {
+        const feedContainer = document.getElementById('room-media-feed');
+        if(!feedContainer) return;
+        let mediaHtml = data.fileType.startsWith('image/') ? `<img src="${data.fileData}" style="max-width:100%; max-height:150px; border-radius:6px; display:block; margin-top:4px;">` : `<video src="${data.fileData}" controls style="max-width:100%; max-height:150px; border-radius:6px; display:block; margin-top:4px;"></video>`;
+        const postCard = document.createElement('div');
+        postCard.style.cssText = "background:rgba(2,4,8,0.7); border:1px solid var(--pz-border); border-radius:8px; padding:6px; margin-bottom:4px;";
+        postCard.innerHTML = `<div style="font-size:0.65rem; color:var(--pz-neon); font-weight:700;">${data.user}</div>${mediaHtml}`;
+        feedContainer.prepend(postCard);
+    });
+
+    function publishProduct() {
+        const title = document.getElementById('sales-item-title').value.trim();
+        const price = document.getElementById('sales-item-price').value.trim();
+        if(!title || !price) return;
+        socket.emit('publish_product', { roomId: currentRoomId, title, price, seller: `${myProfile.avatar} ${myProfile.username}` });
+        document.getElementById('sales-item-title').value = '';
+        document.getElementById('sales-item-price').value = '';
+    }
+
+    socket.on('incoming_product', (data) => {
+        const salesList = document.getElementById('sales-products-list');
+        if(!salesList) return;
+        const productCard = document.createElement('div');
+        productCard.style.cssText = "background:rgba(2,4,8,0.7); border:1px solid var(--pz-border); border-radius:6px; padding:6px; display:flex; justify-content:space-between; align-items:center;";
+        productCard.innerHTML = `<div><span style="font-weight:700; color:var(--pz-text); font-size:0.75rem;">${data.title}</span><div style="color:var(--pz-economy); font-weight:700; font-size:0.7rem;">${data.price} ZC</div></div><span style="font-size:0.6rem; color:var(--pz-muted);">${data.seller}</span>`;
+        salesList.prepend(productCard);
+    });
+
+    function throwBottle() {
+        const msg = document.getElementById('bottle-msg').value.trim();
+        if(!msg) return;
+        document.getElementById('bottle-result').innerHTML = `<i class="fa-solid fa-check"></i> ¡Botella lanzada con éxito!`;
+        document.getElementById('bottle-msg').value = '';
+    }
+
+    function hostStartBroadcast() {
+        const urlInput = document.getElementById('netflix-url-input').value.trim() || "Sala Party";
+        socket.emit('netflix_sync', { roomId: currentRoomId, action: 'load', title: urlInput, user: myProfile.username });
+        document.getElementById('netflix-current-title').innerText = `🍿 Transmitiendo: ${urlInput}`;
+    }
 
     function addSong() {
         let input = document.getElementById('song-input').value.trim();
@@ -839,7 +813,6 @@
         if (!msg) return;
         socket.emit('chat_msg', { roomId: currentRoomId, msg, user: `${myProfile.avatar} ${myProfile.username}` });
         document.getElementById('msg-input').value = '';
-        socket.emit('typing', { roomId: currentRoomId, user: myProfile.username, isTyping: false });
     }
 
     function sendGlobalMsg() {
@@ -855,13 +828,7 @@
             box.innerHTML += `
                 <div class="msg-bubble">
                     <div class="msg-header"><span><b>${data.user}</b></span><span>${data.time}</span></div>
-                    <div style="font-size:0.6rem; color:var(--pz-muted); margin-bottom:1px;">📍 ${data.distance}</div>
                     <div style="word-break: break-word; font-size:0.8rem;">${data.msg}</div>
-                    <div class="reactions-bar" id="reactions-${data.id}">
-                        <button class="reaction-btn" onclick="react('${data.id}', '🔥')">🔥</button>
-                        <button class="reaction-btn" onclick="react('${data.id}', '❤️')">❤️</button>
-                        <button class="reaction-btn" onclick="react('${data.id}', '🎵')">🎵</button>
-                    </div>
                 </div>
             `;
             box.scrollTop = box.scrollHeight;
@@ -871,7 +838,7 @@
         if (globalBox) {
             globalBox.innerHTML += `
                 <div style="margin-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.04); padding-bottom:4px;">
-                    <div style="font-size:0.65rem; color:var(--pz-neon);"><b>${data.user}</b> <span style="opacity:0.5;">(${data.time})</span></div>
+                    <div style="font-size:0.65rem; color:var(--pz-neon);"><b>${data.user}</b></div>
                     <div style="font-size:0.8rem;">${data.msg}</div>
                 </div>
             `;
@@ -881,76 +848,11 @@
 
     function handleTyping() {
         socket.emit('typing', { roomId: currentRoomId, user: myProfile.username, isTyping: true });
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => {
-            socket.emit('typing', { roomId: currentRoomId, user: myProfile.username, isTyping: false });
-        }, 1500);
     }
 
     socket.on('display_typing', (data) => {
         const typingEl = document.getElementById('typing-box');
-        if(typingEl) typingEl.innerText = data.isTyping ? `✏️ ${data.user} escribiendo datos...` : "";
-    });
-
-    function react(msgId, emoji) { socket.emit('react_msg', { roomId: currentRoomId, msgId, emoji }); }
-
-    socket.on('msg_reacted', (data) => {
-        const el = document.getElementById(`reactions-${data.msgId}`);
-        if(el) el.innerHTML += `<span style="background:rgba(255,255,255,0.12); padding:1px 4px; border-radius:4px; font-size:0.65rem;">${data.emoji}</span>`;
-    });
-
-    async function toggleMic() {
-        const micBtn = document.getElementById('mic-btn');
-        if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                mediaRecorder.start();
-                audioChunks = [];
-                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                mediaRecorder.onstop = () => {
-                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                    socket.emit('send_voice', { roomId: currentRoomId, audioBlob: blob });
-                };
-                micBtn.style.background = "#dc2626";
-                micBtn.innerHTML = '<i class="fa-solid fa-stop"></i>';
-            } catch (e) { alert('Permiso de micrófono denegado.'); }
-        } else {
-            mediaRecorder.stop();
-            micBtn.style.background = "var(--pz-pink)";
-            micBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
-        }
-    }
-
-    socket.on('incoming_voice', (data) => {
-        const url = URL.createObjectURL(new Blob([data.audioBlob], { type: 'audio/webm' }));
-        const box = document.getElementById('chat-box');
-        if(box) {
-            box.innerHTML += `
-                <div class="msg-bubble">
-                    <div class="msg-header"><span>🔊 Canal de Voz en Vivo (${data.from})</span></div>
-                    <audio src="${url}" controls style="width:100%; height:26px; margin-top:3px;"></audio>
-                </div>
-            `;
-            box.scrollTop = box.scrollHeight;
-        }
-    });
-
-    const ctx = document.getElementById('energyChart').getContext('2d');
-    const energyChart = new Chart(ctx, {
-        type: 'line',
-        data: { labels: [], datasets: [{ label: 'Telemetría', data: [], borderColor: '#06b6d4', backgroundColor: 'rgba(6,182,212,0.1)', fill: true, tension: 0.3 }] },
-        options: { responsive: true, maintainAspectRatio: false, scales: { x: { display: false }, y: { display: false } }, plugins: { legend: { display: false } } }
-    });
-
-    socket.on('update_stats', (val) => {
-        energyChart.data.labels.push(new Date().toLocaleTimeString().slice(-5));
-        energyChart.data.datasets[0].data.push(val);
-        if (energyChart.data.labels.length > 6) {
-            energyChart.data.labels.shift();
-            energyChart.data.datasets[0].data.shift();
-        }
-        energyChart.update();
+        if(typingEl) typingEl.innerText = data.isTyping ? `✏️ ${data.user} escribiendo...` : "";
     });
 </script>
 </body>
