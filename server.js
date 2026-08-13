@@ -1,3 +1,6 @@
+// ==========================================
+// CÓDIGO DEL SERVIDOR BACKEND (Node.js)
+// ==========================================
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
@@ -12,8 +15,8 @@ let rooms = {
     }
 };
 
-let usersDb = {}; // Base de datos temporal de cuentas
-let roomStats = {}; // Estadísticas de actividad para las gráficas
+let usersDb = {}; // Base de datos temporal de cuentas y perfiles
+let roomStats = {}; 
 
 function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
     const R = 6371e3;
@@ -34,26 +37,37 @@ io.on('connection', (socket) => {
     socket.on('login_user', (data) => {
         const { username, password, avatar } = data;
         if (!usersDb[username]) {
-            usersDb[username] = { password, avatar };
+            usersDb[username] = { password, avatar, bio: '', genre: '' };
         } else if (usersDb[username].password !== password) {
             socket.emit('login_error', 'Contraseña incorrecta');
             return;
         }
-        socket.userProfile = { username, avatar };
+        socket.userProfile = { username, avatar, ...usersDb[username] };
         socket.emit('login_success', socket.userProfile);
     });
 
-    // Actualización de ubicación y envío de lista de salas
+    // Actualizar perfil de usuario
+    socket.on('update_profile', (data) => {
+        if (usersDb[data.username]) {
+            usersDb[data.username].bio = data.bio;
+            usersDb[data.username].genre = data.genre;
+            if (socket.userProfile) {
+                socket.userProfile.bio = data.bio;
+                socket.userProfile.genre = data.genre;
+            }
+        }
+    });
+
+    // Actualización de ubicación
     socket.on('update_location', (data) => {
         if (!socket.userProfile && data.username) {
-            socket.userProfile = { username: data.username, avatar: data.avatar || '🎧' };
+            socket.userProfile = { username: data.username, avatar: data.avatar || '🎧', bio: '', genre: '' };
         }
         if (!socket.userProfile) return;
 
         socket.userData = { ...data, ...socket.userProfile };
         rooms['global'].members[socket.id] = socket.userData;
 
-        // Enviar lista actualizada de salas al cliente
         socket.emit('rooms_list', Object.keys(rooms).map(id => ({ 
             id, 
             name: rooms[id].name, 
@@ -98,7 +112,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Añadir canción a la cola
+    // Añadir canción
     socket.on('add_song', (data) => {
         const room = rooms[data.roomId];
         if (!room) return;
@@ -125,7 +139,7 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('play_now', nextTrack);
     });
 
-    // Mensajería de Chat y Distancias
+    // Mensajería
     socket.on('chat_msg', (data) => {
         const room = rooms[data.roomId];
         if(!room) return;
@@ -160,17 +174,6 @@ io.on('connection', (socket) => {
             from: socket.userProfile ? socket.userProfile.username : 'Anónimo',
             audioBlob: data.audioBlob
         });
-    });
-
-    // Mensajería Privada (DM)
-    socket.on('private_msg', (data) => {
-        for (let sId of Object.keys(io.sockets.sockets)) {
-            const s = io.sockets.sockets.get(sId);
-            if (s && s.userProfile && s.userProfile.username === data.targetUser) {
-                s.emit('incoming_dm', { from: socket.userProfile.username, msg: data.msg });
-                break;
-            }
-        }
     });
 
     // Indicador de escritura
