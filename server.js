@@ -7,7 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "*", // Permite conexiones desde tu frontend en Netlify
+        origin: "*",
         methods: ["GET", "POST"]
     }
 });
