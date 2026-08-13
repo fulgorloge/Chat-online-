@@ -1,7 +1,11 @@
 const express = require('express');
 const app = express();
-const http = require('http').createServer(app);
+const http = require('http'].createServer(app);
 const io = require('socket.io')(http, { cors: { origin: "*" } });
+
+// Middleware para procesar cuerpos JSON y formularios URL-encoded
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 let rooms = {
     'global': { 
@@ -30,6 +34,42 @@ function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return Math.round(R * c);
 }
+
+// --- ENDPOINT REST PARA PASARELA DE PAGO / RECARGA DE MONEDAS ---
+app.post('/api/buy-coins', (req, res) => {
+    const { username, zcAmount, usdPrice, paymentMethod } = req.body;
+    
+    if (!username || !zcAmount) {
+        return res.status(400).json({ success: false, error: 'Datos de pago incompletos' });
+    }
+
+    if (!usersDb[username]) {
+        return res.status(404).json({ success: false, error: 'Usuario no encontrado en el sistema' });
+    }
+
+    // Acreditar las monedas en la base de datos de usuario
+    usersDb[username].wallet = (usersDb[username].wallet || 100) + parseInt(zcAmount);
+
+    // Notificar al cliente vía WebSocket si está conectado activamente
+    for (let sId of Object.keys(io.sockets.sockets)) {
+        const s = io.sockets.sockets.get(sId);
+        if (s && s.userProfile && s.userProfile.username === username) {
+            s.userProfile.wallet = usersDb[username].wallet;
+            s.emit('wallet_credited_external', { 
+                newBalance: usersDb[username].wallet, 
+                added: zcAmount,
+                method: paymentMethod || 'Tarjeta / Pasarela'
+            });
+            break;
+        }
+    }
+
+    return res.json({ 
+        success: true, 
+        message: `Compra de ${zcAmount} ZC procesada correctamente`, 
+        newBalance: usersDb[username].wallet 
+    });
+});
 
 io.on('connection', (socket) => {
     socket.join('global');
@@ -126,7 +166,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Lógica Económica y P2P / Transacciones ZC en el Servidor
     socket.on('pay_room_entry', (data) => {
         const { roomId, cost, username, creator } = data;
         if(usersDb[username]) {
@@ -135,7 +174,6 @@ io.on('connection', (socket) => {
                 socket.emit('wallet_deducted', { newBalance: usersDb[username].wallet });
                 if(socket.userProfile) socket.userProfile.wallet = usersDb[username].wallet;
 
-                // Acreditar al creador si está conectado
                 for(let sId of Object.keys(io.sockets.sockets)) {
                     const s = io.sockets.sockets.get(sId);
                     if(s && s.userProfile && s.userProfile.username === creator) {
@@ -164,7 +202,7 @@ io.on('connection', (socket) => {
         if(usersDb[username]) {
             usersDb[username].wallet = (usersDb[username].wallet || 100) + amount;
             if(socket.userProfile) socket.userProfile.wallet = usersDb[username].wallet;
-            socket.emit('wallet_deducted', { newBalance: usersDb[username].wallet }); // Actualiza mediante el mismo manejador de UI
+            socket.emit('wallet_deducted', { newBalance: usersDb[username].wallet });
         }
     });
 
@@ -186,7 +224,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Muro Tipo Instagram en Sala
     socket.on('publish_ig_post', (data) => {
         const { roomId, user, mediaType, mediaData, caption } = data;
         const room = rooms[roomId];
@@ -344,5 +381,5 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
-    console.log(`Servidor GeoVibe Supremo Pro activo en puerto ${PORT}`);
+    console.log(`Servidor GeoVibe Supremo Pro con Pasarela de Pago activo en puerto ${PORT}`);
 });
