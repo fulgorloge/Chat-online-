@@ -32,7 +32,6 @@ app.post('/api/auth/login', (req, res) => {
     const { username, password } = req.body;
     let user = usersDb[username];
     if (!user) {
-        // Búsqueda alternativa por nombre de usuario
         user = Object.values(usersDb).find(u => u.username === username);
     }
     if (!user || (user.password !== password && !password.startsWith('oauth_secure_'))) {
@@ -41,13 +40,12 @@ app.post('/api/auth/login', (req, res) => {
     return res.json({ success: true, user });
 });
 
-// 2. Ruta de la Pasarela de Pago para comprar Z-Coins (Faltaba esta)
+// 2. Ruta de la Pasarela de Pago para comprar Z-Coins
 app.post('/api/buy-coins', (req, res) => {
     const { username, zcAmount, paymentMethod } = req.body;
     let user = usersDb[username] || Object.values(usersDb).find(u => u.username === username);
     
     if (!user) {
-        // Si el usuario es nuevo en memoria del servidor, lo creamos temporalmente
         usersDb[username] = { username, wallet: 100 };
         user = usersDb[username];
     }
@@ -79,7 +77,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('create_room', (data) => {
-        const roomId = 'room_' + Math.random().toString(36.substr(2, 6));
+        const roomId = 'room_' + Math.random().toString(36).substr(2, 6);
         rooms[roomId] = {
             id: roomId,
             name: data.name,
@@ -186,7 +184,6 @@ io.on('connection', (socket) => {
     });
 
     socket.on('disconnect', () => {
-        // Limpieza de nodos al desconectar
         Object.keys(rooms).forEach(rId => {
             if(currentUser) {
                 rooms[rId].members = rooms[rId].members.filter(m => m.username !== currentUser.username);
