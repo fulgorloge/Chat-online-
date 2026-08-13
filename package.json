@@ -9,6 +9,7 @@
     "express": "^4.21.0",
     "socket.io": "^4.7.5",
     "google-auth-library": "^9.0.0",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "stripe": "^14.0.0"
   }
 }
