@@ -1,135 +1,289 @@
+// ==========================================
+// MÓDULO BACKEND COMPLEMENTARIO (Node.js / Express / Socket.io / Stripe)
+// ==========================================
+/*
+  Agrega este bloque en tu archivo principal de servidor (ej. server.js / app.js)
+  para soportar la pasarela de pagos real con Stripe y la persistencia de los
+  datos de la aplicación (usuarios, salas, transacciones y muro multimedia).
+*/
+
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const Stripe = require('stripe');
+
+// Inicializa Stripe con tu clave secreta (asegúrate de definir STRIPE_SECRET_KEY en tu entorno)
+const stripe = Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_tu_clave_secreta_aqui');
+
 const app = express();
-const http = require('http').createServer(app);
-const cors = require('cors');
-const io = require('socket.io')(http, { cors: { origin: "*" } });
+const server = http.createServer(app);
+const io = new Server(server);
 
-// Carga segura de Stripe desde variables de entorno
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(__dirname));
 
-let usersDb = {};
-let rooms = { 
-    'global': { 
-        id: 'global', 
-        name: 'Canal Global', 
-        count: 0, 
-        members: [], 
-        igPosts: [], 
-        currentTrack: '4cOdK2wGLETKBW3PvgPWqT', 
-        playlist: [] 
-    } 
+// Base de datos en memoria (o conéctala a tu MongoDB/PostgreSQL)
+const db = {
+    users: {},     // { username: { username, password, avatar, wallet } }
+    rooms: {},     // { roomId: { id, name, trackUri, isPrivate, entryCost, creator, host, members, playlist, igPosts, products } }
+    locations: {}  // { socketId: { username, lat, lng } }
 };
 
-// --- AUTENTICACIÓN ---
-app.post('/api/auth/register', (req, res) => {
-    const { username, password, avatar } = req.body;
-    if (!username || !password) return res.status(400).json({ success: false, error: 'Faltan datos obligatorios' });
-    if (usersDb[username]) return res.status(400).json({ success: false, error: 'El usuario ya existe' });
-    
-    usersDb[username] = { username, password, avatar: avatar || '🎧', wallet: 150 };
-    return res.json({ success: true, user: usersDb[username] });
-});
-
-app.post('/api/auth/login', (req, res) => {
-    const { username, password } = req.body;
-    let user = usersDb[username] || Object.values(usersDb).find(u => u.username === username);
-    
-    if (!user || (user.password !== password && !password.startsWith('oauth_secure_'))) {
-        return res.status(400).json({ success: false, error: 'Credenciales inválidas' });
-    }
-    return res.json({ success: true, user });
-});
-
-// --- ECONOMÍA & STRIPE ---
+// 1. Endpoint para crear la sesión de pago real en Stripe
 app.post('/api/create-stripe-session', async (req, res) => {
-    const { username, zcAmount, priceUSD } = req.body;
     try {
-        if (!process.env.STRIPE_SECRET_KEY) {
-            return res.status(500).json({ success: false, error: 'Stripe no está configurado en el servidor (Falta STRIPE_SECRET_KEY).' });
+        const { username, zcAmount, priceUSD } = req.body;
+        
+        if (!username || !zcAmount || !priceUSD) {
+            return res.status(400).json({ success: false, error: 'Datos incompletos para la pasarela.' });
         }
 
+        // URL base de tu entorno (Render, localhost, etc.)
+        const hostUrl = req.headers.origin || `http://${req.headers.host}`;
+
+        // Crear sesión de Checkout en Stripe
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [{
                 price_data: {
                     currency: 'usd',
-                    product_data: { name: `${zcAmount} Z-Coins (GeoVibe)` },
-                    unit_amount: Math.round(priceUSD * 100),
+                    product_data: {
+                        name: `Paquete de ${zcAmount} Z-Coins`,
+                        description: `Recarga de saldo digital para GeoVibe Enterprise Hub`,
+                    },
+                    unit_amount: Math.round(priceUSD * 100), // Stripe maneja centavos
                 },
                 quantity: 1,
             }],
             mode: 'payment',
-            success_url: `${req.protocol}://${req.get('host')}?payment=success&zc=${zcAmount}&user=${username}`,
-            cancel_url: `${req.protocol}://${req.get('host')}?payment=cancelled`,
+            success_url: `${hostUrl}/?payment=success&zc=${zcAmount}&user=${encodeURIComponent(username)}`,
+            cancel_url: `${hostUrl}/?payment=cancelled`,
         });
 
         res.json({ success: true, url: session.url });
-    } catch (e) {
-        res.status(500).json({ success: false, error: e.message });
+    } catch (error) {
+        console.error('Error al crear la sesión de Stripe:', error);
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
+// 2. Endpoint para acreditar las Z-Coins tras confirmar el pago exitoso
 app.post('/api/buy-coins', (req, res) => {
     const { username, zcAmount } = req.body;
-    let user = usersDb[username] || Object.values(usersDb).find(u => u.username === username);
-    if (!user) {
-        usersDb[username] = { username, wallet: 100 };
-        user = usersDb[username];
+    if (!username || !zcAmount) {
+        return res.status(400).json({ success: false, error: 'Parámetros inválidos.' });
     }
-    user.wallet = (user.wallet || 100) + parseInt(zcAmount);
-    return res.json({ success: true, newBalance: user.wallet });
+
+    // Buscar o inicializar usuario en memoria
+    if (!db.users[username]) {
+        db.users[username] = { username, wallet: 100, avatar: '🎧' };
+    }
+
+    const added = parseInt(zcAmount, 10);
+    db.users[username].wallet = (db.users[username].wallet || 0) + added;
+
+    res.json({ success: true, newBalance: db.users[username].wallet });
 });
 
-// --- SOCKET.IO (TIEMPO REAL Y SALAS) ---
+// 3. Gestión de Sockets y Comunicación en Tiempo Real
 io.on('connection', (socket) => {
-    console.log(`> Conectado: ${socket.id}`);
+    console.log(`[Socket] Nodo conectado: ${socket.id}`);
 
-    // Enviar las salas actuales al cliente conectado
-    socket.emit('update_rooms', rooms);
+    // Autenticación / Registro de usuario en socket
+    socket.on('login_user', (data) => {
+        const { username, avatar, wallet } = data;
+        if (!db.users[username]) {
+            db.users[username] = { username, avatar: avatar || '🎧', wallet: wallet || 100 };
+        }
+        socket.data.username = username;
+        emitRoomsList();
+    });
 
-    // Crear sala y sincronizar red
-    socket.on('create_room', (roomData, callback) => {
-        try {
-            const roomId = 'room_' + Date.now();
-            
-            rooms[roomId] = {
-                id: roomId,
-                name: roomData.name,
-                song: roomData.song || 'Sin multimedia',
-                isPrivate: roomData.isPrivate || false,
-                entryCost: roomData.entryCost || 0,
-                creator: roomData.creator || 'Anónimo',
-                count: 1,
-                members: [roomData.creator],
-                igPosts: [],
-                playlist: []
-            };
+    // Reclamar bono diario
+    socket.on('claim_daily_reward', (data) => {
+        const { username } = data;
+        if (db.users[username]) {
+            const reward = 25;
+            db.users[username].wallet += reward;
+            socket.emit('reward_claimed', { reward, newBalance: db.users[username].wallet });
+        }
+    });
 
-            console.log(`[SALA CREADA] "${roomData.name}" por ${roomData.creator}`);
+    // Actualización de ubicación GPS
+    socket.on('update_location', (data) => {
+        db.locations[socket.id] = { username: data.username, lat: data.lat, lng: data.lng };
+        broadcastRoomMembers(socket.data.currentRoomId);
+    });
 
-            // Actualizar a todos los clientes conectados
-            io.emit('update_rooms', rooms);
+    // Crear sala privada o pública
+    socket.on('create_room', (data) => {
+        const roomId = 'room_' + Math.random().toString(36).substring(2, 9);
+        db.rooms[roomId] = {
+            id: roomId,
+            name: data.name,
+            currentTrack: data.trackUri,
+            isPrivate: data.isPrivate,
+            entryCost: data.entryCost || 0,
+            creator: data.creator,
+            host: data.creator,
+            playlist: [data.trackUri],
+            igPosts: [],
+            products: []
+        };
+        emitRoomsList();
+        socket.emit('room_joined', db.rooms[roomId]);
+    });
 
-            if (typeof callback === 'function') {
-                callback({ success: true, roomId: roomId });
-            }
-        } catch (err) {
-            console.error("Error al crear sala:", err);
-            if (typeof callback === 'function') {
-                callback({ success: false, message: err.message });
+    // Pago de entrada a sala privada (Paywall ZC)
+    socket.on('pay_room_entry', (data) => {
+        const { roomId, cost, username, creator } = data;
+        if (db.users[username] && db.users[username].wallet >= cost) {
+            db.users[username].wallet -= cost;
+            if (db.users[creator]) {
+                db.users[creator].wallet += cost; // Comisión para el creador de la sala
             }
         }
     });
 
+    // Unirse a una sala
+    socket.on('join_room', (roomId) => {
+        if (db.rooms[roomId]) {
+            socket.leave(socket.data.currentRoomId);
+            socket.join(roomId);
+            socket.data.currentRoomId = roomId;
+            socket.emit('room_joined', db.rooms[roomId]);
+            socket.emit('ig_posts_feed', db.rooms[roomId].igPosts);
+            broadcastRoomMembers(roomId);
+        }
+    });
+
+    // Chat en salas y canal global
+    socket.on('chat_msg', (data) => {
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        io.to(data.roomId).emit('new_msg', { user: data.user, msg: data.msg, time });
+    });
+
+    socket.on('typing', (data) => {
+        socket.to(data.roomId).emit('display_typing', { user: data.user, isTyping: data.isTyping });
+    });
+
+    // Muro Multimedia Estilo Instagram
+    socket.on('publish_ig_post', (data) => {
+        const { roomId, user, mediaType, mediaData, caption } = data;
+        if (db.rooms[roomId]) {
+            const newPost = {
+                id: 'post_' + Math.random().toString(36).substring(2, 9),
+                user,
+                mediaType,
+                mediaData,
+                caption,
+                likes: 0,
+                likedBy: [],
+                comments: [],
+                time: 'Hace un momento'
+            };
+            db.rooms[roomId].igPosts.unshift(newPost);
+            io.to(roomId).emit('new_ig_post', newPost);
+        }
+    });
+
+    socket.on('toggle_ig_like', (data) => {
+        const { roomId, postId, username } = data;
+        if (db.rooms[roomId]) {
+            const post = db.rooms[roomId].igPosts.find(p => p.id === postId);
+            if (post) {
+                if (!post.likedBy) post.likedBy = [];
+                const index = post.likedBy.indexOf(username);
+                if (index === -1) {
+                    post.likedBy.push(username);
+                    post.likes += 1;
+                } else {
+                    post.likedBy.splice(index, 1);
+                    post.likes -= 1;
+                }
+                io.to(roomId).emit('ig_post_updated', post);
+            }
+        }
+    });
+
+    socket.on('add_ig_comment', (data) => {
+        const { roomId, postId, user, text } = data;
+        if (db.rooms[roomId]) {
+            const post = db.rooms[roomId].igPosts.find(p => p.id === postId);
+            if (post) {
+                if (!post.comments) post.comments = [];
+                post.comments.push({ user, text });
+                io.to(roomId).emit('ig_post_updated', post);
+            }
+        }
+    });
+
+    // Spotify y Multimedia
+    socket.on('add_song', (data) => {
+        const room = db.rooms[data.roomId];
+        if (room) {
+            room.playlist.push(data.uri);
+            room.currentTrack = data.uri;
+            io.to(data.roomId).emit('play_now', data.uri);
+            io.to(data.roomId).emit('playlist_updated', room.playlist);
+        }
+    });
+
+    socket.on('skip_song', (roomId) => {
+        const room = db.rooms[roomId];
+        if (room && room.playlist.length > 0) {
+            const nextUri = room.playlist.shift();
+            room.currentTrack = nextUri;
+            io.to(roomId).emit('play_now', nextUri);
+            io.to(roomId).emit('playlist_updated', room.playlist);
+        }
+    });
+
+    // Marketplace y Propinas
+    socket.on('publish_product', (data) => {
+        const room = db.rooms[data.roomId];
+        if (room) {
+            room.products.push(data);
+            io.to(data.roomId).emit('incoming_product', data);
+        }
+    });
+
+    socket.on('send_room_tip', (data) => {
+        io.to(data.roomId).emit('incoming_tip', data);
+    });
+
+    socket.on('award_user_zc', (data) => {
+        if (db.users[data.username]) {
+            db.users[data.username].wallet += data.amount;
+        }
+    });
+
     socket.on('disconnect', () => {
-        console.log(`> Desconectado: ${socket.id}`);
+        delete db.locations[socket.id];
+        broadcastRoomMembers(socket.data.currentRoomId);
+        console.log(`[Socket] Desconectado: ${socket.id}`);
     });
 });
 
+function emitRoomsList() {
+    const roomsList = Object.values(db.rooms).map(r => ({
+        id: r.id,
+        name: r.name,
+        count: Object.values(db.locations).filter(l => l.currentRoomId === r.id).length || 1,
+        isPrivate: r.isPrivate,
+        entryCost: r.entryCost,
+        creator: r.creator
+    }));
+    io.emit('rooms_list', roomsList);
+}
+
+function broadcastRoomMembers(roomId) {
+    if (!roomId) return;
+    const members = Object.values(db.locations);
+    io.to(roomId).emit('update_members_map', members);
+}
+
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => console.log(`Servidor GeoVibe activo en puerto ${PORT}`));
+server.listen(PORT, () => {
+    console.log(`[GeoVibe Core Server] Ejecutándose en el puerto ${PORT}`);
+});
