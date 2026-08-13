@@ -10,8 +10,6 @@
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { 
             --pz-bg: #04060a;
@@ -525,7 +523,7 @@
 </div>
 
 <script>
-    const socket = io(); // Conectado al mismo servidor backend actual
+    const socket = io(); 
     let currentRoomId = null;
     let myProfile = null;
     let currentRoomData = null;
@@ -696,7 +694,6 @@
         alert(`🎁 ¡Bono reclamado! +${data.reward} Z-Coins añadidas.`);
     });
 
-    // --- INTEGRACIÓN CON PASARELA DE PAGO REST ---
     function openBuyModal() {
         document.getElementById('buy-coins-modal').style.display = 'flex';
     }
@@ -707,7 +704,6 @@
     async function executeBackendCheckout() {
         const packageVal = document.getElementById('buy-package-select').value.split('|');
         const zcAmount = parseInt(packageVal[0]);
-        const usdPrice = parseFloat(packageVal[1]);
         const paymentMethod = document.getElementById('buy-method-select').value;
 
         try {
@@ -717,7 +713,6 @@
                 body: JSON.stringify({
                     username: myProfile.username,
                     zcAmount: zcAmount,
-                    usdPrice: usdPrice,
                     paymentMethod: paymentMethod
                 })
             });
@@ -735,7 +730,6 @@
         }
     }
 
-    // Receptor vía WebSocket cuando la pasarela del servidor confirma acreditación externa
     socket.on('wallet_credited_external', (data) => {
         updateWalletDisplay(data.newBalance);
     });
@@ -1069,7 +1063,6 @@
 
     function hostStartBroadcast() {
         const urlInput = document.getElementById('netflix-url-input').value.trim() || "Sala Party";
-        socket.emit('netflix_sync', { roomId: currentRoomId, action: 'load', title: urlInput, user: myProfile.username });
         document.getElementById('netflix-current-title').innerText = `🍿 Transmitiendo: ${urlInput}`;
     }
 
