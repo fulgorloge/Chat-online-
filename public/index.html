@@ -3,389 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoVibe | Radar & Music Chat</title>
-    <!-- Iconos FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Socket.io -->
+    <title>GeoVibe | Music Hub</title>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #060608;
-            color: #f1f5f9;
-            min-height: 100vh;
-            padding: 16px;
-        }
-
-        header {
-            max-width: 800px;
-            margin: 0 auto 24px auto;
-            text-align: center;
-        }
-
-        header h1 {
-            font-size: 2rem;
-            font-weight: 800;
-            background: linear-gradient(to right, #10b981, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 4px;
-        }
-
-        header p {
-            color: #94a3b8;
-            font-size: 0.85rem;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .card {
-            background: rgba(18, 18, 24, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-        }
-
-        .card h2 {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #10b981;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        input {
-            width: 100%;
-            background: #000000;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            padding: 12px 16px;
-            color: #fff;
-            font-size: 0.9rem;
-            margin-bottom: 12px;
-            outline: none;
-            font-family: inherit;
-        }
-
-        input:focus {
-            border-color: #10b981;
-        }
-
-        button {
-            width: 100%;
-            background: linear-gradient(to right, #10b981, #0d9488);
-            color: #030712;
-            border: none;
-            border-radius: 12px;
-            padding: 12px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            font-family: inherit;
-        }
-
-        button:active {
-            opacity: 0.8;
-        }
-
-        .secondary-btn {
-            background: #1e293b;
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-
-        .danger-btn {
-            background: rgba(244, 63, 94, 0.1);
-            color: #fb7185;
-            border: 1px solid rgba(244, 63, 94, 0.3);
-            width: auto;
-            padding: 6px 12px;
-            font-size: 0.8rem;
-        }
-
-        .room-item {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .room-item h3 {
-            font-size: 0.95rem;
-            color: #fff;
-            margin-bottom: 2px;
-        }
-
-        .room-item p {
-            font-size: 0.75rem;
-            color: #94a3b8;
-        }
-
-        .room-item button {
-            width: auto;
-            padding: 8px 16px;
-            font-size: 0.8rem;
-        }
-
-        #active-chat-room {
-            display: none;
-            flex-direction: column;
-            height: 500px;
-        }
-
-        #chat-messages {
-            flex: 1;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 12px;
-            overflow-y: auto;
-            margin-bottom: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .msg-bubble {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 10px;
-        }
-
-        .msg-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            margin-bottom: 4px;
-            color: #10b981;
-            font-weight: 700;
-        }
-
-        .msg-time {
-            color: #64748b;
-            font-weight: 400;
-        }
-
-        .msg-text {
-            font-size: 0.85rem;
-            color: #e2e8f0;
-        }
-
-        .chat-input-row {
-            display: flex;
-            gap: 8px;
-        }
-
-        .chat-input-row input {
-            margin-bottom: 0;
-        }
-
-        .chat-input-row button {
-            width: 80px;
-            margin-bottom: 0;
-        }
-
-        .hidden { display: none !important; }
+        body { background: #0f172a; color: white; font-family: sans-serif; padding: 20px; }
+        .card { background: #1e293b; padding: 20px; border-radius: 20px; margin-bottom: 15px; }
+        .msg { background: #334155; padding: 10px; border-radius: 10px; margin: 5px 0; }
+        input { width: 100%; padding: 10px; margin: 5px 0; border-radius: 8px; border: none; }
+        button { width: 100%; padding: 10px; background: #10b981; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>GeoVibe</h1>
-        <p>Radar de Proximidad & Chat Musical</p>
-    </header>
-
-    <div class="container">
-        
-        <!-- Vista Principal: Perfil y Salas -->
-        <div id="main-view" style="display: flex; flex-direction: column; gap: 16px;">
-            
-            <!-- Perfil -->
-            <div class="card">
-                <h2><i class="fa-solid fa-user-gear"></i> Tu Identidad</h2>
-                <input type="text" id="username" placeholder="Escribe tu apodo...">
-                <button id="btn-init"><i class="fa-solid fa-crosshairs"></i> Activar Radar GPS</button>
-            </div>
-
-            <!-- Crear Sala -->
-            <div class="card">
-                <h2><i class="fa-solid fa-plus-circle"></i> Crear Sala Musical</h2>
-                <input type="text" id="room-name-input" placeholder="Nombre de la sala (ej: Techno Zone)">
-                <input type="text" id="spotify-uri-input" placeholder="ID canción Spotify (opcional)">
-                <button id="btn-create-room" class="secondary-btn"><i class="fa-solid fa-music"></i> Crear y Entrar</button>
-            </div>
-
-            <!-- Lista de Salas -->
-            <div class="card">
-                <h2><i class="fa-solid fa-comments"></i> Salas Activas</h2>
-                <div id="rooms-container">
-                    <p style="color: #64748b; font-size: 0.85rem; text-align: center; padding: 20px;">No hay salas activas. ¡Crea una!</p>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Vista de Chat Activo -->
-        <div id="active-chat-room" class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-                <h2 id="room-title-display" style="margin-bottom: 0;">Sala de Chat</h2>
-                <button id="btn-leave-room" class="danger-btn">Salir <i class="fa-solid fa-arrow-right-from-bracket"></i></button>
-            </div>
-
-            <!-- Reproductor Spotify -->
-            <div style="margin-bottom: 12px;">
-                <iframe id="spotify-player" style="border-radius:12px" src="" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
-            </div>
-
-            <!-- Mensajes -->
-            <div id="chat-messages">
-                <div style="text-align: center; color: #64748b; font-size: 0.8rem; padding: 10px;">Te has unido a la sala. ¡Escribe un mensaje!</div>
-            </div>
-
-            <!-- Input Mensaje -->
-            <div class="chat-input-row">
-                <input type="text" id="chat-msg-input" placeholder="Escribe un mensaje...">
-                <button id="btn-send-msg"><i class="fa-solid fa-paper-plane"></i></button>
-            </div>
-        </div>
-
+<div id="app">
+    <div id="setup" class="card">
+        <h2>GeoVibe 🌍</h2>
+        <input type="text" id="username" placeholder="Tu Apodo">
+        <button onclick="start()">Entrar al Radar</button>
     </div>
 
-    <script>
-        const BACKEND_URL = "https://chat-online-110g.onrender.com"; 
-        const socket = io(BACKEND_URL);
+    <div id="chat-ui" style="display:none;">
+        <div class="card">
+            <h3 id="room-title">Mi Sala</h3>
+            <iframe id="spotify-player" src="" width="100%" height="80" frameborder="0"></iframe>
+            <input type="text" id="song-input" placeholder="ID de canción Spotify (ej: 4cOdK2wGLETKBW3PvgPWqT)">
+            <button onclick="addSong()" style="background:#1db954;">Añadir Canción</button>
+        </div>
+        <div id="chat-box" class="card" style="height: 200px; overflow-y: auto;"></div>
+        <input type="text" id="msg-input" placeholder="Mensaje...">
+        <button onclick="sendMsg()">Enviar Mensaje</button>
+    </div>
+</div>
 
-        let currentRoomId = null;
+<script>
+    const socket = io("https://tu-backend-en-render.onrender.com");
+    let currentRoomId = "global";
 
-        const usernameInput = document.getElementById('username');
-        const btnInit = document.getElementById('btn-init');
-        const roomsContainer = document.getElementById('rooms-container');
-        const btnCreateRoom = document.getElementById('btn-create-room');
-        const roomNameInput = document.getElementById('room-name-input');
-        const spotifyUriInput = document.getElementById('spotify-uri-input');
-        
-        const mainView = document.getElementById('main-view');
-        const activeChatRoom = document.getElementById('active-chat-room');
-        const roomTitleDisplay = document.getElementById('room-title-display');
-        const spotifyPlayer = document.getElementById('spotify-player');
-        const chatMessages = document.getElementById('chat-messages');
-        const chatMsgInput = document.getElementById('chat-msg-input');
-        const btnSendMsg = document.getElementById('btn-send-msg');
-        const btnLeaveRoom = document.getElementById('btn-leave-room');
-
-        btnInit.onclick = () => {
-            const name = usernameInput.value.trim() || 'Viajero_' + Math.floor(Math.random() * 1000);
-            if (navigator.geolocation) {
-                btnInit.textContent = "Obteniendo GPS...";
-                navigator.geolocation.getCurrentPosition(pos => {
-                    socket.emit('update_location', { 
-                        lat: pos.coords.latitude, 
-                        lng: pos.coords.longitude,
-                        username: name 
-                    });
-                    btnInit.textContent = "✓ Radar Activo";
-                    btnInit.style.background = "#1e293b";
-                    btnInit.style.color = "#34d399";
-                }, () => {
-                    alert('Permite el acceso a la ubicación.');
-                    btnInit.textContent = "Reintentar GPS";
-                });
-            }
-        };
-
-        socket.on('rooms_list', rooms => {
-            if (rooms.length === 0) {
-                roomsContainer.innerHTML = '<p style="color: #64748b; font-size: 0.85rem; text-align: center; padding: 20px;">No hay salas activas. ¡Crea una!</p>';
-                return;
-            }
-
-            roomsContainer.innerHTML = rooms.map(r => `
-                <div class="room-item">
-                    <div>
-                        <h3>${r.name}</h3>
-                        <p>${r.members ? r.members.length : 1} miembros</p>
-                    </div>
-                    <button onclick="joinRoom('${r.id}')">Unirse</button>
-                </div>
-            `).join('');
+    function start() {
+        const name = document.getElementById('username').value;
+        navigator.geolocation.getCurrentPosition(pos => {
+            socket.emit('update_location', { username: name, lat: pos.coords.latitude, lng: pos.coords.longitude });
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('chat-ui').style.display = 'block';
         });
+    }
 
-        btnCreateRoom.onclick = () => {
-            const roomName = roomNameInput.value.trim() || 'Sala Musical';
-            const trackUri = spotifyUriInput.value.trim() || '4cOdK2wGLETKBW3PvgPWqT';
-            socket.emit('create_room', { name: roomName, trackUri });
-        };
+    function addSong() {
+        const uri = document.getElementById('song-input').value;
+        socket.emit('add_song', { roomId: currentRoomId, uri });
+    }
 
-        socket.on('room_created', room => {
-            enterRoomUI(room);
-        });
+    socket.on('play_now', (uri) => {
+        document.getElementById('spotify-player').src = `https://open.spotify.com/embed/track/${uri}`;
+    });
 
-        window.joinRoom = function(roomId) {
-            socket.emit('join_room', roomId);
-        };
+    function sendMsg() {
+        const msg = document.getElementById('msg-input').value;
+        socket.emit('chat_msg', { roomId: currentRoomId, msg, user: document.getElementById('username').value });
+        document.getElementById('msg-input').value = '';
+    }
 
-        socket.on('room_joined', room => {
-            enterRoomUI(room);
-        });
-
-        function enterRoomUI(room) {
-            currentRoomId = room.id;
-            mainView.style.display = 'none';
-            activeChatRoom.style.display = 'flex';
-            roomTitleDisplay.textContent = room.name;
-
-            const cleanTrack = room.trackUri ? room.trackUri.replace('spotify:track:', '') : '4cOdK2wGLETKBW3PvgPWqT';
-            spotifyPlayer.src = `https://open.spotify.com/embed/track/${cleanTrack}?utm_source=generator&theme=0`;
-        }
-
-        btnSendMsg.onclick = sendMsg;
-        chatMsgInput.onkeypress = (e) => { if (e.key === 'Enter') sendMsg(); };
-
-        function sendMsg() {
-            const msg = chatMsgInput.value.trim();
-            const user = usernameInput.value.trim() || 'Anónimo';
-            if (msg && currentRoomId) {
-                socket.emit('chat_msg', { roomId: currentRoomId, msg, user });
-                chatMsgInput.value = '';
-            }
-        }
-
-        socket.on('new_msg', data => {
-            chatMessages.innerHTML += `
-                <div class="msg-bubble">
-                    <div class="msg-header">
-                        <span>${data.user}</span>
-                        <span class="msg-time">${data.time}</span>
-                    </div>
-                    <div class="msg-text">${data.msg}</div>
-                </div>
-            `;
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        });
-
-        btnLeaveRoom.onclick = () => {
-            location.reload();
-        };
-    </script>
+    socket.on('new_msg', (data) => {
+        const box = document.getElementById('chat-box');
+        box.innerHTML += `<div class="msg"><b>${data.user}:</b> ${data.msg}</div>`;
+    });
+</script>
 </body>
 </html>
