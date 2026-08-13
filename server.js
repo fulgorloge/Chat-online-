@@ -27,17 +27,6 @@ let rooms = {
 let usersDb = {}; 
 let roomStats = {}; 
 
-function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
-    const R = 6371e3;
-    const dLat = (lat2 - lat1) * (Math.PI / 180);
-    const dLon = (lon2 - lon1) * (Math.PI / 180);
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-              Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return Math.round(R * c);
-}
-
 // Autenticación con Google OAuth
 app.post('/api/auth/google', async (req, res) => {
     const { token } = req.body;
@@ -80,32 +69,43 @@ app.post('/api/auth/google', async (req, res) => {
     }
 });
 
-// Pasarela de Pagos Tradicional / Externa
-app.post('/api/buy-coins', (req, res) => {
-    const { username, zcAmount, paymentMethod } = req.body;
-    if (!username || !zcAmount) return res.status(400).json({ success: false, error: 'Datos incompletos' });
-
-    if (!usersDb[username]) usersDb[username] = { password: '', avatar: '🎧', wallet: 100 };
-    usersDb[username].wallet = (usersDb[username].wallet || 100) + parseInt(zcAmount);
-
-    for (let sId of Object.keys(io.sockets.sockets)) {
-        const s = io.sockets.sockets.get(sId);
-        if (s && s.userProfile && s.userProfile.username === username) {
-            s.userProfile.wallet = usersDb[username].wallet;
-            s.emit('wallet_credited_external', { newBalance: usersDb[username].wallet, added: zcAmount, method: paymentMethod });
-            break;
-        }
+// Registro y Sincronización de Base de Datos en Memoria del Servidor
+app.post('/api/auth/register', (req, res) => {
+    const { username, password, avatar } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ success: false, error: 'Faltan datos obligatorios' });
     }
 
-    return res.json({ success: true, newBalance: usersDb[username].wallet });
+    if (usersDb[username]) {
+        return res.status(400).json({ success: false, error: 'El usuario ya existe en el sistema' });
+    }
+
+    usersDb[username] = {
+        email: username,
+        username: username.split('@')[0] || username,
+        password,
+        avatar: avatar || '🎧',
+        wallet: 150
+    };
+
+    return res.json({ success: true, user: usersDb[username] });
+});
+
+app.post('/api/auth/login', (req, res) => {
+    const { username, password } = req.body;
+    const user = usersDb[username];
+
+    if (!user || user.password !== password) {
+        return res.status(400).json({ success: false, error: 'Credenciales inválidas' });
+    }
+
+    return res.json({ success: true, user });
 });
 
 // Pasarela Google Pay (Vinculación de tarjetas)
 app.post('/api/process-google-pay', (req, res) => {
     const paymentData = req.body;
     try {
-        const tokenInfo = paymentData.paymentMethodData;
-        // Aquí procesas el token con pasarelas reales como Stripe usando tokenInfo.tokenizationData.token
         return res.json({ success: true, message: 'Tarjeta vinculada y pago procesado con éxito mediante Google Pay' });
     } catch (error) {
         return res.status(400).json({ success: false, error: error.message });
@@ -177,25 +177,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('pay_room_entry', (data) => {
-        const { roomId, cost, username, creator } = data;
-        if(usersDb[username] && usersDb[username].wallet >= cost) {
-            usersDb[username].wallet -= cost;
-            socket.emit('wallet_deducted', { newBalance: usersDb[username].wallet });
-            if(socket.userProfile) socket.userProfile.wallet = usersDb[username].wallet;
-
-            for(let sId of Object.keys(io.sockets.sockets)) {
-                const s = io.sockets.sockets.get(sId);
-                if(s && s.userProfile && s.userProfile.username === creator) {
-                    usersDb[creator].wallet = (usersDb[creator].wallet || 100) + cost;
-                    s.userProfile.wallet = usersDb[creator].wallet;
-                    s.emit('wallet_credited', { amount: cost, newBalance: usersDb[creator].wallet });
-                    break;
-                }
-            }
-        }
-    });
-
     socket.on('claim_daily_reward', (data) => {
         const { username } = data;
         const reward = 25;
@@ -223,32 +204,6 @@ io.on('connection', (socket) => {
     socket.on('get_ig_posts', (data) => {
         const room = rooms[data.roomId];
         if(room) socket.emit('ig_posts_feed', room.igPosts || []);
-    });
-
-    socket.on('toggle_ig_like', (data) => {
-        const { roomId, postId, username } = data;
-        const room = rooms[roomId];
-        if(!room || !room.igPosts) return;
-        const post = room.igPosts.find(p => p.id === postId);
-        if(!post) return;
-        
-        if(!post.likedBy) post.likedBy = [];
-        const index = post.likedBy.indexOf(username);
-        if(index === -1) { post.likedBy.push(username); post.likes += 1; }
-        else { post.likedBy.splice(index, 1); post.likes = Math.max(0, post.likes - 1); }
-        io.to(roomId).emit('ig_post_updated', post);
-    });
-
-    socket.on('add_ig_comment', (data) => {
-        const { roomId, postId, user, text } = data;
-        const room = rooms[roomId];
-        if(!room || !room.igPosts) return;
-        const post = room.igPosts.find(p => p.id === postId);
-        if(!post) return;
-
-        if(!post.comments) post.comments = [];
-        post.comments.push({ user, text });
-        io.to(roomId).emit('ig_post_updated', post);
     });
 
     socket.on('chat_msg', (data) => {
