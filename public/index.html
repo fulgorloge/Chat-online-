@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoVibe | Project Z Enterprise Core</title>
+    <title>GeoVibe | Project Z Enterprise + Netflix & Multimedia Hub</title>
     <!-- Librerías Externas -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -26,6 +26,7 @@
             --pz-neon-glow: rgba(6, 182, 212, 0.25);
             --pz-pink: #db2777;
             --pz-amber: #d97706;
+            --pz-netflix: #e50914;
             --pz-text: #f8fafc;
             --pz-muted: #64748b;
             --pz-danger: #dc2626;
@@ -44,7 +45,6 @@
 
         #app { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 6px; }
 
-        /* Tarjetas de Grado Industrial con Estética Project Z */
         .pz-card { 
             background: var(--pz-surface-glass); backdrop-filter: blur(24px); 
             border: 1px solid var(--pz-border); padding: 12px; 
@@ -85,15 +85,13 @@
         button:hover { filter: brightness(1.15); transform: translateY(-1px); box-shadow: 0 6px 16px var(--pz-primary-glow); }
         button:active { transform: translateY(0); }
 
-        /* Header de Estado Profesional */
         .pz-header {
             display: flex; justify-content: space-between; align-items: center;
             background: var(--pz-surface); padding: 8px 12px; border-radius: 10px;
             border: 1px solid var(--pz-border); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
         }
 
-        /* Mapa Telelemétrico */
-        #map { height: 120px; border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--pz-border); z-index: 1; }
+        #map { height: 110px; border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--pz-border); z-index: 1; }
 
         .pz-list-item {
             background: rgba(2, 4, 8, 0.5); border: 1px solid var(--pz-border);
@@ -104,8 +102,15 @@
         .pz-list-item:hover { background: rgba(6, 182, 212, 0.03); border-color: var(--pz-border-glow); }
         .pz-list-item button { width: auto; padding: 3px 8px; font-size: 0.65rem; margin: 0; box-shadow: none; }
 
-        /* Sistema de Mensajería Avanzado */
-        #chat-box { height: 180px; overflow-y: auto; margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; }
+        .media-tabs { display: flex; gap: 4px; margin-bottom: 6px; }
+        .media-tab-btn { flex: 1; padding: 5px; font-size: 0.7rem; background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); border-radius: 6px; color: var(--pz-muted); cursor: pointer; text-align: center; }
+        .media-tab-btn.active { background: var(--pz-surface); color: var(--pz-neon); border-color: var(--pz-neon); font-weight: 700; }
+        .media-tab-btn.netflix.active { color: var(--pz-netflix); border-color: var(--pz-netflix); }
+
+        .media-content-pane { display: none; }
+        .media-content-pane.active { display: block; }
+
+        #chat-box { height: 160px; overflow-y: auto; margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; }
         .msg-bubble { 
             background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 8px; 
             border-left: 2px solid var(--pz-neon); font-size: 0.8rem;
@@ -118,9 +123,18 @@
         .reaction-btn { background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); border-radius: 4px; padding: 1px 5px; cursor: pointer; color: white; width: auto; font-size: 0.65rem; }
         .reaction-btn:hover { background: rgba(255,255,255,0.08); }
 
+        /* Paneles flotantes de Emojis, Stickers y Sonidos */
+        .drawer-panel {
+            display: none; background: rgba(2, 4, 8, 0.95); border: 1px solid var(--pz-border);
+            border-radius: 8px; padding: 8px; margin-bottom: 6px; max-height: 110px; overflow-y: auto;
+        }
+        .drawer-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; text-align: center; }
+        .drawer-item { background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); border-radius: 6px; padding: 6px; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
+        .drawer-item:hover { background: var(--pz-neon-glow); border-color: var(--pz-neon); }
+        .sticker-img { width: 100%; height: 35px; object-fit: contain; }
+
         .pz-badge { background: rgba(5, 150, 105, 0.15); border: 1px solid var(--pz-accent); color: #34d399; padding: 1px 6px; border-radius: 6px; font-size: 0.55rem; font-weight: 700; text-transform: uppercase; }
         
-        /* Contenedores de Pestañas Estructuradas */
         .pz-tab-content { display: none; flex-direction: column; gap: 8px; animation: fadeIn 0.3s ease; }
         .pz-tab-content.active { display: flex; }
 
@@ -129,7 +143,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Scrollbars Estilizados de Grado Pro */
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
         ::-webkit-scrollbar-thumb { background: var(--pz-border); border-radius: 4px; }
@@ -185,8 +198,8 @@
 
             <div class="pz-card">
                 <h2><i class="fa-solid fa-circle-plus"></i> Desplegar Nueva Frecuencia</h2>
-                <input type="text" id="new-room-name" placeholder="Designación de Sala (ej: Industrial Bunker)">
-                <input type="text" id="new-room-song" placeholder="URI / ID de Pista Spotify...">
+                <input type="text" id="new-room-name" placeholder="Designación de Sala (ej: Cine & Bunker)">
+                <input type="text" id="new-room-song" placeholder="ID de Pista Spotify o URL/ID de Netflix...">
                 <button onclick="createRoom()"><i class="fa-solid fa-bolt"></i> Inicializar Red Local</button>
             </div>
 
@@ -217,40 +230,107 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                     <span id="active-room-name" style="font-weight: 900; font-size: 0.9rem; color: var(--pz-neon);">Sala Operativa</span>
                     <div style="display: flex; gap: 4px;">
-                        <button onclick="toggleMusicControl()" style="width: auto; padding: 2px 6px; background: rgba(255,255,255,0.06); font-size: 0.65rem; margin:0; border:1px solid var(--pz-border); box-shadow:none;"><i class="fa-solid fa-music"></i> Audio</button>
+                        <button onclick="toggleMediaControl()" style="width: auto; padding: 2px 6px; background: rgba(255,255,255,0.06); font-size: 0.65rem; margin:0; border:1px solid var(--pz-border); box-shadow:none;"><i class="fa-solid fa-clapperboard"></i> Media</button>
                         <button onclick="leaveRoom()" style="width: auto; padding: 2px 6px; background: var(--pz-danger); font-size: 0.65rem; margin:0; box-shadow:none;"><i class="fa-solid fa-power-off"></i> Salir</button>
                     </div>
                 </div>
                 
                 <div id="map"></div>
 
+                <!-- CONTENEDOR MULTIMEDIA UNIFICADO -->
                 <div id="media-panel" style="display: block;">
-                    <iframe id="spotify-player" src="" width="100%" height="55" frameborder="0" style="border-radius: 6px; margin-bottom: 4px; border:1px solid var(--pz-border);"></iframe>
-                    <div style="display: flex; gap: 4px;">
-                        <input type="text" id="song-input" placeholder="ID Spotify..." style="margin:0; padding: 5px 8px; font-size: 0.75rem;">
-                        <button onclick="addSong()" style="background:#1db954; width:65px; margin:0; padding:5px; font-size:0.7rem;"><i class="fa-solid fa-plus"></i> Añadir</button>
-                        <button onclick="skipSong()" style="background:var(--pz-amber); color:#000; width:65px; margin:0; padding:5px; font-size:0.7rem;"><i class="fa-solid fa-forward"></i> Saltar</button>
+                    <div class="media-tabs">
+                        <button class="media-tab-btn active" onclick="switchMediaTab('spotify')"><i class="fa-brands fa-spotify"></i> Spotify</button>
+                        <button class="media-tab-btn netflix" onclick="switchMediaTab('netflix')"><i class="fa-solid fa-film"></i> Netflix Sync</button>
                     </div>
-                    <div id="playlist-container" style="font-size: 0.7rem; color: var(--pz-muted); margin-top: 4px;">Cola de reproducción sincronizada vacía</div>
+
+                    <div id="pane-spotify" class="media-content-pane active">
+                        <iframe id="spotify-player" src="" width="100%" height="52" frameborder="0" style="border-radius: 6px; margin-bottom: 3px; border:1px solid var(--pz-border);"></iframe>
+                        <div style="display: flex; gap: 4px;">
+                            <input type="text" id="song-input" placeholder="ID Spotify..." style="margin:0; padding: 4px 6px; font-size: 0.7rem;">
+                            <button onclick="addSong()" style="background:#1db954; width:55px; margin:0; padding:4px; font-size:0.65rem;"><i class="fa-solid fa-plus"></i></button>
+                            <button onclick="skipSong()" style="background:var(--pz-amber); color:#000; width:55px; margin:0; padding:4px; font-size:0.65rem;"><i class="fa-solid fa-forward"></i></button>
+                        </div>
+                        <div id="playlist-container" style="font-size: 0.65rem; color: var(--pz-muted); margin-top: 3px;">Cola de reproducción vacía</div>
+                    </div>
+
+                    <div id="pane-netflix" class="media-content-pane">
+                        <div style="background: rgba(229,9,20,0.1); border: 1px solid var(--pz-netflix); border-radius: 6px; padding: 6px; margin-bottom: 4px; text-align: center;">
+                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--pz-netflix); display:block; margin-bottom:3px;"><i class="fa-solid fa-triangle-exclamation"></i> Watch Party Netflix Activa</span>
+                            <div style="display: flex; gap: 4px; margin-bottom: 4px;">
+                                <input type="text" id="netflix-title-input" placeholder="Título / ID de Película Netflix..." style="margin:0; padding: 4px 6px; font-size: 0.7rem;">
+                                <button onclick="syncNetflix()" style="background:var(--pz-netflix); width:75px; margin:0; padding:4px; font-size:0.65rem;"><i class="fa-solid fa-sync"></i> Sincronizar</button>
+                            </div>
+                            <div style="display: flex; justify-content: center; gap: 6px;">
+                                <button onclick="sendNetflixAction('play')" style="width: auto; padding: 3px 10px; background: rgba(255,255,255,0.1); font-size: 0.65rem;"><i class="fa-solid fa-play"></i> Play</button>
+                                <button onclick="sendNetflixAction('pause')" style="width: auto; padding: 3px 10px; background: rgba(255,255,255,0.1); font-size: 0.65rem;"><i class="fa-solid fa-pause"></i> Pause</button>
+                                <a id="netflix-direct-link" href="https://www.netflix.com" target="_blank" style="text-decoration: none;"><button style="width: auto; padding: 3px 10px; background: var(--pz-netflix); font-size: 0.65rem; margin-top:0;"><i class="fa-solid fa-external-link"></i> Abrir Netflix</button></a>
+                            </div>
+                        </div>
+                        <div id="netflix-status-container" style="font-size: 0.65rem; color: var(--pz-muted); text-align: center;">Estado de sincronización: En espera de comandos...</div>
+                    </div>
                 </div>
             </div>
 
+            <!-- CHAT CON SOPORTE PARA EMOJIS, STICKERS Y EFECTOS DE SONIDO -->
             <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 6px;">
                 
-                <!-- Chat de Sala -->
                 <div class="pz-card" style="padding: 8px; display:flex; flex-direction:column; justify-content:space-between;">
                     <div id="chat-box"></div>
+
+                    <!-- Panel desplegable de Emojis -->
+                    <div id="emoji-drawer" class="drawer-panel">
+                        <div class="drawer-grid">
+                            <div class="drawer-item" onclick="insertEmoji('🔥')">🔥</div>
+                            <div class="drawer-item" onclick="insertEmoji('🚀')">🚀</div>
+                            <div class="drawer-item" onclick="insertEmoji('💀')">💀</div>
+                            <div class="drawer-item" onclick="insertEmoji('🎵')">🎵</div>
+                            <div class="drawer-item" onclick="insertEmoji('⚡')">⚡</div>
+                            <div class="drawer-item" onclick="insertEmoji('💎')">💎</div>
+                            <div class="drawer-item" onclick="insertEmoji('🎉')">🎉</div>
+                            <div class="drawer-item" onclick="insertEmoji('👽')">👽</div>
+                            <div class="drawer-item" onclick="insertEmoji('💥')">💥</div>
+                            <div class="drawer-item" onclick="insertEmoji('❤️')">❤️</div>
+                            <div class="drawer-item" onclick="insertEmoji('☕')">☕</div>
+                            <div class="drawer-item" onclick="insertEmoji('🌟')">🌟</div>
+                        </div>
+                    </div>
+
+                    <!-- Panel desplegable de Stickers -->
+                    <div id="sticker-drawer" class="drawer-panel">
+                        <div class="drawer-grid" style="grid-template-columns: repeat(3, 1fr);">
+                            <div class="drawer-item" onclick="sendSticker('https://media.giphy.com/media/3o7TKSjRrfIPjeiOkM/giphy.gif')"><img src="https://media.giphy.com/media/3o7TKSjRrfIPjeiOkM/giphy.gif" class="sticker-img"></div>
+                            <div class="drawer-item" onclick="sendSticker('https://media.giphy.com/media/l0HlRnAWXxn0MhOBK/giphy.gif')"><img src="https://media.giphy.com/media/l0HlRnAWXxn0MhOBK/giphy.gif" class="sticker-img"></div>
+                            <div class="drawer-item" onclick="sendSticker('https://media.giphy.com/media/xT9IgzoKnwFNmISR8I/giphy.gif')"><img src="https://media.giphy.com/media/xT9IgzoKnwFNmISR8I/giphy.gif" class="sticker-img"></div>
+                        </div>
+                    </div>
+
+                    <!-- Panel desplegable de Sonidos de Red -->
+                    <div id="sound-drawer" class="drawer-panel">
+                        <div style="font-size: 0.65rem; color: var(--pz-neon); margin-bottom: 4px; font-weight: 700;"><i class="fa-solid fa-volume-high"></i> Disparar Efecto de Sonido a la Sala:</div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+                            <button onclick="sendSoundEffect('airhorn')" style="margin:0; padding:4px; font-size:0.6rem; background:var(--pz-primary);">📢 Airhorn</button>
+                            <button onclick="sendSoundEffect('laser')" style="margin:0; padding:4px; font-size:0.6rem; background:var(--pz-neon); color:#000;">⚡ Laser</button>
+                            <button onclick="sendSoundEffect('success')" style="margin:0; padding:4px; font-size:0.6rem; background:var(--pz-accent);">🎉 Win</button>
+                        </div>
+                    </div>
+
                     <div>
                         <div id="typing-box" class="typing-indicator"></div>
+                        <!-- Barra de herramientas de Chat (Emojis, Stickers, Sonidos, Micrófono, Enviar) -->
+                        <div style="display: flex; gap: 2px; margin-bottom: 2px;">
+                            <button onclick="toggleDrawer('emoji-drawer')" style="width: auto; padding: 3px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Emojis">😊</button>
+                            <button onclick="toggleDrawer('sticker-drawer')" style="width: auto; padding: 3px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Stickers/GIFs">🖼️</button>
+                            <button onclick="toggleDrawer('sound-drawer')" style="width: auto; padding: 3px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Efectos de Sonido">🔊</button>
+                        </div>
                         <div style="display: flex; gap: 3px;">
                             <input type="text" id="msg-input" placeholder="Mensaje de red..." style="margin:0; padding:6px 8px; font-size:0.75rem;" oninput="handleTyping()" onkeypress="if(event.key==='Enter') sendMsg()">
                             <button onclick="sendMsg()" style="width: 35px; margin:0; padding:6px; font-size:0.75rem;"><i class="fa-solid fa-paper-plane"></i></button>
-                            <button id="mic-btn" onclick="toggleMic()" style="width: 35px; background:var(--pz-pink); margin:0; padding:6px; font-size:0.75rem;" title="Transmisión de Voz"><i class="fa-solid fa-microphone"></i></button>
+                            <button id="mic-btn" onclick="toggleMic()" style="width: 35px; background:var(--pz-pink); margin:0; padding:6px; font-size:0.75rem;" title="Audio"><i class="fa-solid fa-microphone"></i></button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Lista de Nodos Conectados -->
                 <div class="pz-card" style="padding: 8px; display:flex; flex-direction:column;">
                     <span style="font-size: 0.7rem; font-weight: 700; color: var(--pz-muted); margin-bottom: 4px;"><i class="fa-solid fa-users-line"></i> Nodos Online</span>
                     <div id="room-members-list" style="max-height: 170px; overflow-y: auto; display:flex; flex-direction:column; gap:3px;">
@@ -284,8 +364,8 @@
                     <label style="font-size: 0.65rem; color: var(--pz-muted);">Biografía / Estado del Nodo:</label>
                     <textarea id="profile-bio" rows="2" placeholder="Estado operativo actual..."></textarea>
                     
-                    <label style="font-size: 0.65rem; color: var(--pz-muted); margin-top: 6px; display: block;">Género Musical Preferente:</label>
-                    <input type="text" id="profile-genre" placeholder="Ej: Industrial Techno, Cyberpunk...">
+                    <label style="font-size: 0.65rem; color: var(--pz-muted); margin-top: 6px; display: block;">Género / Preferencia Audiovisual:</label>
+                    <input type="text" id="profile-genre" placeholder="Ej: Sci-Fi, Industrial Techno...">
                 </div>
                 <button onclick="saveProfile()" style="background:var(--pz-accent); margin-top: 12px;"><i class="fa-solid fa-floppy-disk"></i> Guardar Configuración</button>
             </div>
@@ -325,10 +405,119 @@
         if(tabName === 'profile') document.getElementById('pz-profile').classList.add('active');
     }
 
-    function toggleMusicControl() {
+    function toggleMediaControl() {
         const panel = document.getElementById('media-panel');
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
     }
+
+    function switchMediaTab(mediaType) {
+        document.querySelectorAll('.media-tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.media-content-pane').forEach(p => p.classList.remove('active'));
+        
+        if(mediaType === 'spotify') {
+            document.querySelector('.media-tab-btn:nth-child(1)').classList.add('active');
+            document.getElementById('pane-spotify').classList.add('active');
+        } else if(mediaType === 'netflix') {
+            document.querySelector('.media-tab-btn.netflix').classList.add('active');
+            document.getElementById('pane-netflix').classList.add('active');
+        }
+    }
+
+    function toggleDrawer(drawerId) {
+        ['emoji-drawer', 'sticker-drawer', 'sound-drawer'].forEach(id => {
+            const el = document.getElementById(id);
+            if(id === drawerId) {
+                el.style.display = el.style.display === 'block' ? 'none' : 'block';
+            } else {
+                el.style.display = 'none';
+            }
+        });
+    }
+
+    function insertEmoji(emoji) {
+        const input = document.getElementById('msg-input');
+        input.value += emoji;
+        input.focus();
+        document.getElementById('emoji-drawer').style.display = 'none';
+    }
+
+    function sendSticker(url) {
+        document.getElementById('sticker-drawer').style.display = 'none';
+        socket.emit('chat_msg', { 
+            roomId: currentRoomId, 
+            msg: `<img src="${url}" style="max-width:120px; border-radius:6px; margin-top:2px;" alt="Sticker">`, 
+            user: `${myProfile.avatar} ${myProfile.username}` 
+        });
+    }
+
+    function sendSoundEffect(type) {
+        document.getElementById('sound-drawer').style.display = 'none';
+        socket.emit('play_sound_effect', { roomId: currentRoomId, type: type, user: myProfile.username });
+        playLocalAudio(type);
+    }
+
+    function playLocalAudio(type) {
+        let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let osc = audioCtx.createOscillator();
+        let gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if(type === 'airhorn') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(554.37, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        } else if(type === 'laser') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.2);
+        } else if(type === 'success') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+            osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.35);
+        }
+    }
+
+    socket.on('incoming_sound_effect', (data) => {
+        playLocalAudio(data.type);
+        const box = document.getElementById('chat-box');
+        if(box) {
+            box.innerHTML += `<div style="font-size:0.65rem; color:var(--pz-neon); font-style:italic; margin:2px 0;">🔊 ${data.user} disparó sonido: [${data.type.toUpperCase()}]</div>`;
+            box.scrollTop = box.scrollHeight;
+        }
+    });
+
+    function syncNetflix() {
+        const titleInput = document.getElementById('netflix-title-input').value.trim();
+        if(!titleInput) return alert('Ingresa el título o ID de Netflix.');
+        socket.emit('netflix_sync', { roomId: currentRoomId, action: 'load', title: titleInput, user: myProfile.username });
+        document.getElementById('netflix-status-container').innerText = `Sincronizado: ${titleInput} (Cargando sesión...)`;
+    }
+
+    function sendNetflixAction(action) {
+        socket.emit('netflix_sync', { roomId: currentRoomId, action: action, user: myProfile.username });
+    }
+
+    socket.on('netflix_action_broadcast', (data) => {
+        const statusEl = document.getElementById('netflix-status-container');
+        if(data.action === 'load') {
+            statusEl.innerText = `🎥 ${data.user} cambió la película a: "${data.title}"`;
+        } else if(data.action === 'play') {
+            statusEl.innerText = `▶️ Reproducción iniciada por ${data.user}`;
+        } else if(data.action === 'pause') {
+            statusEl.innerText = `⏸️ Pausado por ${data.user}`;
+        }
+    });
 
     function login() {
         const username = document.getElementById('login-user').value.trim();
