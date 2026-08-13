@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoVibe | Sistema Completo con Google Auth & Google Pay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://pay.google.com/gp/p/js/pay.js" async onload="onGooglePayLoaded()"></script>
+    <style>
+        :root { 
+            --pz-bg: #04060a; --pz-surface: #0b0f17; --pz-surface-glass: rgba(11, 15, 23, 0.92);
+            --pz-border: #1a2336; --pz-primary: #2563eb; --pz-accent: #059669; --pz-neon: #06b6d4;
+            --pz-economy: #eab308; --pz-google: #ea4335; --pz-instagram: #e1306c; --pz-text: #f8fafc; --pz-muted: #64748b; --pz-danger: #dc2626;
+        }
+        * { box-sizing: border-box; }
+        body { background: var(--pz-bg); color: var(--pz-text); font-family: 'Outfit', sans-serif; margin: 0; padding: 4px; display: flex; justify-content: center; min-height: 100vh; }
+        #app { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 6px; }
+        .pz-card { background: var(--pz-surface-glass); backdrop-filter: blur(24px); border: 1px solid var(--pz-border); padding: 12px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.8); }
+        h2 { font-size: 1.05rem; color: var(--pz-neon); margin: 0 0 8px 0; }
+        label { font-size: 0.65rem; color: var(--pz-muted); font-weight: 600; text-transform: uppercase; }
+        input, select { width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--pz-border); background: rgba(2, 4, 8, 0.7); color: white; margin: 4px 0; font-size: 0.8rem; font-family: inherit; }
+        input:focus, select:focus { border-color: var(--pz-neon); outline: none; }
+        button { width: 100%; padding: 8px 12px; border-radius: 8px; border: none; background: var(--pz-primary); color: white; font-weight: 600; cursor: pointer; margin-top: 4px; font-family: inherit; font-size: 0.8rem; }
+        button:hover { filter: brightness(1.15); }
+        .pz-oauth-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); margin-top: 6px; }
+        .pz-oauth-google { border-color: rgba(234, 67, 53, 0.4); }
+        .pz-oauth-google:hover { background: rgba(234, 67, 53, 0.15); }
+        .pz-header { display: flex; justify-content: space-between; align-items: center; background: var(--pz-surface); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--pz-border); }
+        #map { height: 110px; border-radius: 8px; margin-bottom: 6px; z-index: 1; }
+        .pz-list-item { background: rgba(2, 4, 8, 0.5); border: 1px solid var(--pz-border); border-radius: 8px; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 0.75rem; }
+        .pz-list-item button { width: auto; padding: 3px 8px; font-size: 0.65rem; margin: 0; }
+        .ig-post-card { background: var(--pz-surface); border: 1px solid var(--pz-border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+        .media-tabs { display: flex; gap: 3px; margin-bottom: 6px; }
+        .media-tab-btn { flex: 1; padding: 5px 2px; font-size: 0.58rem; background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); border-radius: 6px; color: var(--pz-muted); cursor: pointer; text-align: center; }
+        .media-tab-btn.active { background: var(--pz-surface); color: var(--pz-neon); border-color: var(--pz-neon); font-weight: 700; }
+        .media-content-pane { display: none; }
+        .media-content-pane.active { display: block; }
+        .msg-bubble { background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 8px; border-left: 2px solid var(--pz-neon); font-size: 0.8rem; margin-bottom: 6px; }
+        .pz-tab-content { display: none; flex-direction: column; gap: 8px; }
+        .pz-tab-content.active { display: flex; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- MÓDULO DE AUTENTICACIÓN -->
+    <div id="login-screen" class="pz-card" style="margin-top: 15px; text-align: center; padding: 16px;">
+        <h2><i class="fa-solid fa-shield-halved"></i> GeoVibe // Core Security</h2>
+        <p id="auth-subtitle" style="color: var(--pz-muted); font-size: 0.75rem; margin-bottom: 10px;">Inicia sesión con Google o tu cuenta</p>
+        
+        <button class="pz-oauth-btn pz-oauth-google" onclick="triggerGoogleLogin()">
+            <i class="fa-brands fa-google" style="color: var(--pz-google);"></i> Continuar con Google
+        </button>
+
+        <div style="display: flex; align-items: center; gap: 8px; margin: 6px 0; color: var(--pz-muted); font-size: 0.65rem;">
+            <div style="flex: 1; height: 1px; background: var(--pz-border);"></div> O MANUAL <div style="flex: 1; height: 1px; background: var(--pz-border);"></div>
+        </div>
+
+        <input type="text" id="auth-user" placeholder="Correo o Usuario...">
+        <input type="password" id="auth-pass" placeholder="Contraseña...">
+        
+        <div id="register-extra-fields" style="display: none;">
+            <select id="auth-avatar">
+                <option value="🎧">🎧 DJ / Operador</option>
+                <option value="🚀">🚀 Oficial</option>
+            </select>
+        </div>
+
+        <button id="auth-action-btn" onclick="handleAuthSubmit()" style="margin-top: 6px;">Iniciar Sesión</button>
+        <div style="text-align: center; margin-top: 8px; font-size: 0.7rem; color: var(--pz-muted);">
+            <span id="auth-toggle-text" onclick="toggleAuthMode()" style="color: var(--pz-neon); cursor: pointer; text-decoration: underline;">¿No tienes cuenta? Regístrate aquí</span>
+        </div>
+    </div>
+
+    <!-- HUD PRINCIPAL -->
+    <div id="main-hud" style="display:none; flex-direction: column; gap: 8px;">
+        <div class="pz-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span id="header-avatar" style="font-size: 1.1rem;">🎧</span>
+                <div>
+                    <span id="header-username" style="font-weight: 700; font-size: 0.8rem;">Operador</span>
+                    <span style="font-size: 0.55rem; color: var(--pz-muted);"><span style="width:6px; height:6px; background:var(--pz-accent); border-radius:50%; display:inline-block;"></span> Activo</span>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <div style="background: rgba(234, 179, 8, 0.15); border: 1px solid var(--pz-economy); padding: 2px 6px; border-radius: 6px;">
+                    <i class="fa-solid fa-coins" style="color: var(--pz-economy); font-size: 0.7rem;"></i>
+                    <span id="header-wallet" style="font-weight: 700; font-size: 0.7rem; color: var(--pz-economy);">100 ZC</span>
+                </div>
+                <button onclick="switchPzTab('rooms')" style="width: auto; padding: 4px 6px; font-size: 0.65rem;"><i class="fa-solid fa-tower-broadcast"></i></button>
+                <button onclick="switchPzTab('economy')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(234,179,8,0.1); border:1px solid var(--pz-economy); color:var(--pz-economy);"><i class="fa-solid fa-wallet"></i></button>
+                <button onclick="switchPzTab('profile')" style="width: auto; padding: 4px 6px; font-size: 0.65rem;"><i class="fa-solid fa-sliders"></i></button>
+            </div>
+        </div>
+
+        <!-- VISTA SALAS -->
+        <div id="pz-rooms" class="pz-tab-content active">
+            <div class="pz-card">
+                <h2><i class="fa-solid fa-satellite-dish"></i> Sincronización GPS</h2>
+                <button style="background:#064e3b; color:#34d399;" onclick="initRadar()"><i class="fa-solid fa-location-crosshairs"></i> Vincular Coordenadas</button>
+            </div>
+            <div class="pz-card">
+                <h2><i class="fa-solid fa-circle-plus"></i> Desplegar Frecuencia</h2>
+                <input type="text" id="new-room-name" placeholder="Designación de Sala...">
+                <button onclick="createRoom()"><i class="fa-solid fa-bolt"></i> Inicializar Red</button>
+            </div>
+            <div class="pz-card">
+                <h2><i class="fa-solid fa-signal"></i> Redes Activas</h2>
+                <div id="rooms-container"><p style="color: var(--pz-muted); font-size: 0.75rem; text-align: center;">Escaneando espectro...</p></div>
+            </div>
+        </div>
+
+        <!-- VISTA ECONOMÍA & GOOGLE PAY -->
+        <div id="pz-economy" class="pz-tab-content">
+            <div class="pz-card" style="border-color: var(--pz-economy);">
+                <h2><i class="fa-solid fa-vault"></i> Banco & Tarjetas (Google Pay)</h2>
+                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Vincula tus tarjetas o cuentas bancarias de forma segura con un toque.</p>
+                
+                <div style="background: rgba(234,179,8,0.08); border: 1px solid var(--pz-economy); border-radius: 8px; padding: 10px; text-align: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.65rem; color: var(--pz-muted);">Saldo Billetera</span>
+                    <div id="economy-balance-display" style="font-size: 1.6rem; font-weight: 900; color: var(--pz-economy);">100 ZC</div>
+                </div>
+
+                <button onclick="claimDailyReward()" style="background:var(--pz-accent); font-size:0.65rem; padding:6px; margin-bottom:6px;"><i class="fa-solid fa-gift"></i> Reclamar Bono Diario</button>
+
+                <div id="container-google-pay" style="margin-top: 6px;"></div>
+            </div>
+        </div>
+
+        <!-- SALA ACTIVA -->
+        <div id="pz-room-active" class="pz-tab-content">
+            <div class="pz-card" style="padding: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span id="active-room-name" style="font-weight: 900; font-size: 0.9rem; color: var(--pz-neon);">Sala Operativa</span>
+                    <button onclick="location.reload()" style="width: auto; padding: 2px 6px; background: var(--pz-danger); font-size: 0.65rem;">Salir</button>
+                </div>
+                
+                <div id="map"></div>
+
+                <div class="media-tabs">
+                    <button class="media-tab-btn active" onclick="switchMediaTab('muro')"><i class="fa-brands fa-instagram"></i> Muro</button>
+                </div>
+
+                <div id="pane-muro" class="media-content-pane active">
+                    <input type="file" id="ig-file-upload" accept="image/*" style="display:none;" onchange="previewIgUpload(event)">
+                    <button onclick="document.getElementById('ig-file-upload').click()" style="background:rgba(255,255,255,0.05); font-size:0.65rem;"><i class="fa-solid fa-image"></i> Seleccionar Imagen</button>
+                    <div id="ig-preview-container" style="display:none; text-align:center; margin:4px 0;"></div>
+                    <input type="text" id="ig-caption-input" placeholder="Pie de foto..." style="font-size:0.75rem;">
+                    <button onclick="publishIgPost()" style="background:var(--pz-instagram); font-size:0.7rem;"><i class="fa-solid fa-paper-plane"></i> Publicar</button>
+                    <div id="ig-posts-container" style="max-height: 150px; overflow-y: auto; margin-top: 6px;"></div>
+                </div>
+            </div>
+
+            <div class="pz-card" style="padding: 8px;">
+                <div id="chat-box" style="height: 100px; overflow-y: auto;"></div>
+                <div style="display: flex; gap: 3px;">
+                    <input type="text" id="msg-input" placeholder="Mensaje..." style="margin:0; font-size:0.75rem;" onkeypress="if(event.key==='Enter') sendMsg()">
+                    <button onclick="sendMsg()" style="width: 35px; margin:0;"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PERFIL -->
+        <div id="pz-profile" class="pz-tab-content">
+            <div class="pz-card" style="text-align: center; padding: 20px 15px;">
+                <div id="profile-avatar-big" style="font-size: 2.4rem;">🎧</div>
+                <h3 id="profile-name-big">Operador</h3>
+                <button onclick="localStorage.clear(); location.reload();" style="background:var(--pz-danger); font-size:0.7rem; margin-top:8px;">Cerrar Sesión</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const socket = io(); 
+    let currentRoomId = null, myProfile = null, map = null, tempIgMediaData = null, igPostsStore = [], isRegisterMode = false;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const activeSession = localStorage.getItem('geovibe_active_session');
+        if (activeSession) {
+            myProfile = JSON.parse(activeSession);
+            activateUserHud(myProfile);
+            socket.emit('login_user', myProfile);
+        }
+    });
+
+    function triggerGoogleLogin() {
+        let googleEmail = prompt("Ingresa tu correo de Google:");
+        if(!googleEmail) return;
+        fetch('/api/auth/google', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: 'mock_token_' + googleEmail })
+        }).then(res => res.json()).then(data => {
+            if(data.success) { data.user.email = googleEmail; data.user.username = googleEmail.split('@')[0]; completeLogin(data.user); }
+        });
+    }
+
+    function toggleAuthMode() {
+        isRegisterMode = !isRegisterMode;
+        document.getElementById('register-extra-fields').style.display = isRegisterMode ? 'block' : 'none';
+        document.getElementById('auth-action-btn').innerText = isRegisterMode ? 'Registrar Cuenta' : 'Iniciar Sesión';
+        document.getElementById('auth-toggle-text').innerText = isRegisterMode ? '¿Ya tienes cuenta? Inicia sesión aquí' : '¿No tienes cuenta? Regístrate aquí';
+    }
+
+    async function handleAuthSubmit() {
+        const username = document.getElementById('auth-user').value.trim();
+        const password = document.getElementById('auth-pass').value.trim();
+        if(!username || !password) return alert('Ingresa los datos requeridos.');
+
+        const endpoint = isRegisterMode ? '/api/auth/register' : '/api/auth/login';
+        const payload = isRegisterMode ? { username, password, avatar: document.getElementById('auth-avatar').value } : { username, password };
+
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            
+            if(data.success) {
+                completeLogin(data.user);
+            } else {
+                alert(data.error || 'Error en la autenticación');
+            }
+        } catch (err) {
+            alert('Error de conexión con el servidor');
+        }
+    }
+
+    function completeLogin(profile) {
+        myProfile = profile;
+        if(myProfile.wallet === undefined) myProfile.wallet = 100;
+        localStorage.setItem('geovibe_active_session', JSON.stringify(myProfile));
+        socket.emit('login_user', myProfile);
+        activateUserHud(myProfile);
+    }
+
+    function activateUserHud(profile) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-hud').style.display = 'flex';
+        document.getElementById('header-avatar').innerHTML = profile.avatar;
+        document.getElementById('header-username').innerText = profile.username;
+        document.getElementById('profile-name-big').innerText = profile.username;
+        document.getElementById('profile-avatar-big').innerHTML = profile.avatar;
+        updateWalletDisplay(profile.wallet);
+    }
+
+    function updateWalletDisplay(balance) {
+        myProfile.wallet = balance;
+        localStorage.setItem('geovibe_active_session', JSON.stringify(myProfile));
+        document.getElementById('header-wallet').innerText = `${balance} ZC`;
+        document.getElementById('economy-balance-display').innerText = `${balance} ZC`;
+    }
+
+    function claimDailyReward() {
+        socket.emit('claim_daily_reward', { username: myProfile.username });
+    }
+
+    socket.on('reward_claimed', (data) => {
+        updateWalletDisplay(data.newBalance);
+        alert(`🎁 ¡Bono reclamado! +${data.reward} ZC`);
+    });
+
+    function switchPzTab(tab) {
+        document.querySelectorAll('.pz-tab-content').forEach(el => el.classList.remove('active'));
+        if(tab === 'rooms') document.getElementById('pz-rooms').classList.add('active');
+        if(tab === 'economy') document.getElementById('pz-economy').classList.add('active');
+        if(tab === 'profile') document.getElementById('pz-profile').classList.add('active');
+    }
+
+    // --- CONFIGURACIÓN DE GOOGLE PAY ---
+    let paymentsClient = null;
+    function getGooglePaymentsClient() {
+        if (paymentsClient === null) {
+            paymentsClient = new google.payments.api.PaymentsClient({environment: 'TEST'});
+        }
+        return paymentsClient;
+    }
+
+    function onGooglePayLoaded() {
+        const client = getGooglePaymentsClient();
+        client.isReadyToPay({
+            apiVersion: 2, apiVersionMinor: 0,
+            allowedPaymentMethods: [{ type: 'CARD', parameters: { allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"], allowedCardNetworks: ["AMEX", "MASTERCARD", "VISA"] } }]
+        }).then(res => {
+            if (res.result) {
+                const button = client.createButton({
+                    onClick: onGooglePayButtonClicked,
+                    allowedPaymentMethods: [{ type: 'CARD', parameters: { allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"], allowedCardNetworks: ["AMEX", "MASTERCARD", "VISA"] } }]
+                });
+                const container = document.getElementById('container-google-pay');
+                if(container && container.childElementCount === 0) container.appendChild(button);
+            }
+        });
+    }
+
+    function onGooglePayButtonClicked() {
+        const req = {
+            apiVersion: 2, apiVersionMinor: 0,
+            allowedPaymentMethods: [{
+                type: 'CARD',
+                parameters: { allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"], allowedCardNetworks: ["AMEX", "MASTERCARD", "VISA"] },
+                tokenizationSpecification: { type: 'PAYMENT_GATEWAY', parameters: { 'gateway': 'stripe', 'gatewayMerchantId': 'exampleMerchantId' } }
+            }],
+            merchantInfo: { merchantId: '12345678901234567890', merchantName: 'GeoVibe' },
+            transactionInfo: { totalPriceStatus: 'FINAL', totalPrice: '10.00', currencyCode: 'USD' }
+        };
+        getGooglePaymentsClient().loadPaymentData(req).then(paymentData => {
+            fetch('/api/process-google-pay', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(paymentData)
+            }).then(res => res.json()).then(data => {
+                if(data.success) {
+                    updateWalletDisplay(myProfile.wallet + 100);
+                    alert('¡Tarjeta vinculada y recarga de 100 ZC aplicada con Google Pay!');
+                }
+            });
+        });
+    }
+
+    function initRadar() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(pos => {
+                socket.emit('update_location', { lat: pos.coords.latitude, lng: pos.coords.longitude, username: myProfile.username });
+            });
+        }
+    }
+
+    socket.on('rooms_list', (rooms) => {
+        document.getElementById('rooms-container').innerHTML = rooms.map(r => `
+            <div class="pz-list-item">
+                <span><b>${r.name}</b> (${r.count} nodos)</span>
+                <button onclick="socket.emit('join_room', '${r.id}')">Conectar</button>
+            </div>
+        `).join('');
+    });
+
+    function createRoom() {
+        socket.emit('create_room', { name: document.getElementById('new-room-name').value.trim() || 'Sala', creator: myProfile.username });
+    }
+
+    socket.on('room_joined', (room) => {
+        currentRoomId = room.id;
+        document.getElementById('active-room-name').innerText = room.name;
+        document.querySelectorAll('.pz-tab-content').forEach(el => el.classList.remove('active'));
+        document.getElementById('pz-room-active').classList.add('active');
+
+        setTimeout(() => {
+            if (!map) {
+                map = L.map('map').setView([6.217, -75.567], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            } else { map.invalidateSize(); }
+        }, 300);
+        socket.emit('get_ig_posts', { roomId: currentRoomId });
+    });
+
+    function previewIgUpload(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            tempIgMediaData = { type: file.type, data: e.target.result };
+            const c = document.getElementById('ig-preview-container');
+            c.style.display = 'block';
+            c.innerHTML = `<img src="${e.target.result}" style="max-height:80px; border-radius:6px;">`;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function publishIgPost() {
+        if(!tempIgMediaData) return alert('Selecciona una imagen.');
+        socket.emit('publish_ig_post', {
+            roomId: currentRoomId, user: myProfile.username,
+            mediaType: tempIgMediaData.type, mediaData: tempIgMediaData.data,
+            caption: document.getElementById('ig-caption-input').value.trim()
+        });
+        tempIgMediaData = null;
+        document.getElementById('ig-preview-container').style.display = 'none';
+        document.getElementById('ig-caption-input').value = '';
+    }
+
+    socket.on('ig_posts_feed', (posts) => { igPostsStore = posts; renderIgFeed(); });
+    socket.on('new_ig_post', (post) => { igPostsStore.unshift(post); renderIgFeed(); });
+
+    function renderIgFeed() {
+        document.getElementById('ig-posts-container').innerHTML = igPostsStore.map(p => `
+            <div class="ig-post-card" style="padding:6px;">
+                <b style="font-size:0.75rem; color:var(--pz-neon);">${p.user}</b>
+                <img src="${p.mediaData}" style="width:100%; max-height:150px; object-fit:cover; border-radius:4px; margin:4px 0;">
+                <div style="font-size:0.7rem;">${p.caption || ''}</div>
+            </div>
+        `).join('');
+    }
+
+    function sendMsg() {
+        const msg = document.getElementById('msg-input').value.trim();
+        if(!msg) return;
+        socket.emit('chat_msg', { roomId: currentRoomId, msg, user: myProfile.username });
+        document.getElementById('msg-input').value = '';
+    }
+
+    socket.on('new_msg', (data) => {
+        const box = document.getElementById('chat-box');
+        box.innerHTML += `<div class="msg-bubble"><b>${data.user}:</b> ${data.msg}</div>`;
+        box.scrollTop = box.scrollHeight;
+    });
+</script>
+</body>
+</html>
