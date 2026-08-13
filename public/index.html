@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GeoVibe | Music & Proximity</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
         body { background: #0a0a0a; color: #e5e5e5; font-family: 'Inter', sans-serif; }
         .glass { background: rgba(20, 20, 20, 0.7); backdrop-filter: blur(10px); border: 1px solid #333; }
@@ -36,7 +36,10 @@
     </div>
 
     <script>
-        const socket = io();
+        // URL de tu backend desplegado en Render
+        const BACKEND_URL = "https://chat-online-110g.onrender.com"; 
+        const socket = io(BACKEND_URL);
+
         document.getElementById('btn-init').onclick = () => {
             navigator.geolocation.getCurrentPosition(pos => {
                 socket.emit('update_location', { 
