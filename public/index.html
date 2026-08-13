@@ -15,6 +15,7 @@
     <style>
         :root { 
             --primary: #6366f1; 
+            --secondary: #a855f7;
             --glass: rgba(255, 255, 255, 0.05); 
             --bg: #030014; 
         }
@@ -22,7 +23,7 @@
         body { 
             background: var(--bg); color: white; font-family: 'Outfit', sans-serif; 
             margin: 0; padding: 20px; display: flex; justify-content: center; 
-            transition: background 0.4s ease;
+            transition: background 0.4s ease; min-height: 100vh;
         }
 
         #app { width: 100%; max-width: 480px; }
@@ -35,13 +36,13 @@
         }
 
         h2, h3 { margin-top: 0; font-weight: 900; }
-        h2 { font-size: 1.8rem; background: linear-gradient(90deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h2 { font-size: 1.8rem; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        input, select { 
+        input, select, textarea { 
             width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); 
             background: rgba(0,0,0,0.4); color: white; box-sizing: border-box; margin: 6px 0; font-family: inherit;
         }
-        input:focus, select:focus { border-color: var(--primary); outline: none; }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); outline: none; }
 
         button { 
             width: 100%; padding: 12px; border-radius: 12px; border: none; 
@@ -52,12 +53,12 @@
 
         #map { height: 180px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.1); }
 
-        .room-item {
+        .room-item, .user-item {
             background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 14px; padding: 12px; display: flex; justify-content: space-between;
             align-items: center; margin-bottom: 8px;
         }
-        .room-item button { width: auto; padding: 6px 14px; font-size: 0.8rem; margin: 0; }
+        .room-item button, .user-item button { width: auto; padding: 6px 14px; font-size: 0.8rem; margin: 0; }
 
         .msg-bubble { 
             background: rgba(255,255,255,0.08); padding: 12px; border-radius: 16px; margin: 8px 0; 
@@ -70,8 +71,10 @@
         .reaction-btn { background: rgba(255,255,255,0.1); border: none; border-radius: 8px; padding: 2px 8px; cursor: pointer; color: white; width: auto; font-size: 0.8rem; }
 
         #chat-box { height: 200px; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 4px; }
-        .typing-indicator { font-size: 0.75rem; color: #a855f7; height: 16px; font-style: italic; margin-bottom: 4px; }
+        .typing-indicator { font-size: 0.75rem; color: var(--secondary); height: 16px; font-style: italic; margin-bottom: 4px; }
         .playlist-box { font-size: 0.8rem; opacity: 0.8; margin-top: 8px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 10px; }
+        
+        .badge { background: rgba(99, 102, 241, 0.2); border: 1px solid var(--primary); padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; }
     </style>
 </head>
 <body>
@@ -81,7 +84,7 @@
     <!-- 1. LOGIN / AUTENTICACIÓN -->
     <div id="login-card" class="card">
         <h2>GeoVibe 🌍</h2>
-        <p style="opacity: 0.7; font-size: 0.9rem; margin-bottom: 15px;">Acceso a la Red Social y Musical.</p>
+        <p style="opacity: 0.7; font-size: 0.9rem; margin-bottom: 15px;">Red Social Musical Geolocalizada.</p>
         <input type="text" id="login-user" placeholder="Nombre de usuario...">
         <input type="password" id="login-pass" placeholder="Contraseña...">
         <select id="login-avatar">
@@ -93,8 +96,13 @@
         <button onclick="login()">Ingresar al Sistema</button>
     </div>
 
-    <!-- 2. VISTA PRINCIPAL (RADAR Y SALAS) -->
+    <!-- 2. VISTA PRINCIPAL (RADAR, SALAS Y PERFIL) -->
     <div id="main-app" style="display:none;">
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px;">
+            <span id="welcome-user" style="font-weight: 700;">Hola</span>
+            <button onclick="openProfileModal()" style="width: auto; padding: 6px 12px; background: var(--secondary); font-size: 0.8rem; margin:0;"><i class="fa-solid fa-user-gear"></i> Mi Perfil</button>
+        </div>
+
         <div class="card" style="padding: 12px 20px;">
             <select id="theme-selector" onchange="changeTheme()" style="margin:0;">
                 <option value="cyberpunk">Tema: Neon Cyberpunk (Oscuro)</option>
@@ -123,7 +131,18 @@
         </div>
     </div>
 
-    <!-- 3. VISTA DE SALA ACTIVA (CHAT, MÚSICA, MAPA) -->
+    <!-- MODAL DE PERFIL -->
+    <div id="profile-card" class="card" style="display:none;">
+        <h2><i class="fa-solid fa-id-card"></i> Configurar Perfil</h2>
+        <label style="font-size:0.8rem; opacity:0.8;">Biografía:</label>
+        <textarea id="profile-bio" rows="2" placeholder="Cuéntanos sobre tu estilo musical..."></textarea>
+        <label style="font-size:0.8rem; opacity:0.8;">Género Favorito:</label>
+        <input type="text" id="profile-genre" placeholder="Ej: Techno, Cyberpunk, House...">
+        <button onclick="saveProfile()" style="background:#10b981;">Guardar Cambios</button>
+        <button onclick="closeProfileModal()" style="background:#64748b;">Volver</button>
+    </div>
+
+    <!-- 3. VISTA DE SALA ACTIVA (CHAT, MÚSICA, USUARIOS) -->
     <div id="active-chat" style="display:none;">
         <div class="card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -143,6 +162,14 @@
             <div id="playlist-container" class="playlist-box">Cola vacía</div>
         </div>
 
+        <!-- USUARIOS CONECTADOS EN LA SALA -->
+        <div class="card">
+            <h3 style="font-size: 0.9rem; margin-bottom: 8px;"><i class="fa-solid fa-users"></i> Conectados en la Sala</h3>
+            <div id="room-members-list" style="max-height: 120px; overflow-y: auto;">
+                <p style="opacity: 0.6; font-size: 0.8rem;">Cargando usuarios...</p>
+            </div>
+        </div>
+
         <!-- TICKET QR -->
         <div class="card" style="text-align: center; padding: 15px;">
             <h3 style="font-size: 0.9rem; margin-bottom: 8px;">🎟 Tu Ticket Vibe (QR)</h3>
@@ -157,7 +184,7 @@
             <div style="display: flex; gap: 6px;">
                 <input type="text" id="msg-input" placeholder="Escribe un mensaje..." style="margin:0;" oninput="handleTyping()" onkeypress="if(event.key==='Enter') sendMsg()">
                 <button onclick="sendMsg()" style="width: 50px; margin:0;"><i class="fa-solid fa-paper-plane"></i></button>
-                <button id="mic-btn" onclick="toggleMic()" style="width: 50px; background:#8b5cf6; margin:0;" title="Nota de voz"><i class="fa-solid fa-microphone"></i></button>
+                <button id="mic-btn" onclick="toggleMic()" style="width: 50px; background:var(--secondary); margin:0;" title="Nota de voz"><i class="fa-solid fa-microphone"></i></button>
             </div>
         </div>
 
@@ -198,9 +225,32 @@
         myProfile = profile;
         document.getElementById('login-card').style.display = 'none';
         document.getElementById('main-app').style.display = 'block';
+        document.getElementById('welcome-user').innerText = `${myProfile.avatar} ${myProfile.username}`;
+        document.getElementById('profile-bio').value = profile.bio || '';
+        document.getElementById('profile-genre').value = profile.genre || '';
     });
 
     socket.on('login_error', (err) => alert(err));
+
+    function openProfileModal() {
+        document.getElementById('main-app').style.display = 'none';
+        document.getElementById('profile-card').style.display = 'block';
+    }
+
+    function closeProfileModal() {
+        document.getElementById('profile-card').style.display = 'none';
+        document.getElementById('main-app').style.display = 'block';
+    }
+
+    function saveProfile() {
+        const bio = document.getElementById('profile-bio').value.trim();
+        const genre = document.getElementById('profile-genre').value.trim();
+        socket.emit('update_profile', { username: myProfile.username, bio, genre });
+        myProfile.bio = bio;
+        myProfile.genre = genre;
+        alert('Perfil actualizado con éxito');
+        closeProfileModal();
+    }
 
     function initRadar() {
         if (navigator.geolocation) {
@@ -276,6 +326,18 @@
         if (!map) return;
         markers.forEach(m => map.removeLayer(m));
         markers = [];
+        
+        const membersContainer = document.getElementById('room-members-list');
+        membersContainer.innerHTML = members.map(m => `
+            <div class="user-item">
+                <div>
+                    <span style="font-weight:700;">${m.username}</span>
+                    <div style="font-size:0.7rem; opacity:0.7;">${m.genre ? '🎵 ' + m.genre : 'Raver activo'}</div>
+                </div>
+                <span class="badge">Online</span>
+            </div>
+        `).join('');
+
         members.forEach(m => {
             if (m.lat && m.lng) {
                 const marker = L.marker([m.lat, m.lng]).addTo(map).bindPopup(m.username);
@@ -365,7 +427,7 @@
             } catch (e) { alert('Micrófono denegado.'); }
         } else {
             mediaRecorder.stop();
-            micBtn.style.background = "#8b5cf6";
+            micBtn.style.background = "var(--secondary)";
             micBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
         }
     }
@@ -381,8 +443,6 @@
         `;
         box.scrollTop = box.scrollHeight;
     });
-
-    socket.on('incoming_dm', (data) => { alert(`Mensaje Privado de ${data.from}: ${data.msg}`); });
 
     const ctx = document.getElementById('energyChart').getContext('2d');
     const energyChart = new Chart(ctx, {
