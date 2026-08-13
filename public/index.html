@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoVibe | Project Z Ultimate Enterprise Hub + OAuth, Economy & Feed</title>
+    <title>GeoVibe | Project Z Ultimate Enterprise Hub + P2P ZC Exchange, Auth & IG Feed</title>
     <!-- Librerías Externas -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -104,6 +104,11 @@
         .pz-oauth-instagram { border-color: rgba(225, 48, 108, 0.4); }
         .pz-oauth-instagram:hover { background: rgba(225, 48, 108, 0.15); }
 
+        .auth-switch-link {
+            text-align: center; margin-top: 8px; font-size: 0.7rem; color: var(--pz-muted);
+        }
+        .auth-switch-link span { color: var(--pz-neon); cursor: pointer; font-weight: 700; text-decoration: underline; }
+
         .pz-header {
             display: flex; justify-content: space-between; align-items: center;
             background: var(--pz-surface); padding: 8px 12px; border-radius: 10px;
@@ -121,12 +126,39 @@
         .pz-list-item:hover { background: rgba(6, 182, 212, 0.03); border-color: var(--pz-border-glow); }
         .pz-list-item button { width: auto; padding: 3px 8px; font-size: 0.65rem; margin: 0; box-shadow: none; }
 
+        /* Estilos del Muro Estilo Instagram */
+        .ig-post-card {
+            background: var(--pz-surface); border: 1px solid var(--pz-border);
+            border-radius: 10px; margin-bottom: 10px; overflow: hidden;
+        }
+        .ig-post-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .ig-post-media {
+            width: 100%; max-height: 320px; object-fit: cover; background: #000; display: block;
+        }
+        .ig-post-actions {
+            display: flex; gap: 12px; padding: 8px 10px; font-size: 1.1rem;
+        }
+        .ig-post-actions i { cursor: pointer; transition: color 0.2s; }
+        .ig-post-actions i:hover { color: var(--pz-neon); }
+        .ig-post-likes {
+            font-size: 0.75rem; font-weight: 700; padding: 0 10px 4px 10px; color: var(--pz-text);
+        }
+        .ig-post-caption {
+            font-size: 0.75rem; padding: 0 10px 8px 10px; color: var(--pz-muted); word-break: break-word;
+        }
+        .ig-post-comments {
+            padding: 0 10px 8px 10px; font-size: 0.7rem; border-top: 1px solid rgba(255,255,255,0.03);
+        }
+
         .media-tabs { display: flex; gap: 3px; margin-bottom: 6px; overflow-x: auto; }
         .media-tab-btn { flex: 1; padding: 5px 2px; font-size: 0.58rem; background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); border-radius: 6px; color: var(--pz-muted); cursor: pointer; text-align: center; white-space: nowrap; }
         .media-tab-btn.active { background: var(--pz-surface); color: var(--pz-neon); border-color: var(--pz-neon); font-weight: 700; }
+        .media-tab-btn.ig.active { color: var(--pz-instagram); border-color: var(--pz-instagram); }
         .media-tab-btn.netflix.active { color: var(--pz-netflix); border-color: var(--pz-netflix); }
         .media-tab-btn.arcade.active { color: var(--pz-amber); border-color: var(--pz-amber); }
-        .media-tab-btn.feed.active { color: var(--pz-pink); border-color: var(--pz-pink); }
         .media-tab-btn.sales.active { color: var(--pz-sales); border-color: var(--pz-sales); }
         .media-tab-btn.economy.active { color: var(--pz-economy); border-color: var(--pz-economy); }
 
@@ -170,53 +202,60 @@
 
 <div id="app">
     
-    <!-- 1. MÓDULO DE AUTENTICACIÓN INDUSTRIAL & SOCIAL OAUTH -->
-    <div id="login-screen" class="pz-card" style="margin-top: 20px; text-align: center; padding: 20px 16px;">
+    <!-- 1. MÓDULO DE AUTENTICACIÓN Y REGISTRO SEGURO -->
+    <div id="login-screen" class="pz-card" style="margin-top: 15px; text-align: center; padding: 16px;">
         <h2><i class="fa-solid fa-shield-halved"></i> GeoVibe // Core Security</h2>
-        <p style="color: var(--pz-muted); font-size: 0.75rem; margin-bottom: 12px;">Acceso Rápido y Enlace Criptográfico</p>
+        <p id="auth-subtitle" style="color: var(--pz-muted); font-size: 0.75rem; margin-bottom: 10px;">Inicia sesión con tu cuenta o regístrate</p>
         
-        <!-- Botones de Redes Sociales (OAuth Instantáneo) -->
-        <div style="display: flex; flex-direction: column; gap: 2px; margin-bottom: 12px;">
-            <button class="pz-oauth-btn pz-oauth-google" onclick="socialLogin('Google', '🌐')">
+        <div style="display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px;">
+            <button class="pz-oauth-btn pz-oauth-google" onclick="socialAuth('Google', '🌐')">
                 <i class="fa-brands fa-google" style="color: var(--pz-google);"></i> Continuar con Google
             </button>
-            <button class="pz-oauth-btn pz-oauth-facebook" onclick="socialLogin('Facebook', '💙')">
+            <button class="pz-oauth-btn pz-oauth-facebook" onclick="socialAuth('Facebook', '💙')">
                 <i class="fa-brands fa-facebook" style="color: var(--pz-facebook);"></i> Continuar con Facebook
             </button>
-            <button class="pz-oauth-btn pz-oauth-instagram" onclick="socialLogin('Instagram', '📸')">
+            <button class="pz-oauth-btn pz-oauth-instagram" onclick="socialAuth('Instagram', '📸')">
                 <i class="fa-brands fa-instagram" style="color: var(--pz-instagram);"></i> Continuar con Instagram
             </button>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 8px; margin: 8px 0; color: var(--pz-muted); font-size: 0.65rem;">
+        <div style="display: flex; align-items: center; gap: 8px; margin: 6px 0; color: var(--pz-muted); font-size: 0.65rem;">
             <div style="flex: 1; height: 1px; background: var(--pz-border);"></div>
-            O ACCESO MANUAL
+            O CORREO / USUARIO
             <div style="flex: 1; height: 1px; background: var(--pz-border);"></div>
         </div>
 
-        <input type="text" id="login-user" placeholder="Identificador de Usuario...">
-        <input type="password" id="login-pass" placeholder="Clave de Frecuencia...">
-        <select id="login-avatar">
-            <option value="🎧">🎧 Operador de Audio / DJ</option>
-            <option value="🚀">🚀 Oficial de Campo</option>
-            <option value="🔥">🔥 Nodo Raver / Producción</option>
-            <option value="⚡">⚡ Ingeniero Cyberpunk</option>
-            <option value="💀">💀 Analista Dark Synth</option>
-            <option value="👽">👽 Especialista Telemetría</option>
-        </select>
-        <button onclick="login()" style="margin-top: 6px;"><i class="fa-solid fa-key"></i> Autorizar Enlace</button>
+        <input type="text" id="auth-user" placeholder="Correo electrónico o Usuario...">
+        <input type="password" id="auth-pass" placeholder="Contraseña segura...">
+        
+        <div id="register-extra-fields" style="display: none;">
+            <select id="auth-avatar">
+                <option value="🎧">🎧 Operador de Audio / DJ</option>
+                <option value="🚀">🚀 Oficial de Campo</option>
+                <option value="🔥">🔥 Nodo Raver / Producción</option>
+                <option value="⚡">⚡ Ingeniero Cyberpunk</option>
+                <option value="💀">💀 Analista Dark Synth</option>
+                <option value="👽">👽 Especialista Telemetría</option>
+            </select>
+        </div>
+
+        <button id="auth-action-btn" onclick="handleAuthSubmit()" style="margin-top: 6px;"><i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión</button>
+        
+        <div class="auth-switch-link">
+            <span id="auth-toggle-text" onclick="toggleAuthMode()">¿No tienes cuenta? Regístrate aquí</span>
+        </div>
     </div>
 
     <!-- 2. INTERFAZ DE CONTROL PRINCIPAL (HUD) -->
     <div id="main-hud" style="display:none; flex-direction: column; gap: 8px;">
         
-        <!-- BARRA DE TELEMETRÍA SUPERIOR CON BILLETERA Y BOTÓN DE SALIR -->
+        <!-- BARRA DE TELEMETRÍA SUPERIOR CON BILLETERA -->
         <div class="pz-header">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <span id="header-avatar" style="font-size: 1.1rem;">🎧</span>
                 <div>
                     <span id="header-username" style="font-weight: 700; font-size: 0.8rem; display: block;">Operador</span>
-                    <span style="font-size: 0.55rem; color: var(--pz-muted); display:flex; align-items:center; gap:4px;"><span id="status-dot" style="width:6px; height:6px; background:var(--pz-accent); border-radius:50%; display:inline-block;"></span> <span id="header-status">Conectado (Persistente)</span></span>
+                    <span style="font-size: 0.55rem; color: var(--pz-muted); display:flex; align-items:center; gap:4px;"><span id="status-dot" style="width:6px; height:6px; background:var(--pz-accent); border-radius:50%; display:inline-block;"></span> <span id="header-status">Sesión Segura Activa</span></span>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
@@ -263,30 +302,37 @@
             </div>
         </div>
 
-        <!-- VISTA B: ECONOMÍA, BANCO Y GANANCIAS (Z-COINS) -->
+        <!-- VISTA B: ECONOMÍA, BANCO ZC & MERCADO P2P (COMPRA Y VENTA DE MONEDAS) -->
         <div id="pz-economy" class="pz-tab-content">
             <div class="pz-card" style="border-color: var(--pz-economy);">
-                <h2><i class="fa-solid fa-vault" style="color: var(--pz-economy);"></i> Banco Central & Economía ZC</h2>
-                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Gana monedas (ZC) creando salas privadas, recibiendo propinas o en trivias. ¡Retira tus ganancias!</p>
+                <h2><i class="fa-solid fa-vault" style="color: var(--pz-economy);"></i> Banco Central & Mercado P2P</h2>
+                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Compra ZC con dinero real o publica tus propias ofertas para vender monedas a otros usuarios de forma segura.</p>
                 
                 <div style="background: rgba(234,179,8,0.08); border: 1px solid var(--pz-economy); border-radius: 8px; padding: 10px; text-align: center; margin-bottom: 8px;">
                     <span style="font-size: 0.65rem; color: var(--pz-muted); text-transform: uppercase;">Saldo Actual en Billetera</span>
                     <div id="economy-balance-display" style="font-size: 1.6rem; font-weight: 900; color: var(--pz-economy); margin: 2px 0;">100 ZC</div>
-                    <span style="font-size: 0.6rem; color: #34d399;">Equivalente a USD $10.00</span>
+                    <span style="font-size: 0.6rem; color: #34d399;">Tasa: 10 ZC = USD $1.00</span>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
                     <button onclick="claimDailyReward()" style="background:var(--pz-accent); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-gift"></i> Bono Diario</button>
-                    <button onclick="openCashoutModal()" style="background:var(--pz-sales); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-money-bill-transfer"></i> Retirar Ganancias</button>
+                    <button onclick="openBuyModal()" style="background:var(--pz-primary); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-cart-shopping"></i> Comprar ZC</button>
                 </div>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 8px;">
+                    <button onclick="openSellModal()" style="background:var(--pz-sales); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-store"></i> Publicar Oferta de Venta P2P</button>
+                </div>
+            </div>
 
-                <div style="border-top: 1px dashed var(--pz-border); padding-top: 6px; font-size: 0.65rem; color: var(--pz-muted);">
-                    <b>Modelo de Ganancias:</b> 80% para ti al cobrar entradas en tus salas privadas; 20% para el fondo de red.
+            <!-- SECCIÓN DE OFERTAS P2P ACTIVAS -->
+            <div class="pz-card">
+                <h2><i class="fa-solid fa-handshake"></i> Mercado P2P (Ofertas de la Comunidad)</h2>
+                <div id="p2p-market-container" style="max-height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+                    <p style="text-align: center; color: var(--pz-muted); font-size: 0.7rem;">Cargando ofertas de cambio...</p>
                 </div>
             </div>
         </div>
 
-        <!-- VISTA C: FRECUENCIA GLOBAL DE TRANSMISIÓN -->
+        <!-- VISTA C: FRECUENCIA GLOBAL -->
         <div id="pz-global-chat" class="pz-tab-content">
             <div class="pz-card" style="padding: 10px;">
                 <h2><i class="fa-solid fa-globe"></i> Canal de Enlace Global</h2>
@@ -298,14 +344,13 @@
             </div>
         </div>
 
-        <!-- VISTA D: SALA DE OPERACIONES ACTIVA -->
+        <!-- VISTA D: SALA DE OPERACIONES ACTIVA (CON MURO TIPO INSTAGRAM INTEGRADO) -->
         <div id="pz-room-active" class="pz-tab-content">
             
             <div class="pz-card" style="padding: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                     <span id="active-room-name" style="font-weight: 900; font-size: 0.9rem; color: var(--pz-neon);">Sala Operativa</span>
                     <div style="display: flex; gap: 4px;">
-                        <button onclick="toggleMediaControl()" style="width: auto; padding: 2px 6px; background: rgba(255,255,255,0.06); font-size: 0.65rem; margin:0; border:1px solid var(--pz-border); box-shadow:none;"><i class="fa-solid fa-clapperboard"></i> Hub</button>
                         <button onclick="leaveRoom()" style="width: auto; padding: 2px 6px; background: var(--pz-danger); font-size: 0.65rem; margin:0; box-shadow:none;"><i class="fa-solid fa-power-off"></i> Salir</button>
                     </div>
                 </div>
@@ -314,15 +359,35 @@
 
                 <div id="media-panel" style="display: block;">
                     <div class="media-tabs">
-                        <button class="media-tab-btn active" onclick="switchMediaTab('spotify')"><i class="fa-brands fa-spotify"></i> Spotify</button>
+                        <button class="media-tab-btn ig active" onclick="switchMediaTab('instagram-feed')"><i class="fa-brands fa-instagram"></i> Muro</button>
+                        <button class="media-tab-btn" onclick="switchMediaTab('spotify')"><i class="fa-brands fa-spotify"></i> Spotify</button>
                         <button class="media-tab-btn netflix" onclick="switchMediaTab('netflix')"><i class="fa-solid fa-film"></i> Cine</button>
                         <button class="media-tab-btn arcade" onclick="switchMediaTab('arcade')"><i class="fa-solid fa-gamepad"></i> Juegos</button>
-                        <button class="media-tab-btn feed" onclick="switchMediaTab('feed')"><i class="fa-solid fa-photo-film"></i> Muro</button>
                         <button class="media-tab-btn sales" onclick="switchMediaTab('sales')"><i class="fa-solid fa-store"></i> Ventas</button>
                         <button class="media-tab-btn economy" onclick="switchMediaTab('economy-tips')"><i class="fa-solid fa-coins"></i> Propina</button>
                     </div>
 
-                    <div id="pane-spotify" class="media-content-pane active">
+                    <!-- APARTADO: MURO TIPO INSTAGRAM -->
+                    <div id="pane-instagram-feed" class="media-content-pane active">
+                        <div style="background: rgba(225,48,108,0.06); border: 1px solid var(--pz-instagram); border-radius: 8px; padding: 8px; margin-bottom: 8px;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--pz-instagram); display:block; margin-bottom:6px; text-align:center;"><i class="fa-solid fa-camera-retro"></i> Publicar en el Muro</span>
+                            
+                            <input type="file" id="ig-file-upload" accept="image/*,video/*" style="display:none;" onchange="previewIgUpload(event)">
+                            <div style="display:flex; gap:4px; margin-bottom:4px;">
+                                <button onclick="document.getElementById('ig-file-upload').click()" style="background:rgba(255,255,255,0.05); border:1px solid var(--pz-border); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-image"></i> Seleccionar Foto/Video</button>
+                            </div>
+                            <div id="ig-preview-container" style="display:none; margin-bottom:4px; text-align:center;"></div>
+                            <input type="text" id="ig-caption-input" placeholder="Escribe un pie de foto..." style="margin:2px 0; padding:5px; font-size:0.75rem;">
+                            <button onclick="publishIgPost()" style="background:var(--pz-instagram); font-size:0.7rem; padding:6px; margin-top:4px;"><i class="fa-solid fa-paper-plane"></i> Compartir Post</button>
+                        </div>
+
+                        <!-- CONTENEDOR DE POSTS DEL MURO -->
+                        <div id="ig-posts-container" style="max-height: 220px; overflow-y: auto; display:flex; flex-direction:column; gap:8px;">
+                            <p style="text-align:center; color:var(--pz-muted); font-size:0.7rem;">Cargando publicaciones del muro...</p>
+                        </div>
+                    </div>
+
+                    <div id="pane-spotify" class="media-content-pane">
                         <iframe id="spotify-player" src="" width="100%" height="52" frameborder="0" style="border-radius: 6px; margin-bottom: 3px; border:1px solid var(--pz-border);"></iframe>
                         <div style="display: flex; gap: 4px;">
                             <input type="text" id="song-input" placeholder="ID Spotify..." style="margin:0; padding: 4px 6px; font-size: 0.7rem;">
@@ -349,21 +414,12 @@
 
                     <div id="pane-arcade" class="media-content-pane">
                         <div style="background: rgba(217,119,6,0.1); border: 1px solid var(--pz-amber); border-radius: 6px; padding: 8px; text-align: center;">
-                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--pz-amber); display:block; margin-bottom:4px;"><i class="fa-solid fa-gamepad"></i> Zona de Juegos Dinámicos</span>
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--pz-amber); display:block; margin-bottom:4px;"><i class="fa-solid fa-gamepad"></i> Zona de Juegos</span>
                             <button onclick="startTriviaGame()" style="background:var(--pz-amber); color:#000; font-size:0.65rem; padding:4px; width:auto;"><i class="fa-solid fa-brain"></i> Trivia (+10 ZC)</button>
                             <div id="arcade-game-screen" style="background: rgba(2,4,8,0.9); border: 1px solid var(--pz-border); border-radius: 6px; padding: 8px; min-height: 70px; display:flex; flex-direction:column; justify-content:center; align-items:center; margin-top:4px;">
                                 <span id="arcade-msg" style="font-size: 0.7rem; color: var(--pz-text);">¡Gana ZC respondiendo correctamente!</span>
                                 <div id="arcade-actions" style="margin-top: 6px; width: 100%;"></div>
                             </div>
-                        </div>
-                    </div>
-
-                    <div id="pane-feed" class="media-content-pane">
-                        <div style="background: rgba(219,39,119,0.08); border: 1px solid var(--pz-pink); border-radius: 6px; padding: 8px;">
-                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--pz-pink); display:block; margin-bottom:4px; text-align:center;"><i class="fa-solid fa-photo-film"></i> Muro de Publicaciones</span>
-                            <input type="file" id="room-media-upload" accept="image/*,video/*" style="display:none;" onchange="publishMediaToFeed(event)">
-                            <button onclick="document.getElementById('room-media-upload').click()" style="background:var(--pz-pink); font-size:0.65rem; padding:5px;"><i class="fa-solid fa-cloud-arrow-up"></i> Subir Contenido al Muro</button>
-                            <div id="room-media-feed" style="max-height: 120px; overflow-y: auto; display:flex; flex-direction:column; gap:6px; margin-top:4px;"></div>
                         </div>
                     </div>
 
@@ -408,8 +464,6 @@
                         <div id="typing-box" class="typing-indicator"></div>
                         <div style="display: flex; gap: 2px; margin-bottom: 2px; align-items:center;">
                             <button onclick="toggleDrawer('emoji-drawer')" style="width: auto; padding: 2px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Emojis">😊</button>
-                            <input type="file" id="media-file-input" accept="image/*,video/*" style="display:none;" onchange="handleMediaUpload(event)">
-                            <button onclick="document.getElementById('media-file-input').click()" style="width: auto; padding: 2px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Archivo"><i class="fa-solid fa-photo-film"></i></button>
                         </div>
                         <div style="display: flex; gap: 3px;">
                             <input type="text" id="msg-input" placeholder="Mensaje..." style="margin:0; padding:6px 8px; font-size:0.75rem;" oninput="handleTyping()" onkeypress="if(event.key==='Enter') sendMsg()">
@@ -427,7 +481,7 @@
             </div>
         </div>
 
-        <!-- VISTA E: CONFIGURACIÓN DE PERFIL Y CIERRE DE SESIÓN -->
+        <!-- VISTA E: PERFIL Y CIERRE DE SESIÓN -->
         <div id="pz-profile" class="pz-tab-content">
             <div class="pz-card" style="text-align: center; padding: 20px 15px;">
                 <div id="profile-avatar-big" style="font-size: 2.4rem; margin-bottom: 4px;">🎧</div>
@@ -456,6 +510,48 @@
     </div>
 </div>
 
+<!-- MODAL PARA COMPRAR MONEDAS ZC -->
+<div id="buy-coins-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:3000; justify-content:center; align-items:center;">
+    <div class="pz-card" style="width: 90%; max-width: 320px; border-color: var(--pz-primary);">
+        <h2><i class="fa-solid fa-cart-shopping" style="color: var(--pz-primary);"></i> Comprar Z-Coins</h2>
+        <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Selecciona un paquete para recargar tu saldo instantáneamente:</p>
+        
+        <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
+            <div class="pz-list-item" onclick="buyCoinsPackage(100, 10)" style="cursor:pointer;">
+                <div><b>100 ZC</b><div style="font-size:0.6rem; color:var(--pz-muted);">Paquete Básico</div></div>
+                <span style="color:var(--pz-economy); font-weight:700;">$10.00 USD</span>
+            </div>
+            <div class="pz-list-item" onclick="buyCoinsPackage(500, 45)" style="cursor:pointer; border-color:var(--pz-economy);">
+                <div><b>500 ZC</b><div style="font-size:0.6rem; color:var(--pz-economy);">Paquete Pro (10% Dto)</div></div>
+                <span style="color:var(--pz-economy); font-weight:700;">$45.00 USD</span>
+            </div>
+            <div class="pz-list-item" onclick="buyCoinsPackage(1200, 95)" style="cursor:pointer; border-color:var(--pz-neon);">
+                <div><b>1,200 ZC</b><div style="font-size:0.6rem; color:var(--pz-neon);">Paquete Master (20% Dto)</div></div>
+                <span style="color:var(--pz-economy); font-weight:700;">$95.00 USD</span>
+            </div>
+        </div>
+
+        <button onclick="closeBuyModal()" style="background: rgba(255,255,255,0.05); margin-top: 4px; box-shadow:none;">Cerrar</button>
+    </div>
+</div>
+
+<!-- MODAL PARA PUBLICAR OFERTA DE VENTA P2P -->
+<div id="sell-coins-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:3000; justify-content:center; align-items:center;">
+    <div class="pz-card" style="width: 90%; max-width: 320px; border-color: var(--pz-sales);">
+        <h2><i class="fa-solid fa-store" style="color: var(--pz-sales);"></i> Vender ZC (Mercado P2P)</h2>
+        <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Pon a la venta tus Z-Coins para que otros usuarios las compren:</p>
+        
+        <label>Cantidad de ZC a Vender</label>
+        <input type="number" id="p2p-sell-amount" placeholder="Ej: 50" style="margin-bottom:6px;">
+        
+        <label>Precio en USD ($)</label>
+        <input type="number" id="p2p-sell-price" placeholder="Ej: 5.00" style="margin-bottom:6px;">
+        
+        <button onclick="submitP2PSellOffer()" style="background: var(--pz-sales); font-weight: 700;"><i class="fa-solid fa-bullhorn"></i> Publicar Oferta</button>
+        <button onclick="closeSellModal()" style="background: rgba(255,255,255,0.05); margin-top: 4px; box-shadow:none;">Cancelar</button>
+    </div>
+</div>
+
 <script>
     const socket = io("https://chat-online-110g.onrender.com");
     let currentRoomId = null;
@@ -466,60 +562,137 @@
     let pendingRoomIdToJoin = null;
     let pendingRoomCost = 0;
     let pendingRoomCreator = null;
+    let tempIgMediaData = null;
+    let igPostsStore = [];
+    let p2pOffersStore = [];
+    let isRegisterMode = false;
 
-    // --- SISTEMA DE PERSISTENCIA AUTOMÁTICA (LOCALSTORAGE) ---
+    // --- SISTEMA DE PERSISTENCIA Y REGISTRO REAL ---
     window.addEventListener('DOMContentLoaded', () => {
-        const savedProfile = localStorage.getItem('geovibe_user_profile');
-        if (savedProfile) {
+        const activeSession = localStorage.getItem('geovibe_active_session');
+        if (activeSession) {
             try {
-                myProfile = JSON.parse(savedProfile);
-                // Validar estructura básica
-                if(myProfile && myProfile.username) {
-                    // Reconectar automáticamente con el servidor
-                    socket.emit('login_user', { username: myProfile.username, password: myProfile.password || 'oauth_secure', avatar: myProfile.avatar });
+                myProfile = JSON.parse(activeSession);
+                if(myProfile && myProfile.email) {
+                    activateUserHud(myProfile);
+                    socket.emit('login_user', { username: myProfile.username, password: myProfile.password, avatar: myProfile.avatar });
                 }
             } catch(e) {
-                localStorage.removeItem('geovibe_user_profile');
+                localStorage.removeItem('geovibe_active_session');
             }
         }
+        loadP2POffers();
     });
 
-    function saveSession(profileData) {
-        myProfile = profileData;
-        if(myProfile.wallet === undefined) myProfile.wallet = 100;
-        localStorage.setItem('geovibe_user_profile', JSON.stringify(myProfile));
+    function toggleAuthMode() {
+        isRegisterMode = !isRegisterMode;
+        const btn = document.getElementById('auth-action-btn');
+        const subtitle = document.getElementById('auth-subtitle');
+        const toggleText = document.getElementById('auth-toggle-text');
+        const extraFields = document.getElementById('register-extra-fields');
+        const userInput = document.getElementById('auth-user');
+
+        if(isRegisterMode) {
+            subtitle.innerText = "Crea una cuenta real para conservar tu progreso y saldo";
+            btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Registrar Cuenta';
+            toggleText.innerText = "¿Ya tienes cuenta? Inicia sesión aquí";
+            userInput.placeholder = "Correo electrónico o Nombre de Usuario...";
+            extraFields.style.display = 'block';
+        } else {
+            subtitle.innerText = "Inicia sesión con tu cuenta registrada";
+            btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión';
+            toggleText.innerText = "¿No tienes cuenta? Regístrate aquí";
+            userInput.placeholder = "Correo o Usuario registrado...";
+            extraFields.style.display = 'none';
+        }
+    }
+
+    function handleAuthSubmit() {
+        const identifier = document.getElementById('auth-user').value.trim();
+        const password = document.getElementById('auth-pass').value.trim();
         
+        if(!identifier || !password) return alert('Por favor ingresa los datos requeridos.');
+
+        let registeredUsers = JSON.parse(localStorage.getItem('geovibe_users_db') || '{}');
+
+        if(isRegisterMode) {
+            if(registeredUsers[identifier]) {
+                return alert('Este usuario o correo ya está registrado. Inicia sesión directamente.');
+            }
+            const avatar = document.getElementById('auth-avatar').value;
+            const newUser = {
+                email: identifier,
+                username: identifier.split('@')[0],
+                password: password,
+                avatar: avatar,
+                wallet: 150
+            };
+            registeredUsers[identifier] = newUser;
+            localStorage.setItem('geovibe_users_db', JSON.stringify(registeredUsers));
+            
+            alert('¡Cuenta creada y registrada con éxito! Iniciando sesión...');
+            completeLogin(newUser);
+        } else {
+            let foundUser = registeredUsers[identifier];
+            if(!foundUser) {
+                foundUser = Object.values(registeredUsers).find(u => u.username === identifier || u.email === identifier);
+            }
+
+            if(!foundUser || foundUser.password !== password) {
+                return alert('Credenciales incorrectas o cuenta no encontrada. Regístrate si aún no tienes cuenta.');
+            }
+
+            completeLogin(foundUser);
+        }
+    }
+
+    function socialAuth(provider, defaultAvatar) {
+        let identifier = prompt(`Ingresa tu correo o usuario para continuar con ${provider}:`);
+        if(!identifier || !identifier.trim()) return;
+        identifier = identifier.trim();
+
+        let registeredUsers = JSON.parse(localStorage.getItem('geovibe_users_db') || '{}');
+        let user = registeredUsers[identifier];
+
+        if(!user) {
+            user = {
+                email: identifier,
+                username: identifier.split('@')[0] + `_${provider}`,
+                password: 'oauth_secure_' + provider,
+                avatar: defaultAvatar,
+                wallet: 200
+            };
+            registeredUsers[identifier] = user;
+            localStorage.setItem('geovibe_users_db', JSON.stringify(registeredUsers));
+        }
+
+        completeLogin(user);
+    }
+
+    function completeLogin(userProfile) {
+        myProfile = userProfile;
+        if(myProfile.wallet === undefined) myProfile.wallet = 100;
+        localStorage.setItem('geovibe_active_session', JSON.stringify(myProfile));
+        
+        socket.emit('login_user', { username: myProfile.username, password: myProfile.password, avatar: myProfile.avatar });
+        activateUserHud(myProfile);
+    }
+
+    function activateUserHud(profile) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-hud').style.display = 'flex';
-        document.getElementById('header-avatar').innerText = myProfile.avatar;
-        document.getElementById('header-username').innerText = myProfile.username;
-        document.getElementById('header-status').innerText = "Conectado (Persistente)";
+        document.getElementById('header-avatar').innerText = profile.avatar;
+        document.getElementById('header-username').innerText = profile.username;
+        document.getElementById('header-status').innerText = "Sesión Segura Activa";
         document.getElementById('status-dot').style.background = "var(--pz-accent)";
-        document.getElementById('profile-name-big').innerText = `${myProfile.avatar} ${myProfile.username}`;
-        document.getElementById('profile-avatar-big').innerText = myProfile.avatar;
-        updateWalletDisplay(myProfile.wallet);
+        document.getElementById('profile-name-big').innerText = `${profile.avatar} ${profile.username}`;
+        document.getElementById('profile-avatar-big').innerText = profile.avatar;
+        updateWalletDisplay(profile.wallet);
     }
 
     function logoutSession() {
-        localStorage.removeItem('geovibe_user_profile');
+        localStorage.removeItem('geovibe_active_session');
         location.reload();
-    }
-
-    /* Autenticación Social OAuth Instantánea */
-    function socialLogin(provider, defaultAvatar) {
-        let username = prompt(`Ingresa tu nombre de usuario para continuar con ${provider}:`);
-        if(!username || !username.trim()) return;
-        username = username.trim() + ` (${provider})`;
-        
-        const profile = {
-            username: username,
-            password: 'oauth_secure_' + provider,
-            avatar: defaultAvatar,
-            wallet: 150 // Bono de bienvenida por OAuth
-        };
-        
-        socket.emit('login_user', profile);
-        saveSession(profile);
     }
 
     function switchPzTab(tabName) {
@@ -539,7 +712,14 @@
     function updateWalletDisplay(balance) {
         if(!myProfile) return;
         myProfile.wallet = balance;
-        localStorage.setItem('geovibe_user_profile', JSON.stringify(myProfile));
+        localStorage.setItem('geovibe_active_session', JSON.stringify(myProfile));
+        
+        let registeredUsers = JSON.parse(localStorage.getItem('geovibe_users_db') || '{}');
+        if(registeredUsers[myProfile.email]) {
+            registeredUsers[myProfile.email].wallet = balance;
+            localStorage.setItem('geovibe_users_db', JSON.stringify(registeredUsers));
+        }
+
         document.getElementById('header-wallet').innerText = `${balance} ZC`;
         document.getElementById('economy-balance-display').innerText = `${balance} ZC`;
         document.getElementById('profile-wallet-zc').innerText = balance;
@@ -567,31 +747,107 @@
         alert(`💸 Retiro procesado con éxito.`);
     });
 
-    function login() {
-        const username = document.getElementById('login-user').value.trim();
-        const password = document.getElementById('login-pass').value.trim();
-        const avatar = document.getElementById('login-avatar').value;
-        if (!username || !password) return alert('Se requiere identificación y clave.');
-        socket.emit('login_user', { username, password, avatar });
+    // --- FUNCIONES DE COMPRA Y VENTA DE MONEDAS (MERCADO P2P Y RECARGA) ---
+    function openBuyModal() {
+        document.getElementById('buy-coins-modal').style.display = 'flex';
+    }
+    function closeBuyModal() {
+        document.getElementById('buy-coins-modal').style.display = 'none';
+    }
+    function buyCoinsPackage(zcAmount, usdPrice) {
+        if(confirm(`¿Deseas comprar ${zcAmount} ZC por $${usdPrice}.00 USD con tu método de pago vinculado?`)) {
+            updateWalletDisplay(myProfile.wallet + zcAmount);
+            closeBuyModal();
+            alert(`🎉 ¡Compra exitosa! Se han acreditado ${zcAmount} Z-Coins a tu billetera.`);
+        }
     }
 
-    socket.on('login_success', (profile) => {
-        if(!myProfile) {
-            saveSession({
-                username: profile.username || document.getElementById('login-user').value.trim(),
-                password: document.getElementById('login-pass').value.trim(),
-                avatar: profile.avatar || document.getElementById('login-avatar').value,
-                wallet: profile.wallet !== undefined ? profile.wallet : 100
-            });
-        }
-    });
+    function openSellModal() {
+        document.getElementById('sell-coins-modal').style.display = 'flex';
+    }
+    function closeSellModal() {
+        document.getElementById('sell-coins-modal').style.display = 'none';
+    }
 
-    socket.on('login_error', (err) => {
-        // Si hay error en login manual pero ya tenemos sesión guardada, ignorar
-        if(!localStorage.getItem('geovibe_user_profile')) {
-            alert("Error: " + err);
+    function submitP2PSellOffer() {
+        const amount = parseInt(document.getElementById('p2p-sell-amount').value);
+        const price = parseFloat(document.getElementById('p2p-sell-price').value);
+
+        if(!amount || amount <= 0 || !price || price <= 0) return alert('Ingresa valores válidos.');
+        if(myProfile.wallet < amount) return alert('No tienes suficientes Z-Coins para vender esta cantidad.');
+
+        // Descontar temporalmente las monedas mientras están en oferta P2P
+        updateWalletDisplay(myProfile.wallet - amount);
+
+        const newOffer = {
+            id: 'p2p_' + Date.now(),
+            seller: `${myProfile.avatar} ${myProfile.username}`,
+            amount: amount,
+            price: price
+        };
+
+        p2pOffersStore.unshift(newOffer);
+        saveAndRenderP2POffers();
+        closeSellModal();
+        document.getElementById('p2p-sell-amount').value = '';
+        document.getElementById('p2p-sell-price').value = '';
+        alert('✅ ¡Oferta de venta P2P publicada con éxito en el mercado!');
+    }
+
+    function loadP2POffers() {
+        const saved = localStorage.getItem('geovibe_p2p_offers');
+        if(saved) {
+            try { p2pOffersStore = JSON.parse(saved); } catch(e) { p2pOffersStore = []; }
+        } else {
+            // Ofertas de ejemplo iniciales
+            p2pOffersStore = [
+                { id: 'p2p_1', seller: '🚀 Oficial Alex', amount: 50, price: 4.50 },
+                { id: 'p2p_2', seller: '⚡ CyberSam', amount: 200, price: 18.00 }
+            ];
         }
-    });
+        renderP2POffers();
+    }
+
+    function saveAndRenderP2POffers() {
+        localStorage.setItem('geovibe_p2p_offers', JSON.stringify(p2pOffersStore));
+        renderP2POffers();
+    }
+
+    function renderP2POffers() {
+        const container = document.getElementById('p2p-market-container');
+        if(!container) return;
+        if(p2pOffersStore.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--pz-muted); font-size: 0.7rem;">No hay ofertas P2P activas en este momento.</p>';
+            return;
+        }
+
+        container.innerHTML = p2pOffersStore.map(o => `
+            <div class="pz-list-item">
+                <div>
+                    <span style="font-weight:700; color:var(--pz-economy);">${o.amount} ZC</span> <span style="font-size:0.65rem; color:var(--pz-muted);">por $${o.price.toFixed(2)} USD</span>
+                    <div style="font-size:0.6rem; color:var(--pz-muted);">Vendedor: ${o.seller}</div>
+                </div>
+                <button onclick="buyP2POffer('${o.id}')" style="background:var(--pz-accent); font-size:0.65rem;"><i class="fa-solid fa-coins"></i> Comprar</button>
+            </div>
+        `).join('');
+    }
+
+    function buyP2POffer(offerId) {
+        const index = p2pOffersStore.findIndex(o => o.id === offerId);
+        if(index === -1) return alert('La oferta ya no está disponible.');
+        const offer = p2pOffersStore[index];
+
+        if(offer.seller.includes(myProfile.username)) return alert('No puedes comprar tu propia oferta.');
+        if(confirm(`¿Deseas comprar ${offer.amount} ZC a ${offer.seller} por $${offer.price.toFixed(2)} USD?`)) {
+            updateWalletDisplay(myProfile.wallet + offer.amount);
+            p2pOffersStore.splice(index, 1);
+            saveAndRenderP2POffers();
+            alert(`🎉 ¡Intercambio P2P completado! Has adquirido ${offer.amount} ZC.`);
+        }
+    }
+
+    socket.on('login_success', (profile) => {});
+    socket.on('login_error', (err) => {});
 
     function initRadar() {
         if (navigator.geolocation) {
@@ -645,7 +901,7 @@
 
     function confirmPaywallEntry() {
         if(myProfile.wallet < pendingRoomCost) {
-            alert('No tienes suficientes Z-Coins. Reclama tu bono diario o participa en juegos.');
+            alert('No tienes suficientes Z-Coins.');
             closePaywallModal();
             return;
         }
@@ -661,7 +917,7 @@
     socket.on('wallet_deducted', (data) => { updateWalletDisplay(data.newBalance); });
     socket.on('wallet_credited', (data) => {
         updateWalletDisplay(data.newBalance);
-        alert(`💰 ¡Has ganado ${data.amount} ZC! Un usuario pagó entrada a tu sala privada.`);
+        alert(`💰 ¡Has ganado ${data.amount} ZC! Un usuario pagó entrada a tu sala.`);
     });
 
     socket.on('room_joined', (room) => {
@@ -676,12 +932,6 @@
         const cleanUri = (room.currentTrack || '4cOdK2wGLETKBW3PvgPWqT').replace('spotify:track:', '');
         document.getElementById('spotify-player').src = `https://open.spotify.com/embed/track/${cleanUri}?utm_source=generator&theme=0`;
 
-        document.getElementById("qrcode").innerHTML = "";
-        new QRCode(document.getElementById("qrcode"), {
-            text: `GeoVibe-Ticket:${myProfile.username}:${room.id}`,
-            width: 75, height: 75
-        });
-
         setTimeout(() => {
             if (!map) {
                 map = L.map('map').setView([6.217, -75.567], 13);
@@ -690,6 +940,8 @@
                 map.invalidateSize();
             }
         }, 300);
+
+        socket.emit('get_ig_posts', { roomId: currentRoomId });
     });
 
     function leaveRoom() {
@@ -717,6 +969,124 @@
             }
         });
     });
+
+    // --- LÓGICA DEL MURO TIPO INSTAGRAM ---
+    function previewIgUpload(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            tempIgMediaData = { type: file.type, data: e.target.result };
+            const container = document.getElementById('ig-preview-container');
+            container.style.display = 'block';
+            container.innerHTML = file.type.startsWith('image/') 
+                ? `<img src="${e.target.result}" style="max-height:100px; border-radius:6px;" alt="Preview">` 
+                : `<video src="${e.target.result}" style="max-height:100px; border-radius:6px;" controls></video>`;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function publishIgPost() {
+        const caption = document.getElementById('ig-caption-input').value.trim();
+        if(!tempIgMediaData) return alert('Selecciona una imagen o video para tu post.');
+        
+        socket.emit('publish_ig_post', {
+            roomId: currentRoomId,
+            user: `${myProfile.avatar} ${myProfile.username}`,
+            mediaType: tempIgMediaData.type,
+            mediaData: tempIgMediaData.data,
+            caption: caption
+        });
+
+        tempIgMediaData = null;
+        document.getElementById('ig-preview-container').style.display = 'none';
+        document.getElementById('ig-caption-input').value = '';
+        document.getElementById('ig-file-upload').value = '';
+    }
+
+    socket.on('ig_posts_feed', (posts) => {
+        igPostsStore = posts || [];
+        renderIgFeed();
+    });
+
+    socket.on('new_ig_post', (post) => {
+        igPostsStore.unshift(post);
+        renderIgFeed();
+    });
+
+    socket.on('ig_post_updated', (updatedPost) => {
+        const index = igPostsStore.findIndex(p => p.id === updatedPost.id);
+        if(index !== -1) {
+            igPostsStore[index] = updatedPost;
+            renderIgFeed();
+        }
+    });
+
+    function renderIgFeed() {
+        const container = document.getElementById('ig-posts-container');
+        if(!container) return;
+        if(igPostsStore.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:var(--pz-muted); font-size:0.7rem;">No hay publicaciones en el muro todavía. ¡Sé el primero!</p>';
+            return;
+        }
+
+        container.innerHTML = igPostsStore.map(post => {
+            const mediaHtml = post.mediaType.startsWith('image/')
+                ? `<img src="${post.mediaData}" class="ig-post-media" alt="Post media">`
+                : `<video src="${post.mediaData}" class="ig-post-media" controls></video>`;
+            
+            const isLikedByMe = post.likedBy && post.likedBy.includes(myProfile.username);
+            const heartIcon = isLikedByMe ? '<i class="fa-solid fa-heart" style="color:var(--pz-danger);" onclick="toggleLikePost(\'' + post.id + '\')"></i>' : '<i class="fa-regular fa-heart" onclick="toggleLikePost(\'' + post.id + '\')"></i>';
+
+            const commentsHtml = (post.comments || []).map(c => `
+                <div style="margin-top:2px;"><b>${c.user}:</b> ${c.text}</div>
+            `).join('');
+
+            return `
+                <div class="ig-post-card">
+                    <div class="ig-post-header">
+                        <span style="font-weight:700; font-size:0.75rem; color:var(--pz-neon);">${post.user}</span>
+                        <span style="font-size:0.6rem; color:var(--pz-muted);">${post.time || 'Hace un momento'}</span>
+                    </div>
+                    ${mediaHtml}
+                    <div class="ig-post-actions">
+                        ${heartIcon}
+                        <i class="fa-regular fa-comment" onclick="focusCommentInput('${post.id}')"></i>
+                    </div>
+                    <div class="ig-post-likes">${post.likes || 0} Me gusta</div>
+                    ${post.caption ? `<div class="ig-post-caption"><b>${post.user}</b> ${post.caption}</div>` : ''}
+                    <div class="ig-post-comments">
+                        ${commentsHtml}
+                        <div style="display:flex; gap:4px; margin-top:4px;">
+                            <input type="text" id="comment-input-${post.id}" placeholder="Agregar comentario..." style="margin:0; padding:3px 6px; font-size:0.65rem;" onkeypress="if(event.key==='Enter') addCommentToPost('${post.id}')">
+                            <button onclick="addCommentToPost('${post.id}')" style="width:auto; margin:0; padding:3px 6px; font-size:0.65rem;"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function toggleLikePost(postId) {
+        socket.emit('toggle_ig_like', { roomId: currentRoomId, postId, username: myProfile.username });
+    }
+
+    function addCommentToPost(postId) {
+        const input = document.getElementById(`comment-input-${postId}`);
+        if(!input || !input.value.trim()) return;
+        socket.emit('add_ig_comment', {
+            roomId: currentRoomId,
+            postId,
+            user: myProfile.username,
+            text: input.value.trim()
+        });
+        input.value = '';
+    }
+
+    function focusCommentInput(postId) {
+        const input = document.getElementById(`comment-input-${postId}`);
+        if(input) input.focus();
+    }
 
     function startTriviaGame() {
         document.getElementById('arcade-msg').innerText = "🧠 Trivia ZC: ¿Cuál es el protocolo raíz en Termux?";
@@ -756,8 +1126,11 @@
         document.querySelectorAll('.media-tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.media-content-pane').forEach(p => p.classList.remove('active'));
         
-        if(mediaType === 'spotify') {
-            document.querySelector('.media-tab-btn:nth-child(1)').classList.add('active');
+        if(mediaType === 'instagram-feed') {
+            document.querySelector('.media-tab-btn.ig').classList.add('active');
+            document.getElementById('pane-instagram-feed').classList.add('active');
+        } else if(mediaType === 'spotify') {
+            document.querySelector('.media-tab-btn:nth-child(2)').classList.add('active');
             document.getElementById('pane-spotify').classList.add('active');
         } else if(mediaType === 'netflix') {
             document.querySelector('.media-tab-btn.netflix').classList.add('active');
@@ -765,9 +1138,6 @@
         } else if(mediaType === 'arcade') {
             document.querySelector('.media-tab-btn.arcade').classList.add('active');
             document.getElementById('pane-arcade').classList.add('active');
-        } else if(mediaType === 'feed') {
-            document.querySelector('.media-tab-btn.feed').classList.add('active');
-            document.getElementById('pane-feed').classList.add('active');
         } else if(mediaType === 'sales') {
             document.querySelector('.media-tab-btn.sales').classList.add('active');
             document.getElementById('pane-sales').classList.add('active');
@@ -788,37 +1158,6 @@
         input.focus();
         document.getElementById('emoji-drawer').style.display = 'none';
     }
-
-    function handleMediaUpload(event) {
-        const file = event.target.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            let htmlContent = file.type.startsWith('image/') ? `<img src="${e.target.result}" style="max-width:160px; max-height:140px; border-radius:6px;" alt="Imagen">` : `<video src="${e.target.result}" controls style="max-width:180px; max-height:140px; border-radius:6px;"></video>`;
-            socket.emit('chat_msg', { roomId: currentRoomId, msg: htmlContent, user: `${myProfile.avatar} ${myProfile.username}` });
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function publishMediaToFeed(event) {
-        const file = event.target.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            socket.emit('publish_feed_media', { roomId: currentRoomId, fileType: file.type, fileData: e.target.result, user: `${myProfile.avatar} ${myProfile.username}` });
-        };
-        reader.readAsDataURL(file);
-    }
-
-    socket.on('incoming_feed_media', (data) => {
-        const feedContainer = document.getElementById('room-media-feed');
-        if(!feedContainer) return;
-        let mediaHtml = data.fileType.startsWith('image/') ? `<img src="${data.fileData}" style="max-width:100%; max-height:150px; border-radius:6px; display:block; margin-top:4px;">` : `<video src="${data.fileData}" controls style="max-width:100%; max-height:150px; border-radius:6px; display:block; margin-top:4px;"></video>`;
-        const postCard = document.createElement('div');
-        postCard.style.cssText = "background:rgba(2,4,8,0.7); border:1px solid var(--pz-border); border-radius:8px; padding:6px; margin-bottom:4px;";
-        postCard.innerHTML = `<div style="font-size:0.65rem; color:var(--pz-neon); font-weight:700;">${data.user}</div>${mediaHtml}`;
-        feedContainer.prepend(postCard);
-    });
 
     function publishProduct() {
         const title = document.getElementById('sales-item-title').value.trim();
