@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoVibe | Supreme Hub Pro</title>
+    <title>GeoVibe | Supreme Hub Pro Max</title>
     <!-- Librerías Externas -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -16,65 +16,93 @@
         :root { 
             --primary: #6366f1; 
             --secondary: #a855f7;
-            --glass: rgba(255, 255, 255, 0.05); 
+            --accent: #10b981;
+            --glass: rgba(255, 255, 255, 0.04); 
+            --glass-border: rgba(255, 255, 255, 0.08);
             --bg: #030014; 
         }
 
         body { 
             background: var(--bg); color: white; font-family: 'Outfit', sans-serif; 
-            margin: 0; padding: 20px; display: flex; justify-content: center; 
-            transition: background 0.4s ease; min-height: 100vh;
+            margin: 0; padding: 15px; display: flex; justify-content: center; 
+            min-height: 100vh; overflow-x: hidden;
         }
 
-        #app { width: 100%; max-width: 480px; }
+        #app { width: 100%; max-width: 480px; padding-bottom: 70px; }
 
         .card { 
-            background: var(--glass); backdrop-filter: blur(20px); 
-            border: 1px solid rgba(255,255,255,0.1); padding: 20px; 
-            border-radius: 25px; margin-bottom: 15px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: var(--glass); backdrop-filter: blur(25px); 
+            border: 1px solid var(--glass-border); padding: 18px; 
+            border-radius: 22px; margin-bottom: 15px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            animation: fadeIn 0.3s ease;
         }
 
-        h2, h3 { margin-top: 0; font-weight: 900; }
-        h2 { font-size: 1.8rem; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2, h3 { margin-top: 0; font-weight: 900; letter-spacing: -0.5px; }
+        h2 { font-size: 1.7rem; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
         input, select, textarea { 
-            width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); 
-            background: rgba(0,0,0,0.4); color: white; box-sizing: border-box; margin: 6px 0; font-family: inherit;
+            width: 100%; padding: 12px; border-radius: 14px; border: 1px solid var(--glass-border); 
+            background: rgba(0,0,0,0.5); color: white; box-sizing: border-box; margin: 6px 0; font-family: inherit;
+            font-size: 0.95rem; transition: border-color 0.2s;
         }
         input:focus, select:focus, textarea:focus { border-color: var(--primary); outline: none; }
 
         button { 
-            width: 100%; padding: 12px; border-radius: 12px; border: none; 
+            width: 100%; padding: 12px; border-radius: 14px; border: none; 
             background: var(--primary); color: white; font-weight: 700; cursor: pointer; 
-            margin-top: 6px; transition: transform 0.2s, filter 0.2s;
+            margin-top: 6px; transition: all 0.2s; font-family: inherit;
         }
-        button:hover { transform: translateY(-2px); filter: brightness(1.15); }
+        button:hover { transform: translateY(-2px); filter: brightness(1.2); box-shadow: 0 5px 15px rgba(99,102,241,0.4); }
 
-        #map { height: 180px; border-radius: 20px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.1); }
+        /* Barra de navegación inferior tipo App Nativa */
+        .nav-bar {
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 480px; background: rgba(3, 0, 20, 0.85);
+            backdrop-filter: blur(20px); border-top: 1px solid var(--glass-border);
+            display: flex; justify-content: space-around; padding: 10px 0; z-index: 1000;
+        }
+        .nav-item {
+            background: none; border: none; color: rgba(255,255,255,0.5);
+            font-size: 0.75rem; display: flex; flex-direction: column; align-items: center;
+            gap: 4px; cursor: pointer; width: auto; margin: 0; transition: color 0.2s;
+        }
+        .nav-item i { font-size: 1.2rem; }
+        .nav-item.active { color: var(--primary); }
+
+        #map { height: 160px; border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--glass-border); }
 
         .room-item, .user-item {
-            background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.35); border: 1px solid var(--glass-border);
             border-radius: 14px; padding: 12px; display: flex; justify-content: space-between;
-            align-items: center; margin-bottom: 8px;
+            align-items: center; margin-bottom: 8px; transition: background 0.2s;
         }
-        .room-item button, .user-item button { width: auto; padding: 6px 14px; font-size: 0.8rem; margin: 0; }
+        .user-item:hover { background: rgba(255, 255, 255, 0.05); }
+        .room-item button, .user-item button { width: auto; padding: 6px 12px; font-size: 0.75rem; margin: 0; }
 
         .msg-bubble { 
-            background: rgba(255,255,255,0.08); padding: 12px; border-radius: 16px; margin: 8px 0; 
+            background: rgba(255,255,255,0.06); padding: 12px; border-radius: 16px; margin: 8px 0; 
             position: relative; border-left: 4px solid var(--primary);
         }
         .msg-header { display: flex; justify-content: space-between; font-size: 0.75rem; opacity: 0.7; margin-bottom: 4px; }
-        .msg-text { font-size: 0.95rem; margin-bottom: 6px; }
+        .msg-text { font-size: 0.95rem; margin-bottom: 6px; word-break: break-word; }
 
         .reactions-bar { display: flex; gap: 6px; margin-top: 4px; }
-        .reaction-btn { background: rgba(255,255,255,0.1); border: none; border-radius: 8px; padding: 2px 8px; cursor: pointer; color: white; width: auto; font-size: 0.8rem; }
+        .reaction-btn { background: rgba(255,255,255,0.08); border: none; border-radius: 8px; padding: 2px 8px; cursor: pointer; color: white; width: auto; font-size: 0.8rem; }
 
-        #chat-box { height: 200px; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 4px; }
+        #chat-box { height: 210px; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 4px; }
         .typing-indicator { font-size: 0.75rem; color: var(--secondary); height: 16px; font-style: italic; margin-bottom: 4px; }
-        .playlist-box { font-size: 0.8rem; opacity: 0.8; margin-top: 8px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 10px; }
+        .playlist-box { font-size: 0.8rem; opacity: 0.8; margin-top: 8px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 10px; }
         
-        .badge { background: rgba(99, 102, 241, 0.2); border: 1px solid var(--primary); padding: 2px 8px; border-radius: 20px; font-size: 0.75rem; }
+        .badge { background: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent); color: var(--accent); padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
+        
+        .section-view { display: none; }
+        .section-view.active { display: block; }
     </style>
 </head>
 <body>
@@ -82,117 +110,159 @@
 <div id="app">
     
     <!-- 1. LOGIN / AUTENTICACIÓN -->
-    <div id="login-card" class="card">
-        <h2>GeoVibe 🌍</h2>
-        <p style="opacity: 0.7; font-size: 0.9rem; margin-bottom: 15px;">Red Social Musical Geolocalizada.</p>
-        <input type="text" id="login-user" placeholder="Nombre de usuario...">
-        <input type="password" id="login-pass" placeholder="Contraseña...">
-        <select id="login-avatar">
-            <option value="🎧">🎧 DJ / Productor</option>
-            <option value="🚀">🚀 Explorador</option>
-            <option value="🔥">🔥 Raver</option>
-            <option value="⚡">⚡ Cyberpunk</option>
-        </select>
-        <button onclick="login()">Ingresar al Sistema</button>
-    </div>
-
-    <!-- 2. VISTA PRINCIPAL (RADAR, SALAS Y PERFIL) -->
-    <div id="main-app" style="display:none;">
-        <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px;">
-            <span id="welcome-user" style="font-weight: 700;">Hola</span>
-            <button onclick="openProfileModal()" style="width: auto; padding: 6px 12px; background: var(--secondary); font-size: 0.8rem; margin:0;"><i class="fa-solid fa-user-gear"></i> Mi Perfil</button>
-        </div>
-
-        <div class="card" style="padding: 12px 20px;">
-            <select id="theme-selector" onchange="changeTheme()" style="margin:0;">
-                <option value="cyberpunk">Tema: Neon Cyberpunk (Oscuro)</option>
-                <option value="techno">Tema: Deep Techno (Violeta)</option>
-                <option value="minimal">Tema: Minimalista Absoluto</option>
+    <div id="login-screen" style="display:block;">
+        <div class="card" style="margin-top: 40px; text-align: center; padding: 30px 20px;">
+            <h2 style="font-size: 2.2rem; margin-bottom: 5px;">GeoVibe 🌍</h2>
+            <p style="opacity: 0.6; font-size: 0.9rem; margin-bottom: 25px;">Red Social Musical & Geolocalización</p>
+            <input type="text" id="login-user" placeholder="Nombre de usuario...">
+            <input type="password" id="login-pass" placeholder="Contraseña...">
+            <select id="login-avatar">
+                <option value="🎧">🎧 DJ / Productor</option>
+                <option value="🚀">🚀 Explorador</option>
+                <option value="🔥">🔥 Raver</option>
+                <option value="⚡">⚡ Cyberpunk</option>
             </select>
-        </div>
-
-        <div class="card">
-            <h2><i class="fa-solid fa-crosshairs"></i> Estado del Radar GPS</h2>
-            <button id="btn-init" style="background:#334155; color:#34d399;" onclick="initRadar()">Activar Ubicación GPS</button>
-        </div>
-
-        <div class="card">
-            <h2><i class="fa-solid fa-circle-plus"></i> Crear Sala Musical</h2>
-            <input type="text" id="new-room-name" placeholder="Nombre de la sala (ej: Techno Zone)">
-            <input type="text" id="new-room-song" placeholder="ID canción Spotify...">
-            <button onclick="createRoom()"><i class="fa-solid fa-music"></i> Crear Sala</button>
-        </div>
-
-        <div class="card">
-            <h2><i class="fa-solid fa-tower-broadcast"></i> Salas Activas</h2>
-            <div id="rooms-container">
-                <p style="opacity: 0.6; font-size: 0.8rem; text-align: center;">Buscando salas...</p>
-            </div>
+            <button onclick="login()" style="margin-top: 15px; padding: 14px;">Ingresar al Sistema</button>
         </div>
     </div>
 
-    <!-- MODAL DE PERFIL -->
-    <div id="profile-card" class="card" style="display:none;">
-        <h2><i class="fa-solid fa-id-card"></i> Configurar Perfil</h2>
-        <label style="font-size:0.8rem; opacity:0.8;">Biografía:</label>
-        <textarea id="profile-bio" rows="2" placeholder="Cuéntanos sobre tu estilo musical..."></textarea>
-        <label style="font-size:0.8rem; opacity:0.8;">Género Favorito:</label>
-        <input type="text" id="profile-genre" placeholder="Ej: Techno, Cyberpunk, House...">
-        <button onclick="saveProfile()" style="background:#10b981;">Guardar Cambios</button>
-        <button onclick="closeProfileModal()" style="background:#64748b;">Volver</button>
+    <!-- 2. APLICACIÓN PRINCIPAL (CON PESTAÑAS) -->
+    <div id="main-app" style="display:none;">
+        
+        <!-- VISTA 1: RADAR Y SALAS -->
+        <div id="tab-explore" class="section-view active">
+            <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px;">
+                <div>
+                    <span style="font-size: 0.75rem; opacity: 0.6; display: block;">Conectado como</span>
+                    <span id="welcome-user" style="font-weight: 700; font-size: 0.95rem;">Usuario</span>
+                </div>
+                <select id="theme-selector" onchange="changeTheme()" style="width: auto; padding: 6px 10px; font-size: 0.75rem; margin:0;">
+                    <option value="cyberpunk">Neón Oscuro</option>
+                    <option value="techno">Deep Techno</option>
+                    <option value="minimal">Minimal</option>
+                </select>
+            </div>
+
+            <div class="card">
+                <h2><i class="fa-solid fa-crosshairs"></i> Estado del Radar GPS</h2>
+                <button id="btn-init" style="background:#1e293b; color:var(--accent); border: 1px solid var(--accent);" onclick="initRadar()">Activar Ubicación GPS</button>
+            </div>
+
+            <div class="card">
+                <h2><i class="fa-solid fa-circle-plus"></i> Crear Sala Musical</h2>
+                <input type="text" id="new-room-name" placeholder="Nombre de la sala (ej: Underground Techno)">
+                <input type="text" id="new-room-song" placeholder="ID canción Spotify...">
+                <button onclick="createRoom()"><i class="fa-solid fa-music"></i> Crear Sala</button>
+            </div>
+
+            <div class="card">
+                <h2><i class="fa-solid fa-tower-broadcast"></i> Salas Activas</h2>
+                <div id="rooms-container">
+                    <p style="opacity: 0.6; font-size: 0.8rem; text-align: center;">Buscando salas...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA 2: SALA ACTIVA (OCULTA HASTA ENTRAR A UNA SALA) -->
+        <div id="tab-room" class="section-view">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 id="room-title" style="margin:0;">Sala</h3>
+                    <button onclick="leaveRoom()" style="width: auto; padding: 6px 12px; background: #f43f5e; font-size: 0.75rem; margin:0;">Salir</button>
+                </div>
+                
+                <div id="map"></div>
+
+                <iframe id="spotify-player" src="" width="100%" height="80" frameborder="0" style="border-radius: 12px; margin-bottom: 8px;"></iframe>
+                
+                <div style="display: flex; gap: 6px;">
+                    <input type="text" id="song-input" placeholder="ID de Spotify..." style="margin:0;">
+                    <button onclick="addSong()" style="background:#1db954; width:80px; margin:0;">Añadir</button>
+                    <button onclick="skipSong()" style="background:#f59e0b; color:#000; width:80px; margin:0;">Saltar</button>
+                </div>
+                <div id="playlist-container" class="playlist-box">Cola vacía</div>
+            </div>
+
+            <!-- USUARIOS CONECTADOS EN SALA -->
+            <div class="card">
+                <h3 style="font-size: 0.9rem; margin-bottom: 8px;"><i class="fa-solid fa-users"></i> Conectados en Sala</h3>
+                <div id="room-members-list" style="max-height: 140px; overflow-y: auto;">
+                    <p style="opacity: 0.6; font-size: 0.8rem;">Cargando...</p>
+                </div>
+            </div>
+
+            <!-- CHAT Y VOZ -->
+            <div class="card">
+                <div id="chat-box"></div>
+                <div id="typing-box" class="typing-indicator"></div>
+                
+                <div style="display: flex; gap: 6px;">
+                    <input type="text" id="msg-input" placeholder="Escribe un mensaje..." style="margin:0;" oninput="handleTyping()" onkeypress="if(event.key==='Enter') sendMsg()">
+                    <button onclick="sendMsg()" style="width: 50px; margin:0;"><i class="fa-solid fa-paper-plane"></i></button>
+                    <button id="mic-btn" onclick="toggleMic()" style="width: 50px; background:var(--secondary); margin:0;" title="Nota de voz"><i class="fa-solid fa-microphone"></i></button>
+                </div>
+            </div>
+
+            <!-- TICKET QR Y ESTADÍSTICAS -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="card" style="text-align: center; padding: 12px; margin-bottom: 0;">
+                    <h3 style="font-size: 0.75rem; margin-bottom: 6px;">🎟 Ticket Vibe</h3>
+                    <div id="qrcode" style="display:inline-block; background:white; padding:4px; border-radius:6px;"></div>
+                </div>
+                <div class="card" style="padding: 12px; margin-bottom: 0;">
+                    <h3 style="font-size: 0.75rem; margin-bottom: 4px;">📊 Actividad</h3>
+                    <canvas id="energyChart" style="max-height: 90px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA 3: MI PERFIL -->
+        <div id="tab-profile" class="section-view">
+            <div class="card" style="text-align: center; padding: 25px 20px;">
+                <div id="profile-avatar-display" style="font-size: 3rem; margin-bottom: 10px;">🎧</div>
+                <h2 id="profile-display-name" style="margin-bottom: 5px;">Usuario</h2>
+                <p id="profile-display-status" style="font-size: 0.85Uri; opacity: 0.7; margin-bottom: 20px;">Raver activo en la red</p>
+                
+                <div style="text-align: left;">
+                    <label style="font-size:0.75rem; opacity:0.7;">Biografía / Estado:</label>
+                    <textarea id="profile-bio" rows="2" placeholder="Tu estilo, frase o bio..."></textarea>
+                    
+                    <label style="font-size:0.75rem; opacity:0.7; margin-top: 8px; display: block;">Género Musical Principal:</label>
+                    <input type="text" id="profile-genre" placeholder="Ej: Techno, Psytrance, House...">
+                </div>
+                <button onclick="saveProfile()" style="background:var(--accent); margin-top: 15px;">Guardar Perfil</button>
+            </div>
+        </div>
+
+        <!-- BARRA DE NAVEGACIÓN INFERIOR -->
+        <div class="nav-bar">
+            <button class="nav-item active" onclick="switchTab('explore', this)">
+                <i class="fa-solid fa-compass"></i>
+                <span>Radar</span>
+            </button>
+            <button class="nav-item" id="nav-room-btn" onclick="switchTab('room', this)" style="opacity: 0.3; pointer-events: none;">
+                <i class="fa-solid fa-headphones"></i>
+                <span>Sala Activa</span>
+            </button>
+            <button class="nav-item" onclick="switchTab('profile', this)">
+                <i class="fa-solid fa-user-gear"></i>
+                <span>Perfil</span>
+            </button>
+        </div>
+
     </div>
+</div>
 
-    <!-- 3. VISTA DE SALA ACTIVA (CHAT, MÚSICA, USUARIOS) -->
-    <div id="active-chat" style="display:none;">
-        <div class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3 id="room-title" style="margin:0;">Sala</h3>
-                <button onclick="location.reload()" style="width: auto; padding: 6px 12px; background: #f43f5e; font-size: 0.75rem;">Salir</button>
-            </div>
-            
-            <div id="map"></div>
-
-            <iframe id="spotify-player" src="" width="100%" height="80" frameborder="0" style="border-radius: 12px; margin-bottom: 8px;"></iframe>
-            
-            <div style="display: flex; gap: 6px;">
-                <input type="text" id="song-input" placeholder="ID de Spotify..." style="margin:0;">
-                <button onclick="addSong()" style="background:#1db954; width:80px; margin:0;">Añadir</button>
-                <button onclick="skipSong()" style="background:#f59e0b; color:#000; width:80px; margin:0;">Saltar</button>
-            </div>
-            <div id="playlist-container" class="playlist-box">Cola vacía</div>
+<!-- MODAL DE MENSAJERÍA PRIVADA (DM) -->
+<div id="dm-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(10px); z-index:2000; justify-content:center; align-items:center;">
+    <div class="card" style="width: 90%; max-width: 380px; margin: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 id="dm-target-title" style="font-size: 1rem; margin:0;">Chat Privado</h3>
+            <button onclick="closeDmModal()" style="width:auto; padding:4px 10px; background:#f43f5e; font-size:0.7rem; margin:0;">X</button>
         </div>
-
-        <!-- USUARIOS CONECTADOS EN LA SALA -->
-        <div class="card">
-            <h3 style="font-size: 0.9rem; margin-bottom: 8px;"><i class="fa-solid fa-users"></i> Conectados en la Sala</h3>
-            <div id="room-members-list" style="max-height: 120px; overflow-y: auto;">
-                <p style="opacity: 0.6; font-size: 0.8rem;">Cargando usuarios...</p>
-            </div>
-        </div>
-
-        <!-- TICKET QR -->
-        <div class="card" style="text-align: center; padding: 15px;">
-            <h3 style="font-size: 0.9rem; margin-bottom: 8px;">🎟 Tu Ticket Vibe (QR)</h3>
-            <div id="qrcode" style="display:inline-block; background:white; padding:8px; border-radius:8px;"></div>
-        </div>
-
-        <!-- CHAT Y VOZ -->
-        <div class="card">
-            <div id="chat-box"></div>
-            <div id="typing-box" class="typing-indicator"></div>
-            
-            <div style="display: flex; gap: 6px;">
-                <input type="text" id="msg-input" placeholder="Escribe un mensaje..." style="margin:0;" oninput="handleTyping()" onkeypress="if(event.key==='Enter') sendMsg()">
-                <button onclick="sendMsg()" style="width: 50px; margin:0;"><i class="fa-solid fa-paper-plane"></i></button>
-                <button id="mic-btn" onclick="toggleMic()" style="width: 50px; background:var(--secondary); margin:0;" title="Nota de voz"><i class="fa-solid fa-microphone"></i></button>
-            </div>
-        </div>
-
-        <!-- ENERGÍA DE SALA -->
-        <div class="card">
-            <h3 style="font-size: 0.9rem; margin-bottom: 6px;">📊 Actividad de la Sala</h3>
-            <canvas id="energyChart"></canvas>
-        </div>
+        <div id="dm-box" style="height: 150px; overflow-y: auto; background:rgba(0,0,0,0.4); border-radius:10px; padding:10px; margin-bottom:10px; font-size:0.85rem;"></div>
+        <input type="text" id="dm-input" placeholder="Mensaje privado..." style="margin:0;" onkeypress="if(event.key==='Enter') sendDm()">
+        <button onclick="sendDm()">Enviar</button>
     </div>
 </div>
 
@@ -204,6 +274,7 @@
     let markers = [];
     let mediaRecorder, audioChunks = [];
     let typingTimeout = null;
+    let currentTargetDmUser = null;
 
     function changeTheme() {
         const theme = document.getElementById('theme-selector').value;
@@ -211,6 +282,17 @@
         if (theme === 'cyberpunk') body.style.background = '#030014';
         if (theme === 'techno') body.style.background = '#12071f';
         if (theme === 'minimal') body.style.background = '#000000';
+    }
+
+    function switchTab(tabName, btnElement) {
+        document.querySelectorAll('.section-view').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        
+        if(tabName === 'explore') document.getElementById('tab-explore').classList.add('active');
+        if(tabName === 'room') document.getElementById('tab-room').classList.add('active');
+        if(tabName === 'profile') document.getElementById('tab-profile').classList.add('active');
+        
+        if(btnElement) btnElement.classList.add('active');
     }
 
     function login() {
@@ -223,24 +305,16 @@
 
     socket.on('login_success', (profile) => {
         myProfile = profile;
-        document.getElementById('login-card').style.display = 'none';
+        document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-app').style.display = 'block';
         document.getElementById('welcome-user').innerText = `${myProfile.avatar} ${myProfile.username}`;
+        document.getElementById('profile-display-name').innerText = `${myProfile.avatar} ${myProfile.username}`;
+        document.getElementById('profile-avatar-display').innerText = myProfile.avatar;
         document.getElementById('profile-bio').value = profile.bio || '';
         document.getElementById('profile-genre').value = profile.genre || '';
     });
 
     socket.on('login_error', (err) => alert(err));
-
-    function openProfileModal() {
-        document.getElementById('main-app').style.display = 'none';
-        document.getElementById('profile-card').style.display = 'block';
-    }
-
-    function closeProfileModal() {
-        document.getElementById('profile-card').style.display = 'none';
-        document.getElementById('main-app').style.display = 'block';
-    }
 
     function saveProfile() {
         const bio = document.getElementById('profile-bio').value.trim();
@@ -248,8 +322,8 @@
         socket.emit('update_profile', { username: myProfile.username, bio, genre });
         myProfile.bio = bio;
         myProfile.genre = genre;
-        alert('Perfil actualizado con éxito');
-        closeProfileModal();
+        document.getElementById('profile-display-status').innerText = genre ? `Estilo: ${genre}` : 'Raver activo';
+        alert('¡Perfil actualizado con éxito!');
     }
 
     function initRadar() {
@@ -299,9 +373,13 @@
 
     socket.on('room_joined', (room) => {
         currentRoomId = room.id;
-        document.getElementById('main-app').style.display = 'none';
-        document.getElementById('active-chat').style.display = 'block';
         document.getElementById('room-title').innerText = room.name;
+
+        // Activar botón de sala en la barra inferior y cambiar vista
+        const roomNavBtn = document.getElementById('nav-room-btn');
+        roomNavBtn.style.opacity = '1';
+        roomNavBtn.style.pointerEvents = 'auto';
+        switchTab('room', roomNavBtn);
 
         const cleanUri = (room.currentTrack || '4cOdK2wGLETKBW3PvgPWqT').replace('spotify:track:', '');
         document.getElementById('spotify-player').src = `https://open.spotify.com/embed/track/${cleanUri}?utm_source=generator&theme=0`;
@@ -309,7 +387,7 @@
         document.getElementById("qrcode").innerHTML = "";
         new QRCode(document.getElementById("qrcode"), {
             text: `GeoVibe-Ticket:${myProfile.username}:${room.id}`,
-            width: 100, height: 100
+            width: 85, height: 85
         });
 
         setTimeout(() => {
@@ -322,6 +400,10 @@
         }, 300);
     });
 
+    function leaveRoom() {
+        location.reload();
+    }
+
     socket.on('update_members_map', (members) => {
         if (!map) return;
         markers.forEach(m => map.removeLayer(m));
@@ -331,10 +413,10 @@
         membersContainer.innerHTML = members.map(m => `
             <div class="user-item">
                 <div>
-                    <span style="font-weight:700;">${m.username}</span>
-                    <div style="font-size:0.7rem; opacity:0.7;">${m.genre ? '🎵 ' + m.genre : 'Raver activo'}</div>
+                    <span style="font-weight:700; font-size:0.85rem;">${m.username}</span>
+                    <div style="font-size:0.7rem; opacity:0.6;">${m.genre ? '🎵 ' + m.genre : 'Raver'}</div>
                 </div>
-                <span class="badge">Online</span>
+                ${m.username !== `${myProfile.avatar} ${myProfile.username}` ? `<button onclick="openDmModal('${m.username}')" style="background:var(--primary);">DM</button>` : '<span class="badge">Tú</span>'}
             </div>
         `).join('');
 
@@ -344,6 +426,33 @@
                 markers.push(marker);
             }
         });
+    });
+
+    // Funciones de Chat Privado (DM)
+    function openDmModal(username) {
+        currentTargetDmUser = username;
+        document.getElementById('dm-target-title').innerText = `Chat Privado con ${username}`;
+        document.getElementById('dm-box').innerHTML = '';
+        document.getElementById('dm-modal').style.display = 'flex';
+    }
+
+    function closeDmModal() {
+        document.getElementById('dm-modal').style.display = 'none';
+    }
+
+    function sendDm() {
+        const msg = document.getElementById('dm-input').value.trim();
+        if(!msg) return;
+        socket.emit('private_msg', { targetUser: currentTargetDmUser, msg });
+        document.getElementById('dm-box').innerHTML += `<div style="text-align:right; margin:4px 0;"><span style="background:var(--primary); padding:4px 8px; border-radius:8px; display:inline-block;">Tú: ${msg}</span></div>`;
+        document.getElementById('dm-input').value = '';
+    }
+
+    socket.on('incoming_dm', (data) => {
+        if(document.getElementById('dm-modal').style.display !== 'flex' || currentTargetDmUser !== data.from) {
+            openDmModal(data.from);
+        }
+        document.getElementById('dm-box').innerHTML += `<div style="text-align:left; margin:4px 0;"><span style="background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:8px; display:inline-block;">${data.from}: ${data.msg}</span></div>`;
     });
 
     function addSong() {
@@ -448,13 +557,13 @@
     const energyChart = new Chart(ctx, {
         type: 'line',
         data: { labels: [], datasets: [{ label: 'Actividad', data: [], borderColor: '#6366f1', tension: 0.3 }] },
-        options: { responsive: true, scales: { x: { display: false } } }
+        options: { responsive: true, maintainAspectRatio: false, scales: { x: { display: false }, y: { display: false } }, plugins: { legend: { display: false } } }
     });
 
     socket.on('update_stats', (val) => {
         energyChart.data.labels.push(new Date().toLocaleTimeString().slice(-5));
         energyChart.data.datasets[0].data.push(val);
-        if (energyChart.data.labels.length > 6) {
+        if (energyChart.data.labels.length > 5) {
             energyChart.data.labels.shift();
             energyChart.data.datasets[0].data.shift();
         }
