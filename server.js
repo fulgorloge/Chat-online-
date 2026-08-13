@@ -18,7 +18,7 @@ let rooms = {
     'global': { id: 'global', name: 'Canal Global', count: 0, members: [], igPosts: [], currentTrack: '4cOdK2wGLETKBW3PvgPWqT', playlist: [] } 
 };
 
-// 1. Ruta de Autenticación / Registro / Login
+// Autenticación: Registro
 app.post('/api/auth/register', (req, res) => {
     const { username, password, avatar } = req.body;
     if (usersDb[username]) {
@@ -28,6 +28,7 @@ app.post('/api/auth/register', (req, res) => {
     return res.json({ success: true, user: usersDb[username] });
 });
 
+// Autenticación: Login
 app.post('/api/auth/login', (req, res) => {
     const { username, password } = req.body;
     let user = usersDb[username];
@@ -40,7 +41,7 @@ app.post('/api/auth/login', (req, res) => {
     return res.json({ success: true, user });
 });
 
-// 2. Ruta de la Pasarela de Pago para comprar Z-Coins
+// Pasarela de Pagos (Compra de Z-Coins)
 app.post('/api/buy-coins', (req, res) => {
     const { username, zcAmount, paymentMethod } = req.body;
     let user = usersDb[username] || Object.values(usersDb).find(u => u.username === username);
@@ -54,7 +55,7 @@ app.post('/api/buy-coins', (req, res) => {
     return res.json({ success: true, newBalance: user.wallet });
 });
 
-// 3. Gestión de Socket.io en tiempo real
+// Sockets en tiempo real
 io.on('connection', (socket) => {
     let currentUser = null;
     let currentRoom = 'global';
