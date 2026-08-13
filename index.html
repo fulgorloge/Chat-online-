@@ -3,259 +3,686 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoVibe | Sistema Completo con Google Auth & Google Pay</title>
+    <title>GeoVibe | Project Z Ultimate Enterprise Hub + P2P ZC Exchange, Auth & IG Feed</title>
+    <!-- Librerías Externas -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="https://pay.google.com/gp/p/js/pay.js" async onload="onGooglePayLoaded()"></script>
     <style>
         :root { 
-            --pz-bg: #04060a; --pz-surface: #0b0f17; --pz-surface-glass: rgba(11, 15, 23, 0.92);
-            --pz-border: #1a2336; --pz-primary: #2563eb; --pz-accent: #059669; --pz-neon: #06b6d4;
-            --pz-economy: #eab308; --pz-google: #ea4335; --pz-instagram: #e1306c; --pz-text: #f8fafc; --pz-muted: #64748b; --pz-danger: #dc2626;
+            --pz-bg: #04060a;
+            --pz-surface: #0b0f17;
+            --pz-surface-glass: rgba(11, 15, 23, 0.92);
+            --pz-border: #1a2336;
+            --pz-border-glow: #25334d;
+            --pz-primary: #2563eb;
+            --pz-primary-glow: rgba(37, 99, 235, 0.4);
+            --pz-accent: #059669;
+            --pz-neon: #06b6d4;
+            --pz-neon-glow: rgba(6, 182, 212, 0.25);
+            --pz-pink: #db2777;
+            --pz-amber: #d97706;
+            --pz-netflix: #e50914;
+            --pz-sales: #8b5cf6; 
+            --pz-economy: #eab308;
+            --pz-google: #ea4335;
+            --pz-facebook: #1877f2;
+            --pz-instagram: #e1306c;
+            --pz-text: #f8fafc;
+            --pz-muted: #64748b;
+            --pz-danger: #dc2626;
         }
+
         * { box-sizing: border-box; }
-        body { background: var(--pz-bg); color: var(--pz-text); font-family: 'Outfit', sans-serif; margin: 0; padding: 4px; display: flex; justify-content: center; min-height: 100vh; }
+
+        body { 
+            background: var(--pz-bg); color: var(--pz-text); font-family: 'Outfit', sans-serif; 
+            margin: 0; padding: 4px; display: flex; justify-content: center; 
+            min-height: 100vh; overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(37, 99, 235, 0.03) 0%, transparent 40%);
+        }
+
         #app { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 6px; }
-        .pz-card { background: var(--pz-surface-glass); backdrop-filter: blur(24px); border: 1px solid var(--pz-border); padding: 12px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.8); }
-        h2 { font-size: 1.05rem; color: var(--pz-neon); margin: 0 0 8px 0; }
-        label { font-size: 0.65rem; color: var(--pz-muted); font-weight: 600; text-transform: uppercase; }
-        input, select { width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--pz-border); background: rgba(2, 4, 8, 0.7); color: white; margin: 4px 0; font-size: 0.8rem; font-family: inherit; }
-        input:focus, select:focus { border-color: var(--pz-neon); outline: none; }
-        button { width: 100%; padding: 8px 12px; border-radius: 8px; border: none; background: var(--pz-primary); color: white; font-weight: 600; cursor: pointer; margin-top: 4px; font-family: inherit; font-size: 0.8rem; }
-        button:hover { filter: brightness(1.15); }
-        .pz-oauth-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); margin-top: 6px; }
+
+        .pz-card { 
+            background: var(--pz-surface-glass); backdrop-filter: blur(24px); 
+            border: 1px solid var(--pz-border); padding: 12px; 
+            border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+            position: relative; overflow: hidden;
+            transition: border-color 0.3s ease;
+        }
+        .pz-card:hover { border-color: var(--pz-border-glow); }
+        
+        .pz-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%;
+            background: var(--pz-neon); box-shadow: 0 0 10px var(--pz-neon);
+            border-top-left-radius: 12px; border-bottom-left-radius: 12px;
+        }
+
+        h2, h3 { margin: 0 0 8px 0; font-weight: 700; letter-spacing: -0.3px; }
+        h2 { font-size: 1.05rem; color: var(--pz-neon); display: flex; align-items: center; gap: 8px; }
+
+        label { font-size: 0.65rem; color: var(--pz-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        input, select, textarea { 
+            width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--pz-border); 
+            background: rgba(2, 4, 8, 0.7); color: white; box-sizing: border-box; margin: 4px 0; font-family: inherit;
+            font-size: 0.8rem; transition: all 0.25s ease;
+        }
+        input:focus, select:focus, textarea:focus { 
+            border-color: var(--pz-neon); outline: none; 
+            box-shadow: 0 0 12px var(--pz-neon-glow); 
+            background: rgba(4, 8, 16, 0.9);
+        }
+
+        button { 
+            width: 100%; padding: 8px 12px; border-radius: 8px; border: none; 
+            background: var(--pz-primary); color: white; font-weight: 600; cursor: pointer; 
+            margin-top: 4px; transition: all 0.25s ease; font-family: inherit; font-size: 0.8rem;
+            box-shadow: 0 4px 12px var(--pz-primary-glow);
+        }
+        button:hover { filter: brightness(1.15); transform: translateY(-1px); box-shadow: 0 6px 16px var(--pz-primary-glow); }
+        button:active { transform: translateY(0); }
+
+        .pz-oauth-btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--pz-border);
+            font-weight: 600; cursor: pointer; font-size: 0.8rem; font-family: inherit; margin-top: 6px;
+            background: rgba(255,255,255,0.04); color: white; transition: all 0.2s ease;
+        }
+        .pz-oauth-btn:hover { background: rgba(255,255,255,0.08); }
         .pz-oauth-google { border-color: rgba(234, 67, 53, 0.4); }
         .pz-oauth-google:hover { background: rgba(234, 67, 53, 0.15); }
-        .pz-header { display: flex; justify-content: space-between; align-items: center; background: var(--pz-surface); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--pz-border); }
-        #map { height: 110px; border-radius: 8px; margin-bottom: 6px; z-index: 1; }
-        .pz-list-item { background: rgba(2, 4, 8, 0.5); border: 1px solid var(--pz-border); border-radius: 8px; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 0.75rem; }
-        .pz-list-item button { width: auto; padding: 3px 8px; font-size: 0.65rem; margin: 0; }
-        .ig-post-card { background: var(--pz-surface); border: 1px solid var(--pz-border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
-        .media-tabs { display: flex; gap: 3px; margin-bottom: 6px; }
-        .media-tab-btn { flex: 1; padding: 5px 2px; font-size: 0.58rem; background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); border-radius: 6px; color: var(--pz-muted); cursor: pointer; text-align: center; }
+        .pz-oauth-facebook { border-color: rgba(24, 119, 242, 0.4); }
+        .pz-oauth-facebook:hover { background: rgba(24, 119, 242, 0.15); }
+        .pz-oauth-instagram { border-color: rgba(225, 48, 108, 0.4); }
+        .pz-oauth-instagram:hover { background: rgba(225, 48, 108, 0.15); }
+
+        .auth-switch-link {
+            text-align: center; margin-top: 8px; font-size: 0.7rem; color: var(--pz-muted);
+        }
+        .auth-switch-link span { color: var(--pz-neon); cursor: pointer; font-weight: 700; text-decoration: underline; }
+
+        .pz-header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--pz-surface); padding: 8px 12px; border-radius: 10px;
+            border: 1px solid var(--pz-border); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+
+        #map { height: 110px; border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--pz-border); z-index: 1; }
+
+        .pz-list-item {
+            background: rgba(2, 4, 8, 0.5); border: 1px solid var(--pz-border);
+            border-radius: 8px; padding: 6px 10px; display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 4px; font-size: 0.75rem;
+            transition: background 0.2s;
+        }
+        .pz-list-item:hover { background: rgba(6, 182, 212, 0.03); border-color: var(--pz-border-glow); }
+        .pz-list-item button { width: auto; padding: 3px 8px; font-size: 0.65rem; margin: 0; box-shadow: none; }
+
+        .ig-post-card {
+            background: var(--pz-surface); border: 1px solid var(--pz-border);
+            border-radius: 10px; margin-bottom: 10px; overflow: hidden;
+        }
+        .ig-post-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .ig-post-media {
+            width: 100%; max-height: 320px; object-fit: cover; background: #000; display: block;
+        }
+        .ig-post-actions {
+            display: flex; gap: 12px; padding: 8px 10px; font-size: 1.1rem;
+        }
+        .ig-post-actions i { cursor: pointer; transition: color 0.2s; }
+        .ig-post-actions i:hover { color: var(--pz-neon); }
+        .ig-post-likes {
+            font-size: 0.75rem; font-weight: 700; padding: 0 10px 4px 10px; color: var(--pz-text);
+        }
+        .ig-post-caption {
+            font-size: 0.75rem; padding: 0 10px 8px 10px; color: var(--pz-muted); word-break: break-word;
+        }
+        .ig-post-comments {
+            padding: 0 10px 8px 10px; font-size: 0.7rem; border-top: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .media-tabs { display: flex; gap: 3px; margin-bottom: 6px; overflow-x: auto; }
+        .media-tab-btn { flex: 1; padding: 5px 2px; font-size: 0.58rem; background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); border-radius: 6px; color: var(--pz-muted); cursor: pointer; text-align: center; white-space: nowrap; }
         .media-tab-btn.active { background: var(--pz-surface); color: var(--pz-neon); border-color: var(--pz-neon); font-weight: 700; }
+        .media-tab-btn.ig.active { color: var(--pz-instagram); border-color: var(--pz-instagram); }
+        .media-tab-btn.netflix.active { color: var(--pz-netflix); border-color: var(--pz-netflix); }
+        .media-tab-btn.arcade.active { color: var(--pz-amber); border-color: var(--pz-amber); }
+        .media-tab-btn.sales.active { color: var(--pz-sales); border-color: var(--pz-sales); }
+        .media-tab-btn.economy.active { color: var(--pz-economy); border-color: var(--pz-economy); }
+
         .media-content-pane { display: none; }
         .media-content-pane.active { display: block; }
-        .msg-bubble { background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 8px; border-left: 2px solid var(--pz-neon); font-size: 0.8rem; margin-bottom: 6px; }
-        .pz-tab-content { display: none; flex-direction: column; gap: 8px; }
+
+        #chat-box { height: 130px; overflow-y: auto; margin-bottom: 6px; display: flex; flex-direction: column; gap: 6px; padding-right: 4px; }
+        .msg-bubble { 
+            background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 8px; 
+            border-left: 2px solid var(--pz-neon); font-size: 0.8rem;
+            border-top: 1px solid rgba(255,255,255,0.03);
+        }
+        .msg-header { display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--pz-muted); margin-bottom: 2px; }
+        .typing-indicator { font-size: 0.6rem; color: var(--pz-pink); height: 12px; font-style: italic; }
+
+        .drawer-panel {
+            display: none; background: rgba(2, 4, 8, 0.95); border: 1px solid var(--pz-border);
+            border-radius: 8px; padding: 8px; margin-bottom: 6px; max-height: 120px; overflow-y: auto;
+        }
+        .drawer-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; text-align: center; }
+        .drawer-item { background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); border-radius: 6px; padding: 6px; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
+        .drawer-item:hover { background: var(--pz-neon-glow); border-color: var(--pz-neon); }
+
+        .pz-badge { background: rgba(5, 150, 105, 0.15); border: 1px solid var(--pz-accent); color: #34d399; padding: 1px 6px; border-radius: 6px; font-size: 0.55rem; font-weight: 700; text-transform: uppercase; }
+        
+        .pz-tab-content { display: none; flex-direction: column; gap: 8px; animation: fadeIn 0.3s ease; }
         .pz-tab-content.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: var(--pz-border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--pz-neon); }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <!-- MÓDULO DE AUTENTICACIÓN -->
+    
+    <!-- 1. MÓDULO DE AUTENTICACIÓN Y REGISTRO SEGURO -->
     <div id="login-screen" class="pz-card" style="margin-top: 15px; text-align: center; padding: 16px;">
         <h2><i class="fa-solid fa-shield-halved"></i> GeoVibe // Core Security</h2>
-        <p id="auth-subtitle" style="color: var(--pz-muted); font-size: 0.75rem; margin-bottom: 10px;">Inicia sesión con Google o tu cuenta</p>
+        <p id="auth-subtitle" style="color: var(--pz-muted); font-size: 0.75rem; margin-bottom: 10px;">Inicia sesión con tu cuenta o regístrate</p>
         
-        <button class="pz-oauth-btn pz-oauth-google" onclick="triggerGoogleLogin()">
-            <i class="fa-brands fa-google" style="color: var(--pz-google);"></i> Continuar con Google
-        </button>
-
-        <div style="display: flex; align-items: center; gap: 8px; margin: 6px 0; color: var(--pz-muted); font-size: 0.65rem;">
-            <div style="flex: 1; height: 1px; background: var(--pz-border);"></div> O MANUAL <div style="flex: 1; height: 1px; background: var(--pz-border);"></div>
+        <div style="display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px;">
+            <button class="pz-oauth-btn pz-oauth-google" onclick="socialAuth('Google', '🌐')">
+                <i class="fa-brands fa-google" style="color: var(--pz-google);"></i> Continuar con Google
+            </button>
+            <button class="pz-oauth-btn pz-oauth-facebook" onclick="socialAuth('Facebook', '💙')">
+                <i class="fa-brands fa-facebook" style="color: var(--pz-facebook);"></i> Continuar con Facebook
+            </button>
+            <button class="pz-oauth-btn pz-oauth-instagram" onclick="socialAuth('Instagram', '📸')">
+                <i class="fa-brands fa-instagram" style="color: var(--pz-instagram);"></i> Continuar con Instagram
+            </button>
         </div>
 
-        <input type="text" id="auth-user" placeholder="Correo o Usuario...">
-        <input type="password" id="auth-pass" placeholder="Contraseña...">
+        <div style="display: flex; align-items: center; gap: 8px; margin: 6px 0; color: var(--pz-muted); font-size: 0.65rem;">
+            <div style="flex: 1; height: 1px; background: var(--pz-border);"></div>
+            O CORREO / USUARIO
+            <div style="flex: 1; height: 1px; background: var(--pz-border);"></div>
+        </div>
+
+        <input type="text" id="auth-user" placeholder="Correo electrónico o Usuario...">
+        <input type="password" id="auth-pass" placeholder="Contraseña segura...">
         
         <div id="register-extra-fields" style="display: none;">
             <select id="auth-avatar">
-                <option value="🎧">🎧 DJ / Operador</option>
-                <option value="🚀">🚀 Oficial</option>
+                <option value="🎧">🎧 Operador de Audio / DJ</option>
+                <option value="🚀">🚀 Oficial de Campo</option>
+                <option value="🔥">🔥 Nodo Raver / Producción</option>
+                <option value="⚡">⚡ Ingeniero Cyberpunk</option>
+                <option value="💀">💀 Analista Dark Synth</option>
+                <option value="👽">👽 Especialista Telemetría</option>
             </select>
         </div>
 
-        <button id="auth-action-btn" onclick="handleAuthSubmit()" style="margin-top: 6px;">Iniciar Sesión</button>
-        <div style="text-align: center; margin-top: 8px; font-size: 0.7rem; color: var(--pz-muted);">
-            <span id="auth-toggle-text" onclick="toggleAuthMode()" style="color: var(--pz-neon); cursor: pointer; text-decoration: underline;">¿No tienes cuenta? Regístrate aquí</span>
+        <button id="auth-action-btn" onclick="handleAuthSubmit()" style="margin-top: 6px;"><i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión</button>
+        
+        <div class="auth-switch-link">
+            <span id="auth-toggle-text" onclick="toggleAuthMode()">¿No tienes cuenta? Regístrate aquí</span>
         </div>
     </div>
 
-    <!-- HUD PRINCIPAL -->
+    <!-- 2. INTERFAZ DE CONTROL PRINCIPAL (HUD) -->
     <div id="main-hud" style="display:none; flex-direction: column; gap: 8px;">
+        
+        <!-- BARRA DE TELEMETRÍA SUPERIOR CON BILLETERA -->
         <div class="pz-header">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <span id="header-avatar" style="font-size: 1.1rem;">🎧</span>
                 <div>
-                    <span id="header-username" style="font-weight: 700; font-size: 0.8rem;">Operador</span>
-                    <span style="font-size: 0.55rem; color: var(--pz-muted);"><span style="width:6px; height:6px; background:var(--pz-accent); border-radius:50%; display:inline-block;"></span> Activo</span>
+                    <span id="header-username" style="font-weight: 700; font-size: 0.8rem; display: block;">Operador</span>
+                    <span style="font-size: 0.55rem; color: var(--pz-muted); display:flex; align-items:center; gap:4px;"><span id="status-dot" style="width:6px; height:6px; background:var(--pz-accent); border-radius:50%; display:inline-block;"></span> <span id="header-status">Sesión Segura Activa</span></span>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
-                <div style="background: rgba(234, 179, 8, 0.15); border: 1px solid var(--pz-economy); padding: 2px 6px; border-radius: 6px;">
+                <div style="background: rgba(234, 179, 8, 0.15); border: 1px solid var(--pz-economy); padding: 2px 6px; border-radius: 6px; display: flex; align-items: center; gap: 4px;" title="Tus Z-Coins">
                     <i class="fa-solid fa-coins" style="color: var(--pz-economy); font-size: 0.7rem;"></i>
                     <span id="header-wallet" style="font-weight: 700; font-size: 0.7rem; color: var(--pz-economy);">100 ZC</span>
                 </div>
-                <button onclick="switchPzTab('rooms')" style="width: auto; padding: 4px 6px; font-size: 0.65rem;"><i class="fa-solid fa-tower-broadcast"></i></button>
-                <button onclick="switchPzTab('economy')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(234,179,8,0.1); border:1px solid var(--pz-economy); color:var(--pz-economy);"><i class="fa-solid fa-wallet"></i></button>
-                <button onclick="switchPzTab('profile')" style="width: auto; padding: 4px 6px; font-size: 0.65rem;"><i class="fa-solid fa-sliders"></i></button>
+                <div style="display: flex; gap: 2px; flex-wrap: wrap; justify-content: flex-end;">
+                    <button onclick="switchPzTab('rooms')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Salas"><i class="fa-solid fa-tower-broadcast"></i></button>
+                    <button onclick="switchPzTab('economy')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(234,179,8,0.1); margin:0; box-shadow:none; border:1px solid var(--pz-economy); color:var(--pz-economy);" title="Economía"><i class="fa-solid fa-wallet"></i></button>
+                    <button onclick="switchPzTab('global-chat')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Global"><i class="fa-solid fa-globe"></i></button>
+                    <button onclick="switchPzTab('profile')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Perfil"><i class="fa-solid fa-sliders"></i></button>
+                </div>
             </div>
         </div>
 
-        <!-- VISTA SALAS -->
+        <!-- VISTA A: GESTIÓN DE SALAS Y SALAS PRIVADAS DE PAGO -->
         <div id="pz-rooms" class="pz-tab-content active">
             <div class="pz-card">
-                <h2><i class="fa-solid fa-satellite-dish"></i> Sincronización GPS</h2>
-                <button style="background:#064e3b; color:#34d399;" onclick="initRadar()"><i class="fa-solid fa-location-crosshairs"></i> Vincular Coordenadas</button>
+                <h2><i class="fa-solid fa-satellite-dish"></i> Sincronización Telemétrica GPS</h2>
+                <button id="btn-init" style="background:#064e3b; color:#34d399; border: 1px solid var(--pz-accent);" onclick="initRadar()"><i class="fa-solid fa-location-crosshairs"></i> Vincular Coordenadas de Nodo</button>
             </div>
-            <div class="pz-card">
-                <h2><i class="fa-solid fa-circle-plus"></i> Desplegar Frecuencia</h2>
-                <input type="text" id="new-room-name" placeholder="Designación de Sala...">
-                <button onclick="createRoom()"><i class="fa-solid fa-bolt"></i> Inicializar Red</button>
-            </div>
-            <div class="pz-card">
-                <h2><i class="fa-solid fa-signal"></i> Redes Activas</h2>
-                <div id="rooms-container"><p style="color: var(--pz-muted); font-size: 0.75rem; text-align: center;">Escaneando espectro...</p></div>
-            </div>
-        </div>
 
-        <!-- VISTA ECONOMÍA & GOOGLE PAY -->
-        <div id="pz-economy" class="pz-tab-content">
-            <div class="pz-card" style="border-color: var(--pz-economy);">
-                <h2><i class="fa-solid fa-vault"></i> Banco & Tarjetas (Google Pay)</h2>
-                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Vincula tus tarjetas o cuentas bancarias de forma segura con un toque.</p>
+            <div class="pz-card">
+                <h2><i class="fa-solid fa-circle-plus"></i> Desplegar Frecuencia (Sala Privada ZC)</h2>
+                <input type="text" id="new-room-name" placeholder="Designación de Sala...">
+                <input type="text" id="new-room-song" placeholder="ID Spotify o Enlace Multimedia...">
                 
-                <div style="background: rgba(234,179,8,0.08); border: 1px solid var(--pz-economy); border-radius: 8px; padding: 10px; text-align: center; margin-bottom: 8px;">
-                    <span style="font-size: 0.65rem; color: var(--pz-muted);">Saldo Billetera</span>
-                    <div id="economy-balance-display" style="font-size: 1.6rem; font-weight: 900; color: var(--pz-economy);">100 ZC</div>
+                <div style="display: flex; gap: 6px; margin: 4px 0; align-items: center;">
+                    <label style="display:flex; align-items:center; gap:4px; cursor:pointer; color:var(--pz-economy); font-size:0.7rem;">
+                        <input type="checkbox" id="room-is-private" onchange="togglePrivateCost()" style="width:auto; margin:0;"> 🔒 Sala Privada de Pago
+                    </label>
+                    <input type="number" id="room-entry-cost" placeholder="Costo ZC (ej: 10)" value="10" disabled style="margin:0; padding:4px; font-size:0.7rem;">
                 </div>
 
-                <button onclick="claimDailyReward()" style="background:var(--pz-accent); font-size:0.65rem; padding:6px; margin-bottom:6px;"><i class="fa-solid fa-gift"></i> Reclamar Bono Diario</button>
+                <button onclick="createRoom()"><i class="fa-solid fa-bolt"></i> Inicializar Red Local</button>
+            </div>
 
-                <div id="container-google-pay" style="margin-top: 6px;"></div>
+            <div class="pz-card">
+                <h2><i class="fa-solid fa-signal"></i> Redes de Alta Frecuencia Activas</h2>
+                <div id="rooms-container" style="max-height: 150px; overflow-y: auto;">
+                    <p style="color: var(--pz-muted); font-size: 0.75rem; text-align: center;">Escaneando espectro local...</p>
+                </div>
             </div>
         </div>
 
-        <!-- SALA ACTIVA -->
+        <!-- VISTA B: ECONOMÍA, BANCO ZC & PASARELA DE PAGO (COMPRA DE MONEDAS) -->
+        <div id="pz-economy" class="pz-tab-content">
+            <div class="pz-card" style="border-color: var(--pz-economy);">
+                <h2><i class="fa-solid fa-vault" style="color: var(--pz-economy);"></i> Banco Central & Recargas ZC</h2>
+                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Adquiere Z-Coins mediante pasarela de pago segura o reclama tu bono diario.</p>
+                
+                <div style="background: rgba(234,179,8,0.08); border: 1px solid var(--pz-economy); border-radius: 8px; padding: 10px; text-align: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.65rem; color: var(--pz-muted); text-transform: uppercase;">Saldo Actual en Billetera</span>
+                    <div id="economy-balance-display" style="font-size: 1.6rem; font-weight: 900; color: var(--pz-economy); margin: 2px 0;">100 ZC</div>
+                    <span style="font-size: 0.6rem; color: #34d399;">Tasa: 10 ZC = USD $1.00</span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 4px;">
+                    <button onclick="claimDailyReward()" style="background:var(--pz-accent); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-gift"></i> Bono Diario</button>
+                    <button onclick="openBuyModal()" style="background:var(--pz-primary); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-cart-shopping"></i> Comprar ZC</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA C: FRECUENCIA GLOBAL -->
+        <div id="pz-global-chat" class="pz-tab-content">
+            <div class="pz-card" style="padding: 10px;">
+                <h2><i class="fa-solid fa-globe"></i> Canal de Enlace Global</h2>
+                <div id="global-chat-box" style="height: 230px; overflow-y: auto; background:rgba(2, 4, 8, 0.6); border-radius:8px; padding:8px; margin-bottom:6px; font-size:0.8rem; border:1px solid var(--pz-border);"></div>
+                <div style="display: flex; gap: 4px;">
+                    <input type="text" id="global-msg-input" placeholder="Transmitir datos globales..." style="margin:0; padding:7px 10px; font-size:0.75rem;" onkeypress="if(event.key==='Enter') sendGlobalMsg()">
+                    <button onclick="sendGlobalMsg()" style="width: 45px; margin:0; padding:7px; font-size:0.75rem;"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA D: SALA DE OPERACIONES ACTIVA (CON MURO TIPO INSTAGRAM INTEGRADO) -->
         <div id="pz-room-active" class="pz-tab-content">
+            
             <div class="pz-card" style="padding: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                     <span id="active-room-name" style="font-weight: 900; font-size: 0.9rem; color: var(--pz-neon);">Sala Operativa</span>
-                    <button onclick="location.reload()" style="width: auto; padding: 2px 6px; background: var(--pz-danger); font-size: 0.65rem;">Salir</button>
+                    <div style="display: flex; gap: 4px;">
+                        <button onclick="leaveRoom()" style="width: auto; padding: 2px 6px; background: var(--pz-danger); font-size: 0.65rem; margin:0; box-shadow:none;"><i class="fa-solid fa-power-off"></i> Salir</button>
+                    </div>
                 </div>
                 
                 <div id="map"></div>
 
-                <div class="media-tabs">
-                    <button class="media-tab-btn active" onclick="switchMediaTab('muro')"><i class="fa-brands fa-instagram"></i> Muro</button>
-                </div>
+                <div id="media-panel" style="display: block;">
+                    <div class="media-tabs">
+                        <button class="media-tab-btn ig active" onclick="switchMediaTab('instagram-feed')"><i class="fa-brands fa-instagram"></i> Muro</button>
+                        <button class="media-tab-btn" onclick="switchMediaTab('spotify')"><i class="fa-brands fa-spotify"></i> Spotify</button>
+                        <button class="media-tab-btn netflix" onclick="switchMediaTab('netflix')"><i class="fa-solid fa-film"></i> Cine</button>
+                        <button class="media-tab-btn arcade" onclick="switchMediaTab('arcade')"><i class="fa-solid fa-gamepad"></i> Juegos</button>
+                        <button class="media-tab-btn sales" onclick="switchMediaTab('sales')"><i class="fa-solid fa-store"></i> Ventas</button>
+                        <button class="media-tab-btn economy" onclick="switchMediaTab('economy-tips')"><i class="fa-solid fa-coins"></i> Propina</button>
+                    </div>
 
-                <div id="pane-muro" class="media-content-pane active">
-                    <input type="file" id="ig-file-upload" accept="image/*" style="display:none;" onchange="previewIgUpload(event)">
-                    <button onclick="document.getElementById('ig-file-upload').click()" style="background:rgba(255,255,255,0.05); font-size:0.65rem;"><i class="fa-solid fa-image"></i> Seleccionar Imagen</button>
-                    <div id="ig-preview-container" style="display:none; text-align:center; margin:4px 0;"></div>
-                    <input type="text" id="ig-caption-input" placeholder="Pie de foto..." style="font-size:0.75rem;">
-                    <button onclick="publishIgPost()" style="background:var(--pz-instagram); font-size:0.7rem;"><i class="fa-solid fa-paper-plane"></i> Publicar</button>
-                    <div id="ig-posts-container" style="max-height: 150px; overflow-y: auto; margin-top: 6px;"></div>
+                    <!-- APARTADO: MURO TIPO INSTAGRAM -->
+                    <div id="pane-instagram-feed" class="media-content-pane active">
+                        <div style="background: rgba(225,48,108,0.06); border: 1px solid var(--pz-instagram); border-radius: 8px; padding: 8px; margin-bottom: 8px;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--pz-instagram); display:block; margin-bottom:6px; text-align:center;"><i class="fa-solid fa-camera-retro"></i> Publicar en el Muro</span>
+                            
+                            <input type="file" id="ig-file-upload" accept="image/*,video/*" style="display:none;" onchange="previewIgUpload(event)">
+                            <div style="display:flex; gap:4px; margin-bottom:4px;">
+                                <button onclick="document.getElementById('ig-file-upload').click()" style="background:rgba(255,255,255,0.05); border:1px solid var(--pz-border); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-image"></i> Seleccionar Foto/Video</button>
+                            </div>
+                            <div id="ig-preview-container" style="display:none; margin-bottom:4px; text-align:center;"></div>
+                            <input type="text" id="ig-caption-input" placeholder="Escribe un pie de foto..." style="margin:2px 0; padding:5px; font-size:0.75rem;">
+                            <button onclick="publishIgPost()" style="background:var(--pz-instagram); font-size:0.7rem; padding:6px; margin-top:4px;"><i class="fa-solid fa-paper-plane"></i> Compartir Post</button>
+                        </div>
+
+                        <!-- CONTENEDOR DE POSTS DEL MURO -->
+                        <div id="ig-posts-container" style="max-height: 220px; overflow-y: auto; display:flex; flex-direction:column; gap:8px;">
+                            <p style="text-align:center; color:var(--pz-muted); font-size:0.7rem;">Cargando publicaciones del muro...</p>
+                        </div>
+                    </div>
+
+                    <div id="pane-spotify" class="media-content-pane">
+                        <iframe id="spotify-player" src="" width="100%" height="52" frameborder="0" style="border-radius: 6px; margin-bottom: 3px; border:1px solid var(--pz-border);"></iframe>
+                        <div style="display: flex; gap: 4px;">
+                            <input type="text" id="song-input" placeholder="ID Spotify..." style="margin:0; padding: 4px 6px; font-size: 0.7rem;">
+                            <button onclick="addSong()" style="background:#1db954; width:55px; margin:0; padding:4px; font-size:0.65rem;"><i class="fa-solid fa-plus"></i></button>
+                            <button onclick="skipSong()" style="background:var(--pz-amber); color:#000; width:55px; margin:0; padding:4px; font-size:0.65rem;"><i class="fa-solid fa-forward"></i></button>
+                        </div>
+                        <div id="playlist-container" style="font-size: 0.65rem; color: var(--pz-muted); margin-top: 3px;">Cola de reproducción vacía</div>
+                    </div>
+
+                    <div id="pane-netflix" class="media-content-pane">
+                        <div style="background: rgba(229,9,20,0.1); border: 1px solid var(--pz-netflix); border-radius: 6px; padding: 6px; text-align: center;">
+                            <span id="netflix-host-badge" style="font-size: 0.7rem; font-weight: 700; color: var(--pz-netflix); display:block; margin-bottom:3px;"><i class="fa-solid fa-crown"></i> Sala de Cine (Watch Party)</span>
+                            <div id="host-controls" style="display: none; margin-bottom: 6px; border-top:1px dashed rgba(229,9,20,0.3); padding-top:6px;">
+                                <div style="display: flex; gap: 4px; margin: 4px 0;">
+                                    <input type="text" id="netflix-url-input" placeholder="URL de video..." style="margin:0; padding: 4px 6px; font-size: 0.7rem;">
+                                    <button onclick="hostStartBroadcast()" style="background:var(--pz-netflix); width:75px; margin:0; padding:4px; font-size:0.65rem;"><i class="fa-solid fa-broadcast-tower"></i> Transmitir</button>
+                                </div>
+                            </div>
+                            <div id="netflix-viewer-screen" style="background: #000; border-radius: 6px; padding: 12px; border: 1px solid var(--pz-netflix); margin-top: 4px;">
+                                <div id="netflix-current-title" style="font-size: 0.75rem; font-weight: 700; color: white; margin-bottom: 4px;">Ningún video seleccionado</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="pane-arcade" class="media-content-pane">
+                        <div style="background: rgba(217,119,6,0.1); border: 1px solid var(--pz-amber); border-radius: 6px; padding: 8px; text-align: center;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--pz-amber); display:block; margin-bottom:4px;"><i class="fa-solid fa-gamepad"></i> Zona de Juegos</span>
+                            <button onclick="startTriviaGame()" style="background:var(--pz-amber); color:#000; font-size:0.65rem; padding:4px; width:auto;"><i class="fa-solid fa-brain"></i> Trivia (+10 ZC)</button>
+                            <div id="arcade-game-screen" style="background: rgba(2,4,8,0.9); border: 1px solid var(--pz-border); border-radius: 6px; padding: 8px; min-height: 70px; display:flex; flex-direction:column; justify-content:center; align-items:center; margin-top:4px;">
+                                <span id="arcade-msg" style="font-size: 0.7rem; color: var(--pz-text);">¡Gana ZC respondiendo correctamente!</span>
+                                <div id="arcade-actions" style="margin-top: 6px; width: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="pane-sales" class="media-content-pane">
+                        <div style="background: rgba(139,92,246,0.08); border: 1px solid var(--pz-sales); border-radius: 6px; padding: 8px;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--pz-sales); display:block; margin-bottom:4px; text-align:center;"><i class="fa-solid fa-store"></i> Marketplace ZC</span>
+                            <input type="text" id="sales-item-title" placeholder="Título..." style="margin:2px 0; padding:4px; font-size:0.7rem;">
+                            <input type="text" id="sales-item-price" placeholder="Precio en ZC..." style="margin:2px 0; padding:4px; font-size:0.7rem;">
+                            <button onclick="publishProduct()" style="background:var(--pz-sales); font-size:0.65rem; padding:5px; margin-top:4px;"><i class="fa-solid fa-tag"></i> Publicar Artículo</button>
+                            <div id="sales-products-list" style="max-height: 100px; overflow-y: auto; display:flex; flex-direction:column; gap:4px; margin-top:4px;"></div>
+                        </div>
+                    </div>
+
+                    <div id="pane-economy-tips" class="media-content-pane">
+                        <div style="background: rgba(234,179,8,0.08); border: 1px solid var(--pz-economy); border-radius: 6px; padding: 8px; text-align: center;">
+                            <span style="font-size: 0.75rem; font-weight: 700; color: var(--pz-economy); display:block; margin-bottom:4px;"><i class="fa-solid fa-hand-holding-dollar"></i> Enviar Propina al Host</span>
+                            <div style="display: flex; gap: 4px; justify-content: center; margin-top:4px;">
+                                <button onclick="sendTip(10)" style="background:var(--pz-economy); color:#000; width:auto; font-size:0.65rem; padding:4px 8px;">🎁 10 ZC</button>
+                                <button onclick="sendTip(50)" style="background:var(--pz-economy); color:#000; width:auto; font-size:0.65rem; padding:4px 8px;">💎 50 ZC</button>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
-            <div class="pz-card" style="padding: 8px;">
-                <div id="chat-box" style="height: 100px; overflow-y: auto;"></div>
-                <div style="display: flex; gap: 3px;">
-                    <input type="text" id="msg-input" placeholder="Mensaje..." style="margin:0; font-size:0.75rem;" onkeypress="if(event.key==='Enter') sendMsg()">
-                    <button onclick="sendMsg()" style="width: 35px; margin:0;"><i class="fa-solid fa-paper-plane"></i></button>
+            <!-- CHAT Y NODOS -->
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 6px;">
+                <div class="pz-card" style="padding: 8px; display:flex; flex-direction:column; justify-content:space-between;">
+                    <div id="chat-box"></div>
+                    <div id="emoji-drawer" class="drawer-panel">
+                        <div class="drawer-grid">
+                            <div class="drawer-item" onclick="insertEmoji('🔥')">🔥</div>
+                            <div class="drawer-item" onclick="insertEmoji('🚀')">🚀</div>
+                            <div class="drawer-item" onclick="insertEmoji('💀')">💀</div>
+                            <div class="drawer-item" onclick="insertEmoji('🎵')">🎵</div>
+                            <div class="drawer-item" onclick="insertEmoji('⚡')">⚡</div>
+                            <div class="drawer-item" onclick="insertEmoji('💰')">💰</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div id="typing-box" class="typing-indicator"></div>
+                        <div style="display: flex; gap: 2px; margin-bottom: 2px; align-items:center;">
+                            <button onclick="toggleDrawer('emoji-drawer')" style="width: auto; padding: 2px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Emojis">😊</button>
+                        </div>
+                        <div style="display: flex; gap: 3px;">
+                            <input type="text" id="msg-input" placeholder="Mensaje..." style="margin:0; padding:6px 8px; font-size:0.75rem;" oninput="handleTyping()" onkeypress="if(event.key==='Enter') sendMsg()">
+                            <button onclick="sendMsg()" style="width: 35px; margin:0; padding:6px; font-size:0.75rem;"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pz-card" style="padding: 8px; display:flex; flex-direction:column;">
+                    <span style="font-size: 0.7rem; font-weight: 700; color: var(--pz-muted); margin-bottom: 4px;"><i class="fa-solid fa-users-line"></i> Nodos Online</span>
+                    <div id="room-members-list" style="max-height: 150px; overflow-y: auto; display:flex; flex-direction:column; gap:3px;">
+                        <span style="font-size: 0.65rem; color: var(--pz-muted);">Buscando nodos...</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- PERFIL -->
+        <!-- VISTA E: PERFIL Y CIERRE DE SESIÓN -->
         <div id="pz-profile" class="pz-tab-content">
             <div class="pz-card" style="text-align: center; padding: 20px 15px;">
-                <div id="profile-avatar-big" style="font-size: 2.4rem;">🎧</div>
-                <h3 id="profile-name-big">Operador</h3>
-                <button onclick="localStorage.clear(); location.reload();" style="background:var(--pz-danger); font-size:0.7rem; margin-top:8px;">Cerrar Sesión</button>
+                <div id="profile-avatar-big" style="font-size: 2.4rem; margin-bottom: 4px;">🎧</div>
+                <h3 id="profile-name-big" style="margin-bottom: 2px;">Operador</h3>
+                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 12px;">Identidad Visual y Monedero</p>
+                
+                <div style="background:rgba(234,179,8,0.1); border:1px solid var(--pz-economy); border-radius:6px; padding:6px; margin-bottom:8px;">
+                    <span style="font-size:0.7rem; color:var(--pz-economy); font-weight:700;">Balance: <span id="profile-wallet-zc">100</span> ZC</span>
+                </div>
+
+                <button onclick="logoutSession()" style="background:var(--pz-danger); font-size:0.7rem; padding:8px; margin-top:8px;"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión y Cambiar Cuenta</button>
             </div>
         </div>
+
+    </div>
+</div>
+
+<!-- MODAL DE PAGO PARA SALAS PRIVADAS -->
+<div id="paywall-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:3000; justify-content:center; align-items:center;">
+    <div class="pz-card" style="width: 85%; max-width: 320px; text-align: center; border-color: var(--pz-economy);">
+        <h2><i class="fa-solid fa-lock" style="color: var(--pz-economy);"></i> Acceso Privado ZC</h2>
+        <p id="paywall-desc" style="font-size: 0.75rem; color: var(--pz-muted); margin-bottom: 12px;">Esta sala requiere un pago de entrada.</p>
+        <div style="font-size: 1.2rem; font-weight: 900; color: var(--pz-economy); margin-bottom: 12px;" id="paywall-price-tag">50 ZC</div>
+        <button onclick="confirmPaywallEntry()" style="background: var(--pz-economy); color: #000; font-weight: 700;"><i class="fa-solid fa-ticket"></i> Pagar y Entrar</button>
+        <button onclick="closePaywallModal()" style="background: rgba(255,255,255,0.05); margin-top: 4px; box-shadow:none;">Cancelar</button>
+    </div>
+</div>
+
+<!-- MODAL PARA COMPRAR MONEDAS ZC (CON PASARELA DE PAGO REST) -->
+<div id="buy-coins-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter:blur(8px); z-index:3000; justify-content:center; align-items:center;">
+    <div class="pz-card" style="width: 90%; max-width: 320px; border-color: var(--pz-primary);">
+        <h2><i class="fa-solid fa-cart-shopping" style="color: var(--pz-primary);"></i> Comprar Z-Coins</h2>
+        <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Selecciona un paquete y método de pago para recargar:</p>
+        
+        <label>Seleccionar Paquete</label>
+        <select id="buy-package-select" style="margin-bottom:6px;">
+            <option value="100|10">100 ZC - $10.00 USD (Básico)</option>
+            <option value="500|45">500 ZC - $45.00 USD (Pro)</option>
+            <option value="1200|95">1,200 ZC - $95.00 USD (Master)</option>
+        </select>
+
+        <label>Método de Pago</label>
+        <select id="buy-method-select" style="margin-bottom:8px;">
+            <option value="Tarjeta Crédito / Débito">💳 Tarjeta Crédito / Débito</option>
+            <option value="PayPal">🅿️ PayPal</option>
+            <option value="PSE / Transferencia Bancaria">🏦 Transferencia Bancaria (PSE)</option>
+            <option value="Crypto (USDT)">⚡ Criptomoneda (USDT)</option>
+        </select>
+
+        <button onclick="executeBackendCheckout()" style="background: var(--pz-primary); font-weight: 700;"><i class="fa-solid fa-credit-card"></i> Pagar Ahora</button>
+        <button onclick="closeBuyModal()" style="background: rgba(255,255,255,0.05); margin-top: 4px; box-shadow:none;">Cerrar</button>
     </div>
 </div>
 
 <script>
     const socket = io(); 
-    let currentRoomId = null, myProfile = null, map = null, tempIgMediaData = null, igPostsStore = [], isRegisterMode = false;
+    let currentRoomId = null;
+    let myProfile = null;
+    let currentRoomData = null;
+    let map = null;
+    let markers = [];
+    let pendingRoomIdToJoin = null;
+    let pendingRoomCost = 0;
+    let pendingRoomCreator = null;
+    let tempIgMediaData = null;
+    let igPostsStore = [];
+    let isRegisterMode = false;
 
     window.addEventListener('DOMContentLoaded', () => {
         const activeSession = localStorage.getItem('geovibe_active_session');
         if (activeSession) {
-            myProfile = JSON.parse(activeSession);
-            activateUserHud(myProfile);
-            socket.emit('login_user', myProfile);
+            try {
+                myProfile = JSON.parse(activeSession);
+                if(myProfile && myProfile.username) {
+                    activateUserHud(myProfile);
+                    socket.emit('login_user', { username: myProfile.username, password: myProfile.password, avatar: myProfile.avatar });
+                }
+            } catch(e) {
+                localStorage.removeItem('geovibe_active_session');
+            }
         }
     });
 
-    function triggerGoogleLogin() {
-        let googleEmail = prompt("Ingresa tu correo de Google:");
-        if(!googleEmail) return;
-        fetch('/api/auth/google', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: 'mock_token_' + googleEmail })
-        }).then(res => res.json()).then(data => {
-            if(data.success) { data.user.email = googleEmail; data.user.username = googleEmail.split('@')[0]; completeLogin(data.user); }
-        });
-    }
-
     function toggleAuthMode() {
         isRegisterMode = !isRegisterMode;
-        document.getElementById('register-extra-fields').style.display = isRegisterMode ? 'block' : 'none';
-        document.getElementById('auth-action-btn').innerText = isRegisterMode ? 'Registrar Cuenta' : 'Iniciar Sesión';
-        document.getElementById('auth-toggle-text').innerText = isRegisterMode ? '¿Ya tienes cuenta? Inicia sesión aquí' : '¿No tienes cuenta? Regístrate aquí';
-    }
+        const btn = document.getElementById('auth-action-btn');
+        const subtitle = document.getElementById('auth-subtitle');
+        const toggleText = document.getElementById('auth-toggle-text');
+        const extraFields = document.getElementById('register-extra-fields');
+        const userInput = document.getElementById('auth-user');
 
-    async function handleAuthSubmit() {
-        const username = document.getElementById('auth-user').value.trim();
-        const password = document.getElementById('auth-pass').value.trim();
-        if(!username || !password) return alert('Ingresa los datos requeridos.');
-
-        const endpoint = isRegisterMode ? '/api/auth/register' : '/api/auth/login';
-        const payload = isRegisterMode ? { username, password, avatar: document.getElementById('auth-avatar').value } : { username, password };
-
-        try {
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const data = await response.json();
-            
-            if(data.success) {
-                completeLogin(data.user);
-            } else {
-                alert(data.error || 'Error en la autenticación');
-            }
-        } catch (err) {
-            alert('Error de conexión con el servidor');
+        if(isRegisterMode) {
+            subtitle.innerText = "Crea una cuenta real para conservar tu progreso y saldo";
+            btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Registrar Cuenta';
+            toggleText.innerText = "¿Ya tienes cuenta? Inicia sesión aquí";
+            userInput.placeholder = "Correo electrónico o Nombre de Usuario...";
+            extraFields.style.display = 'block';
+        } else {
+            subtitle.innerText = "Inicia sesión con tu cuenta registrada";
+            btn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión';
+            toggleText.innerText = "¿No tienes cuenta? Regístrate aquí";
+            userInput.placeholder = "Correo o Usuario registrado...";
+            extraFields.style.display = 'none';
         }
     }
 
-    function completeLogin(profile) {
-        myProfile = profile;
+    function handleAuthSubmit() {
+        const identifier = document.getElementById('auth-user').value.trim();
+        const password = document.getElementById('auth-pass').value.trim();
+        if(!identifier || !password) return alert('Por favor ingresa los datos requeridos.');
+
+        let registeredUsers = JSON.parse(localStorage.getItem('geovibe_users_db') || '{}');
+
+        if(isRegisterMode) {
+            if(registeredUsers[identifier]) {
+                return alert('Este usuario o correo ya está registrado.');
+            }
+            const avatar = document.getElementById('auth-avatar').value;
+            const newUser = {
+                email: identifier,
+                username: identifier.split('@')[0],
+                password: password,
+                avatar: avatar,
+                wallet: 150
+            };
+            registeredUsers[identifier] = newUser;
+            localStorage.setItem('geovibe_users_db', JSON.stringify(registeredUsers));
+            completeLogin(newUser);
+        } else {
+            let foundUser = registeredUsers[identifier];
+            if(!foundUser) {
+                foundUser = Object.values(registeredUsers).find(u => u.username === identifier || u.email === identifier);
+            }
+            if(!foundUser || foundUser.password !== password) {
+                return alert('Credenciales incorrectas o cuenta no encontrada.');
+            }
+            completeLogin(foundUser);
+        }
+    }
+
+    function socialAuth(provider, defaultAvatar) {
+        let identifier = prompt(`Ingresa tu correo o usuario para continuar con ${provider}:`);
+        if(!identifier || !identifier.trim()) return;
+        identifier = identifier.trim();
+
+        let registeredUsers = JSON.parse(localStorage.getItem('geovibe_users_db') || '{}');
+        let user = registeredUsers[identifier];
+
+        if(!user) {
+            user = {
+                email: identifier,
+                username: identifier.split('@')[0] + `_${provider}`,
+                password: 'oauth_secure_' + provider,
+                avatar: defaultAvatar,
+                wallet: 200
+            };
+            registeredUsers[identifier] = user;
+            localStorage.setItem('geovibe_users_db', JSON.stringify(registeredUsers));
+        }
+        completeLogin(user);
+    }
+
+    function completeLogin(userProfile) {
+        myProfile = userProfile;
         if(myProfile.wallet === undefined) myProfile.wallet = 100;
         localStorage.setItem('geovibe_active_session', JSON.stringify(myProfile));
-        socket.emit('login_user', myProfile);
+        socket.emit('login_user', { username: myProfile.username, password: myProfile.password, avatar: myProfile.avatar });
         activateUserHud(myProfile);
     }
 
     function activateUserHud(profile) {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-hud').style.display = 'flex';
-        document.getElementById('header-avatar').innerHTML = profile.avatar;
+        document.getElementById('header-avatar').innerText = profile.avatar;
         document.getElementById('header-username').innerText = profile.username;
-        document.getElementById('profile-name-big').innerText = profile.username;
-        document.getElementById('profile-avatar-big').innerHTML = profile.avatar;
+        document.getElementById('header-status').innerText = "Sesión Segura Activa";
+        document.getElementById('status-dot').style.background = "var(--pz-accent)";
+        document.getElementById('profile-name-big').innerText = `${profile.avatar} ${profile.username}`;
+        document.getElementById('profile-avatar-big').innerText = profile.avatar;
         updateWalletDisplay(profile.wallet);
     }
 
+    function logoutSession() {
+        localStorage.removeItem('geovibe_active_session');
+        location.reload();
+    }
+
+    function switchPzTab(tabName) {
+        document.querySelectorAll('.pz-tab-content').forEach(el => el.classList.remove('active'));
+        if(tabName === 'rooms') document.getElementById('pz-rooms').classList.add('active');
+        if(tabName === 'economy') document.getElementById('pz-economy').classList.add('active');
+        if(tabName === 'global-chat') document.getElementById('pz-global-chat').classList.add('active');
+        if(tabName === 'room-active') document.getElementById('pz-room-active').classList.add('active');
+        if(tabName === 'profile') document.getElementById('pz-profile').classList.add('active');
+    }
+
+    function togglePrivateCost() {
+        const isChecked = document.getElementById('room-is-private').checked;
+        document.getElementById('room-entry-cost').disabled = !isChecked;
+    }
+
     function updateWalletDisplay(balance) {
+        if(!myProfile) return;
         myProfile.wallet = balance;
         localStorage.setItem('geovibe_active_session', JSON.stringify(myProfile));
+        
+        let registeredUsers = JSON.parse(localStorage.getItem('geovibe_users_db') || '{}');
+        if(registeredUsers[myProfile.email]) {
+            registeredUsers[myProfile.email].wallet = balance;
+            localStorage.setItem('geovibe_users_db', JSON.stringify(registeredUsers));
+        }
+
         document.getElementById('header-wallet').innerText = `${balance} ZC`;
         document.getElementById('economy-balance-display').innerText = `${balance} ZC`;
+        document.getElementById('profile-wallet-zc').innerText = balance;
     }
 
     function claimDailyReward() {
@@ -264,100 +691,184 @@
 
     socket.on('reward_claimed', (data) => {
         updateWalletDisplay(data.newBalance);
-        alert(`🎁 ¡Bono reclamado! +${data.reward} ZC`);
+        alert(`🎁 ¡Bono reclamado! +${data.reward} Z-Coins añadidas.`);
     });
 
-    function switchPzTab(tab) {
-        document.querySelectorAll('.pz-tab-content').forEach(el => el.classList.remove('active'));
-        if(tab === 'rooms') document.getElementById('pz-rooms').classList.add('active');
-        if(tab === 'economy') document.getElementById('pz-economy').classList.add('active');
-        if(tab === 'profile') document.getElementById('pz-profile').classList.add('active');
+    function openBuyModal() {
+        document.getElementById('buy-coins-modal').style.display = 'flex';
+    }
+    function closeBuyModal() {
+        document.getElementById('buy-coins-modal').style.display = 'none';
     }
 
-    // --- CONFIGURACIÓN DE GOOGLE PAY ---
-    let paymentsClient = null;
-    function getGooglePaymentsClient() {
-        if (paymentsClient === null) {
-            paymentsClient = new google.payments.api.PaymentsClient({environment: 'TEST'});
-        }
-        return paymentsClient;
-    }
+    async function executeBackendCheckout() {
+        const packageVal = document.getElementById('buy-package-select').value.split('|');
+        const zcAmount = parseInt(packageVal[0]);
+        const paymentMethod = document.getElementById('buy-method-select').value;
 
-    function onGooglePayLoaded() {
-        const client = getGooglePaymentsClient();
-        client.isReadyToPay({
-            apiVersion: 2, apiVersionMinor: 0,
-            allowedPaymentMethods: [{ type: 'CARD', parameters: { allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"], allowedCardNetworks: ["AMEX", "MASTERCARD", "VISA"] } }]
-        }).then(res => {
-            if (res.result) {
-                const button = client.createButton({
-                    onClick: onGooglePayButtonClicked,
-                    allowedPaymentMethods: [{ type: 'CARD', parameters: { allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"], allowedCardNetworks: ["AMEX", "MASTERCARD", "VISA"] } }]
-                });
-                const container = document.getElementById('container-google-pay');
-                if(container && container.childElementCount === 0) container.appendChild(button);
-            }
-        });
-    }
-
-    function onGooglePayButtonClicked() {
-        const req = {
-            apiVersion: 2, apiVersionMinor: 0,
-            allowedPaymentMethods: [{
-                type: 'CARD',
-                parameters: { allowedAuthMethods: ["PAN_ONLY", "CRYPTOGRAM_3DS"], allowedCardNetworks: ["AMEX", "MASTERCARD", "VISA"] },
-                tokenizationSpecification: { type: 'PAYMENT_GATEWAY', parameters: { 'gateway': 'stripe', 'gatewayMerchantId': 'exampleMerchantId' } }
-            }],
-            merchantInfo: { merchantId: '12345678901234567890', merchantName: 'GeoVibe' },
-            transactionInfo: { totalPriceStatus: 'FINAL', totalPrice: '10.00', currencyCode: 'USD' }
-        };
-        getGooglePaymentsClient().loadPaymentData(req).then(paymentData => {
-            fetch('/api/process-google-pay', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(paymentData)
-            }).then(res => res.json()).then(data => {
-                if(data.success) {
-                    updateWalletDisplay(myProfile.wallet + 100);
-                    alert('¡Tarjeta vinculada y recarga de 100 ZC aplicada con Google Pay!');
-                }
+        try {
+            const response = await fetch('/api/buy-coins', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: myProfile.username,
+                    zcAmount: zcAmount,
+                    paymentMethod: paymentMethod
+                })
             });
-        });
+
+            const result = await response.json();
+            if(result.success) {
+                updateWalletDisplay(result.newBalance);
+                closeBuyModal();
+                alert(`🎉 ¡Pago procesado con éxito vía ${paymentMethod}! Se acreditaron ${zcAmount} Z-Coins.`);
+            } else {
+                alert('Error en la pasarela de pago: ' + (result.error || 'Desconocido'));
+            }
+        } catch(e) {
+            alert('Error de conexión con el servidor de pagos.');
+        }
     }
+
+    socket.on('wallet_credited_external', (data) => {
+        updateWalletDisplay(data.newBalance);
+    });
+
+    socket.on('wallet_deducted', (data) => { updateWalletDisplay(data.newBalance); });
+    socket.on('wallet_credited', (data) => {
+        updateWalletDisplay(data.newBalance);
+        alert(`💰 ¡Has ganado ${data.amount} ZC! Un usuario pagó entrada a tu sala.`);
+    });
 
     function initRadar() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(pos => {
-                socket.emit('update_location', { lat: pos.coords.latitude, lng: pos.coords.longitude, username: myProfile.username });
+                socket.emit('update_location', { lat: pos.coords.latitude, lng: pos.coords.longitude, username: `${myProfile.avatar} ${myProfile.username}` });
+                document.getElementById('btn-init').innerText = "✓ Coordenadas Sincronizadas";
+            }, () => {
+                socket.emit('update_location', { lat: null, lng: null, username: `${myProfile.avatar} ${myProfile.username}` });
             });
         }
     }
 
     socket.on('rooms_list', (rooms) => {
-        document.getElementById('rooms-container').innerHTML = rooms.map(r => `
+        const container = document.getElementById('rooms-container');
+        if (!rooms || rooms.length === 0) {
+            container.innerHTML = '<p style="color: var(--pz-muted); font-size: 0.75rem; text-align: center;">No hay redes activas.</p>';
+            return;
+        }
+        container.innerHTML = rooms.map(r => `
             <div class="pz-list-item">
-                <span><b>${r.name}</b> (${r.count} nodos)</span>
-                <button onclick="socket.emit('join_room', '${r.id}')">Conectar</button>
+                <div>
+                    <span style="font-weight:700; color:var(--pz-text);">${r.name} ${r.isPrivate ? '🔒' : ''}</span>
+                    <div style="font-size:0.6rem; color:var(--pz-muted);">${r.count} nodos ${r.isPrivate ? `• Costo: ${r.entryCost} ZC` : ''}</div>
+                </div>
+                <button onclick="tryJoinRoom('${r.id}', ${r.isPrivate ? r.entryCost : 0}, '${r.creator || 'Anónimo'}')"><i class="fa-solid fa-plug"></i> ${r.isPrivate ? 'Entrar (Pago)' : 'Conectar'}</button>
             </div>
         `).join('');
     });
 
     function createRoom() {
-        socket.emit('create_room', { name: document.getElementById('new-room-name').value.trim() || 'Sala', creator: myProfile.username });
+        const nameInput = document.getElementById('new-room-name');
+        const songInput = document.getElementById('new-room-song');
+        const privateCheck = document.getElementById('room-is-private');
+        const entryCostInput = document.getElementById('room-entry-cost');
+
+        const name = nameInput ? nameInput.value.trim() : 'Sala Comercial';
+        let trackUri = songInput ? songInput.value.trim() : '4cOdK2wGLETKBW3PvgPWqT';
+        const isPrivate = privateCheck ? privateCheck.checked : false;
+        const entryCost = isPrivate ? parseInt(entryCostInput.value) || 10 : 0;
+        
+        if (!myProfile || !myProfile.username) {
+            alert('Error de sesión. Por favor inicia sesión de nuevo.');
+            return;
+        }
+
+        socket.emit('create_room', { 
+            name, 
+            trackUri, 
+            isPrivate, 
+            entryCost, 
+            creator: myProfile.username 
+        });
+    }
+
+    function tryJoinRoom(roomId, cost, creator) {
+        if(cost > 0 && creator !== myProfile.username) {
+            pendingRoomIdToJoin = roomId;
+            pendingRoomCost = cost;
+            pendingRoomCreator = creator;
+            document.getElementById('paywall-desc').innerText = `Sala creada por ${creator}. Ingresar requiere:`;
+            document.getElementById('paywall-price-tag').innerText = `${cost} ZC`;
+            document.getElementById('paywall-modal').style.display = 'flex';
+        } else {
+            socket.emit('join_room', roomId);
+        }
+    }
+
+    function confirmPaywallEntry() {
+        if(myProfile.wallet < pendingRoomCost) {
+            alert('No tienes suficientes Z-Coins.');
+            closePaywallModal();
+            return;
+        }
+        socket.emit('pay_room_entry', { roomId: pendingRoomIdToJoin, cost: pendingRoomCost, username: myProfile.username, creator: pendingRoomCreator });
+        closePaywallModal();
+        socket.emit('join_room', pendingRoomIdToJoin);
+    }
+
+    function closePaywallModal() {
+        document.getElementById('paywall-modal').style.display = 'none';
     }
 
     socket.on('room_joined', (room) => {
         currentRoomId = room.id;
+        currentRoomData = room;
         document.getElementById('active-room-name').innerText = room.name;
-        document.querySelectorAll('.pz-tab-content').forEach(el => el.classList.remove('active'));
-        document.getElementById('pz-room-active').classList.add('active');
+        switchPzTab('room-active');
+
+        const isHost = room.host === myProfile.username || room.creator === myProfile.username || !room.host;
+        document.getElementById('host-controls').style.display = isHost ? 'block' : 'none';
+
+        const cleanUri = (room.currentTrack || '4cOdK2wGLETKBW3PvgPWqT').replace('spotify:track:', '');
+        document.getElementById('spotify-player').src = `https://open.spotify.com/embed/track/${cleanUri}?utm_source=generator&theme=0`;
 
         setTimeout(() => {
             if (!map) {
                 map = L.map('map').setView([6.217, -75.567], 13);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            } else { map.invalidateSize(); }
+            } else {
+                map.invalidateSize();
+            }
         }, 300);
+
         socket.emit('get_ig_posts', { roomId: currentRoomId });
+    });
+
+    function leaveRoom() {
+        switchPzTab('rooms');
+        location.reload();
+    }
+
+    socket.on('update_members_map', (members) => {
+        if (!map) return;
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
+        
+        const membersContainer = document.getElementById('room-members-list');
+        membersContainer.innerHTML = members.map(m => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:3px 6px; border-radius:4px;">
+                <span style="font-size:0.7rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:85px;">${m.username}</span>
+                <span class="pz-badge">Activo</span>
+            </div>
+        `).join('');
+
+        members.forEach(m => {
+            if (m.lat && m.lng) {
+                const marker = L.marker([m.lat, m.lng]).addTo(map).bindPopup(m.username);
+                markers.push(marker);
+            }
+        });
     });
 
     function previewIgUpload(event) {
@@ -366,49 +877,275 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             tempIgMediaData = { type: file.type, data: e.target.result };
-            const c = document.getElementById('ig-preview-container');
-            c.style.display = 'block';
-            c.innerHTML = `<img src="${e.target.result}" style="max-height:80px; border-radius:6px;">`;
+            const container = document.getElementById('ig-preview-container');
+            container.style.display = 'block';
+            container.innerHTML = file.type.startsWith('image/') 
+                ? `<img src="${e.target.result}" style="max-height:100px; border-radius:6px;" alt="Preview">` 
+                : `<video src="${e.target.result}" style="max-height:100px; border-radius:6px;" controls></video>`;
         };
         reader.readAsDataURL(file);
     }
 
     function publishIgPost() {
-        if(!tempIgMediaData) return alert('Selecciona una imagen.');
+        const caption = document.getElementById('ig-caption-input').value.trim();
+        if(!tempIgMediaData) return alert('Selecciona una imagen o video para tu post.');
+        
         socket.emit('publish_ig_post', {
-            roomId: currentRoomId, user: myProfile.username,
-            mediaType: tempIgMediaData.type, mediaData: tempIgMediaData.data,
-            caption: document.getElementById('ig-caption-input').value.trim()
+            roomId: currentRoomId,
+            user: `${myProfile.avatar} ${myProfile.username}`,
+            mediaType: tempIgMediaData.type,
+            mediaData: tempIgMediaData.data,
+            caption: caption
         });
+
         tempIgMediaData = null;
         document.getElementById('ig-preview-container').style.display = 'none';
         document.getElementById('ig-caption-input').value = '';
+        document.getElementById('ig-file-upload').value = '';
     }
 
-    socket.on('ig_posts_feed', (posts) => { igPostsStore = posts; renderIgFeed(); });
-    socket.on('new_ig_post', (post) => { igPostsStore.unshift(post); renderIgFeed(); });
+    socket.on('ig_posts_feed', (posts) => {
+        igPostsStore = posts || [];
+        renderIgFeed();
+    });
+
+    socket.on('new_ig_post', (post) => {
+        igPostsStore.unshift(post);
+        renderIgFeed();
+    });
+
+    socket.on('ig_post_updated', (updatedPost) => {
+        const index = igPostsStore.findIndex(p => p.id === updatedPost.id);
+        if(index !== -1) {
+            igPostsStore[index] = updatedPost;
+            renderIgFeed();
+        }
+    });
 
     function renderIgFeed() {
-        document.getElementById('ig-posts-container').innerHTML = igPostsStore.map(p => `
-            <div class="ig-post-card" style="padding:6px;">
-                <b style="font-size:0.75rem; color:var(--pz-neon);">${p.user}</b>
-                <img src="${p.mediaData}" style="width:100%; max-height:150px; object-fit:cover; border-radius:4px; margin:4px 0;">
-                <div style="font-size:0.7rem;">${p.caption || ''}</div>
-            </div>
-        `).join('');
+        const container = document.getElementById('ig-posts-container');
+        if(!container) return;
+        if(igPostsStore.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:var(--pz-muted); font-size:0.7rem;">No hay publicaciones en el muro todavía. ¡Sé el primero!</p>';
+            return;
+        }
+
+        container.innerHTML = igPostsStore.map(post => {
+            const mediaHtml = post.mediaType.startsWith('image/')
+                ? `<img src="${post.mediaData}" class="ig-post-media" alt="Post media">`
+                : `<video src="${post.mediaData}" class="ig-post-media" controls></video>`;
+            
+            const isLikedByMe = post.likedBy && post.likedBy.includes(myProfile.username);
+            const heartIcon = isLikedByMe ? '<i class="fa-solid fa-heart" style="color:var(--pz-danger);" onclick="toggleLikePost(\'' + post.id + '\')"></i>' : '<i class="fa-regular fa-heart" onclick="toggleLikePost(\'' + post.id + '\')"></i>';
+
+            const commentsHtml = (post.comments || []).map(c => `
+                <div style="margin-top:2px;"><b>${c.user}:</b> ${c.text}</div>
+            `).join('');
+
+            return `
+                <div class="ig-post-card">
+                    <div class="ig-post-header">
+                        <span style="font-weight:700; font-size:0.75rem; color:var(--pz-neon);">${post.user}</span>
+                        <span style="font-size:0.6rem; color:var(--pz-muted);">${post.time || 'Hace un momento'}</span>
+                    </div>
+                    ${mediaHtml}
+                    <div class="ig-post-actions">
+                        ${heartIcon}
+                        <i class="fa-regular fa-comment" onclick="focusCommentInput('${post.id}')"></i>
+                    </div>
+                    <div class="ig-post-likes">${post.likes || 0} Me gusta</div>
+                    ${post.caption ? `<div class="ig-post-caption"><b>${post.user}</b> ${post.caption}</div>` : ''}
+                    <div class="ig-post-comments">
+                        ${commentsHtml}
+                        <div style="display:flex; gap:4px; margin-top:4px;">
+                            <input type="text" id="comment-input-${post.id}" placeholder="Agregar comentario..." style="margin:0; padding:3px 6px; font-size:0.65rem;" onkeypress="if(event.key==='Enter') addCommentToPost('${post.id}')">
+                            <button onclick="addCommentToPost('${post.id}')" style="width:auto; margin:0; padding:3px 6px; font-size:0.65rem;"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
+
+    function toggleLikePost(postId) {
+        socket.emit('toggle_ig_like', { roomId: currentRoomId, postId, username: myProfile.username });
+    }
+
+    function addCommentToPost(postId) {
+        const input = document.getElementById(`comment-input-${postId}`);
+        if(!input || !input.value.trim()) return;
+        socket.emit('add_ig_comment', {
+            roomId: currentRoomId,
+            postId,
+            user: myProfile.username,
+            text: input.value.trim()
+        });
+        input.value = '';
+    }
+
+    function focusCommentInput(postId) {
+        const input = document.getElementById(`comment-input-${postId}`);
+        if(input) input.focus();
+    }
+
+    function startTriviaGame() {
+        document.getElementById('arcade-msg').innerText = "🧠 Trivia ZC: ¿Cuál es el protocolo raíz en Termux?";
+        document.getElementById('arcade-actions').innerHTML = `
+            <div style="display:flex; gap:4px; justify-content:center;">
+                <button onclick="answerTrivia(false)" style="background:var(--pz-danger); font-size:0.6rem; padding:4px;">pkg update</button>
+                <button onclick="answerTrivia(true)" style="background:var(--pz-accent); font-size:0.6rem; padding:4px;">su / tsu</button>
+            </div>
+        `;
+    }
+
+    function answerTrivia(isCorrect) {
+        if(isCorrect) {
+            document.getElementById('arcade-msg').innerText = "🎉 ¡Correcto! +10 ZC ganados.";
+            socket.emit('award_user_zc', { username: myProfile.username, amount: 10 });
+        } else {
+            document.getElementById('arcade-msg').innerText = "❌ Incorrecto.";
+        }
+        document.getElementById('arcade-actions').innerHTML = '';
+    }
+
+    function sendTip(amount) {
+        if(myProfile.wallet < amount) return alert('No tienes suficientes ZC.');
+        socket.emit('send_room_tip', { roomId: currentRoomId, amount, fromUser: myProfile.username });
+        updateWalletDisplay(myProfile.wallet - amount);
+        alert(`🎁 ¡Propina de ${amount} ZC enviada!`);
+    }
+
+    socket.on('incoming_tip', (data) => {
+        if(currentRoomData && (currentRoomData.creator === myProfile.username || currentRoomData.host === myProfile.username)) {
+            updateWalletDisplay(myProfile.wallet + data.amount);
+            alert(`💎 ¡Recibiste propina de ${data.amount} ZC de ${data.fromUser}!`);
+        }
+    });
+
+    function switchMediaTab(mediaType) {
+        document.querySelectorAll('.media-tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.media-content-pane').forEach(p => p.classList.remove('active'));
+        
+        if(mediaType === 'instagram-feed') {
+            document.querySelector('.media-tab-btn.ig').classList.add('active');
+            document.getElementById('pane-instagram-feed').classList.add('active');
+        } else if(mediaType === 'spotify') {
+            document.querySelector('.media-tab-btn:nth-child(2)').classList.add('active');
+            document.getElementById('pane-spotify').classList.add('active');
+        } else if(mediaType === 'netflix') {
+            document.querySelector('.media-tab-btn.netflix').classList.add('active');
+            document.getElementById('pane-netflix').classList.add('active');
+        } else if(mediaType === 'arcade') {
+            document.querySelector('.media-tab-btn.arcade').classList.add('active');
+            document.getElementById('pane-arcade').classList.add('active');
+        } else if(mediaType === 'sales') {
+            document.querySelector('.media-tab-btn.sales').classList.add('active');
+            document.getElementById('pane-sales').classList.add('active');
+        } else if(mediaType === 'economy-tips') {
+            document.querySelector('.media-tab-btn.economy').classList.add('active');
+            document.getElementById('pane-economy-tips').classList.add('active');
+        }
+    }
+
+    function toggleDrawer(drawerId) {
+        const el = document.getElementById(drawerId);
+        el.style.display = el.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function insertEmoji(emoji) {
+        const input = document.getElementById('msg-input');
+        input.value += emoji;
+        input.focus();
+        document.getElementById('emoji-drawer').style.display = 'none';
+    }
+
+    function publishProduct() {
+        const title = document.getElementById('sales-item-title').value.trim();
+        const price = document.getElementById('sales-item-price').value.trim();
+        if(!title || !price) return;
+        socket.emit('publish_product', { roomId: currentRoomId, title, price, seller: `${myProfile.avatar} ${myProfile.username}` });
+        document.getElementById('sales-item-title').value = '';
+        document.getElementById('sales-item-price').value = '';
+    }
+
+    socket.on('incoming_product', (data) => {
+        const salesList = document.getElementById('sales-products-list');
+        if(!salesList) return;
+        const productCard = document.createElement('div');
+        productCard.style.cssText = "background:rgba(2,4,8,0.7); border:1px solid var(--pz-border); border-radius:6px; padding:6px; display:flex; justify-content:space-between; align-items:center;";
+        productCard.innerHTML = `<div><span style="font-weight:700; color:var(--pz-text); font-size:0.75rem;">${data.title}</span><div style="color:var(--pz-economy); font-weight:700; font-size:0.7rem;">${data.price} ZC</div></div><span style="font-size:0.6rem; color:var(--pz-muted);">${data.seller}</span>`;
+        salesList.prepend(productCard);
+    });
+
+    function hostStartBroadcast() {
+        const urlInput = document.getElementById('netflix-url-input').value.trim() || "Sala Party";
+        document.getElementById('netflix-current-title').innerText = `🍿 Transmitiendo: ${urlInput}`;
+    }
+
+    function addSong() {
+        let input = document.getElementById('song-input').value.trim();
+        if (!input) return;
+        if(input.includes('spotify.com')) input = input.split('/').pop().split('?')[0];
+        socket.emit('add_song', { roomId: currentRoomId, uri: input });
+        document.getElementById('song-input').value = '';
+    }
+
+    function skipSong() { socket.emit('skip_song', currentRoomId); }
+
+    socket.on('play_now', (uri) => {
+        const cleanUri = uri.replace('spotify:track:', '');
+        document.getElementById('spotify-player').src = `https://open.spotify.com/embed/track/${cleanUri}?utm_source=generator&theme=0`;
+    });
+
+    socket.on('playlist_updated', (playlist) => {
+        document.getElementById('playlist-container').innerHTML = `🎵 <b>Cola (${playlist.length}):</b> ` + playlist.slice(-3).join(" | ");
+    });
 
     function sendMsg() {
         const msg = document.getElementById('msg-input').value.trim();
-        if(!msg) return;
-        socket.emit('chat_msg', { roomId: currentRoomId, msg, user: myProfile.username });
+        if (!msg) return;
+        socket.emit('chat_msg', { roomId: currentRoomId, msg, user: `${myProfile.avatar} ${myProfile.username}` });
         document.getElementById('msg-input').value = '';
+    }
+
+    function sendGlobalMsg() {
+        const msg = document.getElementById('global-msg-input').value.trim();
+        if (!msg) return;
+        socket.emit('chat_msg', { roomId: 'global', msg, user: `${myProfile.avatar} ${myProfile.username}` });
+        document.getElementById('global-msg-input').value = '';
     }
 
     socket.on('new_msg', (data) => {
         const box = document.getElementById('chat-box');
-        box.innerHTML += `<div class="msg-bubble"><b>${data.user}:</b> ${data.msg}</div>`;
-        box.scrollTop = box.scrollHeight;
+        if (box) {
+            box.innerHTML += `
+                <div class="msg-bubble">
+                    <div class="msg-header"><span><b>${data.user}</b></span><span>${data.time}</span></div>
+                    <div style="word-break: break-word; font-size:0.8rem;">${data.msg}</div>
+                </div>
+            `;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        const globalBox = document.getElementById('global-chat-box');
+        if (globalBox) {
+            globalBox.innerHTML += `
+                <div style="margin-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.04); padding-bottom:4px;">
+                    <div style="font-size:0.65rem; color:var(--pz-neon);"><b>${data.user}</b></div>
+                    <div style="font-size:0.8rem;">${data.msg}</div>
+                </div>
+            `;
+            globalBox.scrollTop = globalBox.scrollHeight;
+        }
+    });
+
+    function handleTyping() {
+        socket.emit('typing', { roomId: currentRoomId, user: myProfile.username, isTyping: true });
+    }
+
+    socket.on('display_typing', (data) => {
+        const typingEl = document.getElementById('typing-box');
+        if(typingEl) typingEl.innerText = data.isTyping ? `✏️ ${data.user} escribiendo...` : "";
     });
 </script>
 </body>
