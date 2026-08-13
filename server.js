@@ -8,7 +8,12 @@ let rooms = {
         name: 'Sala Global (Cercanos)', 
         members: {}, 
         playlist: ['4cOdK2wGLETKBW3PvgPWqT'], 
-        currentTrackIndex: 0 
+        currentTrackIndex: 0,
+        isPrivate: false,
+        entryCost: 0,
+        creator: 'Sistema',
+        igPosts: [],
+        products: []
     }
 };
 
@@ -33,11 +38,12 @@ io.on('connection', (socket) => {
     socket.on('login_user', (data) => {
         const { username, password, avatar } = data;
         if (!usersDb[username]) {
-            usersDb[username] = { password, avatar, bio: '', genre: '' };
+            usersDb[username] = { password, avatar, bio: '', genre: '', wallet: 150 };
         } else if (usersDb[username].password !== password) {
             socket.emit('login_error', 'Contraseña incorrecta');
             return;
         }
+        if (usersDb[username].wallet === undefined) usersDb[username].wallet = 100;
         socket.userProfile = { username, avatar, ...usersDb[username] };
         socket.emit('login_success', socket.userProfile);
     });
@@ -55,7 +61,9 @@ io.on('connection', (socket) => {
 
     socket.on('update_location', (data) => {
         if (!socket.userProfile && data.username) {
-            socket.userProfile = { username: data.username, avatar: data.avatar || '🎧', bio: '', genre: '' };
+            let existingWallet = 100;
+            if (usersDb[data.username]) existingWallet = usersDb[data.username].wallet || 100;
+            socket.userProfile = { username: data.username, avatar: data.avatar || '🎧', bio: '', genre: '', wallet: existingWallet };
         }
         if (!socket.userProfile) return;
 
@@ -65,19 +73,30 @@ io.on('connection', (socket) => {
         socket.emit('rooms_list', Object.keys(rooms).map(id => ({ 
             id, 
             name: rooms[id].name, 
-            count: Object.keys(rooms[id].members || {}).length 
+            count: Object.keys(rooms[id].members || {}).length,
+            isPrivate: rooms[id].isPrivate || false,
+            entryCost: rooms[id].entryCost || 0,
+            creator: rooms[id].creator || 'Sistema'
         })));
     });
 
     socket.on('create_room', (data) => {
         const roomId = Math.random().toString(36).substring(7);
         const initialTrack = data.trackUri || '4cOdK2wGLETKBW3PvgPWqT';
+        const isPrivate = data.isPrivate || false;
+        const entryCost = data.entryCost || 0;
+        const creator = data.creator || (socket.userProfile ? socket.userProfile.username : 'Anónimo');
         
         rooms[roomId] = { 
             name: data.name, 
-            members: { [socket.id]: socket.userData || { username: 'Anónimo' } }, 
+            members: { [socket.id]: socket.userData || { username: creator } }, 
             playlist: [initialTrack], 
-            currentTrackIndex: 0 
+            currentTrackIndex: 0,
+            isPrivate,
+            entryCost,
+            creator,
+            igPosts: [],
+            products: []
         };
         roomStats[roomId] = { activity: 0 };
         
@@ -87,7 +106,10 @@ io.on('connection', (socket) => {
         io.emit('rooms_list', Object.keys(rooms).map(id => ({ 
             id, 
             name: rooms[id].name, 
-            count: Object.keys(rooms[id].members || {}).length 
+            count: Object.keys(rooms[id].members || {}).length,
+            isPrivate: rooms[id].isPrivate || false,
+            entryCost: rooms[id].entryCost || 0,
+            creator: rooms[id].creator || 'Sistema'
         })));
     });
 
@@ -102,6 +124,134 @@ io.on('connection', (socket) => {
             socket.emit('playlist_updated', rooms[roomId].playlist);
             io.to(roomId).emit('update_members_map', Object.values(rooms[roomId].members));
         }
+    });
+
+    // Lógica Económica y P2P / Transacciones ZC en el Servidor
+    socket.on('pay_room_entry', (data) => {
+        const { roomId, cost, username, creator } = data;
+        if(usersDb[username]) {
+            if(usersDb[username].wallet >= cost) {
+                usersDb[username].wallet -= cost;
+                socket.emit('wallet_deducted', { newBalance: usersDb[username].wallet });
+                if(socket.userProfile) socket.userProfile.wallet = usersDb[username].wallet;
+
+                // Acreditar al creador si está conectado
+                for(let sId of Object.keys(io.sockets.sockets)) {
+                    const s = io.sockets.sockets.get(sId);
+                    if(s && s.userProfile && s.userProfile.username === creator) {
+                        usersDb[creator].wallet = (usersDb[creator].wallet || 100) + cost;
+                        s.userProfile.wallet = usersDb[creator].wallet;
+                        s.emit('wallet_credited', { amount: cost, newBalance: usersDb[creator].wallet });
+                        break;
+                    }
+                }
+            }
+        }
+    });
+
+    socket.on('claim_daily_reward', (data) => {
+        const { username } = data;
+        const reward = 25;
+        if(usersDb[username]) {
+            usersDb[username].wallet = (usersDb[username].wallet || 100) + reward;
+            if(socket.userProfile) socket.userProfile.wallet = usersDb[username].wallet;
+            socket.emit('reward_claimed', { reward, newBalance: usersDb[username].wallet });
+        }
+    });
+
+    socket.on('award_user_zc', (data) => {
+        const { username, amount } = data;
+        if(usersDb[username]) {
+            usersDb[username].wallet = (usersDb[username].wallet || 100) + amount;
+            if(socket.userProfile) socket.userProfile.wallet = usersDb[username].wallet;
+            socket.emit('wallet_deducted', { newBalance: usersDb[username].wallet }); // Actualiza mediante el mismo manejador de UI
+        }
+    });
+
+    socket.on('send_room_tip', (data) => {
+        const { roomId, amount, fromUser } = data;
+        const room = rooms[roomId];
+        if(!room) return;
+        const creator = room.creator;
+        if(usersDb[creator]) {
+            usersDb[creator].wallet = (usersDb[creator].wallet || 100) + amount;
+            for(let sId of Object.keys(io.sockets.sockets)) {
+                const s = io.sockets.sockets.get(sId);
+                if(s && s.userProfile && s.userProfile.username === creator) {
+                    s.userProfile.wallet = usersDb[creator].wallet;
+                    s.emit('incoming_tip', { amount, fromUser });
+                    break;
+                }
+            }
+        }
+    });
+
+    // Muro Tipo Instagram en Sala
+    socket.on('publish_ig_post', (data) => {
+        const { roomId, user, mediaType, mediaData, caption } = data;
+        const room = rooms[roomId];
+        if(!room) return;
+        const newPost = {
+            id: 'ig_' + Math.random().toString(36).substring(7),
+            user,
+            mediaType,
+            mediaData,
+            caption,
+            likes: 0,
+            likedBy: [],
+            comments: [],
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        room.igPosts.unshift(newPost);
+        io.to(roomId).emit('new_ig_post', newPost);
+    });
+
+    socket.on('get_ig_posts', (data) => {
+        const room = rooms[data.roomId];
+        if(room) {
+            socket.emit('ig_posts_feed', room.igPosts || []);
+        }
+    });
+
+    socket.on('toggle_ig_like', (data) => {
+        const { roomId, postId, username } = data;
+        const room = rooms[roomId];
+        if(!room) return;
+        const post = room.igPosts.find(p => p.id === postId);
+        if(!post) return;
+        
+        if(!post.likedBy) post.likedBy = [];
+        const index = post.likedBy.indexOf(username);
+        if(index === -1) {
+            post.likedBy.push(username);
+            post.likes += 1;
+        } else {
+            post.likedBy.splice(index, 1);
+            post.likes = Math.max(0, post.likes - 1);
+        }
+        io.to(roomId).emit('ig_post_updated', post);
+    });
+
+    socket.on('add_ig_comment', (data) => {
+        const { roomId, postId, user, text } = data;
+        const room = rooms[roomId];
+        if(!room) return;
+        const post = room.igPosts.find(p => p.id === postId);
+        if(!post) return;
+
+        if(!post.comments) post.comments = [];
+        post.comments.push({ user, text });
+        io.to(roomId).emit('ig_post_updated', post);
+    });
+
+    socket.on('publish_product', (data) => {
+        const { roomId, title, price, seller } = data;
+        const room = rooms[roomId];
+        if(!room) return;
+        const product = { title, price, seller };
+        if(!room.products) room.products = [];
+        room.products.push(product);
+        io.to(roomId).emit('incoming_product', product);
     });
 
     socket.on('add_song', (data) => {
@@ -157,7 +307,6 @@ io.on('connection', (socket) => {
         });
     });
 
-    // Mensajería Privada (DM)
     socket.on('private_msg', (data) => {
         for (let sId of Object.keys(io.sockets.sockets)) {
             const s = io.sockets.sockets.get(sId);
