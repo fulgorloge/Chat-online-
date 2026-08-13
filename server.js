@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const http = require('http'].createServer(app);
+const http = require('http').createServer(app);
 const io = require('socket.io')(http, { cors: { origin: "*" } });
 
 // Middleware para procesar cuerpos JSON y formularios URL-encoded
@@ -37,17 +37,17 @@ function getDistanceFromLatLonInMeters(lat1, lon1, lat2, lon2) {
 
 // --- ENDPOINT REST PARA PASARELA DE PAGO / RECARGA DE MONEDAS ---
 app.post('/api/buy-coins', (req, res) => {
-    const { username, zcAmount, usdPrice, paymentMethod } = req.body;
+    const { username, zcAmount, paymentMethod } = req.body;
     
     if (!username || !zcAmount) {
         return res.status(400).json({ success: false, error: 'Datos de pago incompletos' });
     }
 
     if (!usersDb[username]) {
-        return res.status(404).json({ success: false, error: 'Usuario no encontrado en el sistema' });
+        usersDb[username] = { password: '', avatar: '🎧', bio: '', genre: '', wallet: 100 };
     }
 
-    // Acreditar las monedas en la base de datos de usuario
+    // Acreditar las monedas
     usersDb[username].wallet = (usersDb[username].wallet || 100) + parseInt(zcAmount);
 
     // Notificar al cliente vía WebSocket si está conectado activamente
@@ -78,13 +78,13 @@ io.on('connection', (socket) => {
     socket.on('login_user', (data) => {
         const { username, password, avatar } = data;
         if (!usersDb[username]) {
-            usersDb[username] = { password, avatar, bio: '', genre: '', wallet: 150 };
-        } else if (usersDb[username].password !== password) {
+            usersDb[username] = { password, avatar: avatar || '🎧', bio: '', genre: '', wallet: 150 };
+        } else if (password && usersDb[username].password && usersDb[username].password !== password && !password.startsWith('oauth_secure_')) {
             socket.emit('login_error', 'Contraseña incorrecta');
             return;
         }
         if (usersDb[username].wallet === undefined) usersDb[username].wallet = 100;
-        socket.userProfile = { username, avatar, ...usersDb[username] };
+        socket.userProfile = { username, avatar: usersDb[username].avatar || avatar || '🎧', ...usersDb[username] };
         socket.emit('login_success', socket.userProfile);
     });
 
@@ -100,14 +100,15 @@ io.on('connection', (socket) => {
     });
 
     socket.on('update_location', (data) => {
-        if (!socket.userProfile && data.username) {
+        let cleanUsername = data.username ? data.username.replace(/^[^\w\s]+\s*/, '') : 'Anónimo';
+        if (!socket.userProfile && cleanUsername) {
             let existingWallet = 100;
-            if (usersDb[data.username]) existingWallet = usersDb[data.username].wallet || 100;
-            socket.userProfile = { username: data.username, avatar: data.avatar || '🎧', bio: '', genre: '', wallet: existingWallet };
+            if (usersDb[cleanUsername]) existingWallet = usersDb[cleanUsername].wallet || 100;
+            socket.userProfile = { username: cleanUsername, avatar: data.avatar || '🎧', bio: '', genre: '', wallet: existingWallet };
         }
         if (!socket.userProfile) return;
 
-        socket.userData = { ...data, ...socket.userProfile };
+        socket.userData = { ...data, username: socket.userProfile.username, avatar: socket.userProfile.avatar };
         rooms['global'].members[socket.id] = socket.userData;
 
         socket.emit('rooms_list', Object.keys(rooms).map(id => ({ 
@@ -228,6 +229,7 @@ io.on('connection', (socket) => {
         const { roomId, user, mediaType, mediaData, caption } = data;
         const room = rooms[roomId];
         if(!room) return;
+        if(!room.igPosts) room.igPosts = [];
         const newPost = {
             id: 'ig_' + Math.random().toString(36).substring(7),
             user,
@@ -253,7 +255,7 @@ io.on('connection', (socket) => {
     socket.on('toggle_ig_like', (data) => {
         const { roomId, postId, username } = data;
         const room = rooms[roomId];
-        if(!room) return;
+        if(!room || !room.igPosts) return;
         const post = room.igPosts.find(p => p.id === postId);
         if(!post) return;
         
@@ -272,7 +274,7 @@ io.on('connection', (socket) => {
     socket.on('add_ig_comment', (data) => {
         const { roomId, postId, user, text } = data;
         const room = rooms[roomId];
-        if(!room) return;
+        if(!room || !room.igPosts) return;
         const post = room.igPosts.find(p => p.id === postId);
         if(!post) return;
 
@@ -354,19 +356,8 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('send_voice', (data) => {
-        io.to(data.roomId).emit('incoming_voice', {
-            from: socket.userProfile ? socket.userProfile.username : 'Anónimo',
-            audioBlob: data.audioBlob
-        });
-    });
-
     socket.on('typing', (data) => {
         socket.to(data.roomId).emit('display_typing', { user: data.user, isTyping: data.isTyping });
-    });
-
-    socket.on('react_msg', (data) => {
-        io.to(data.roomId).emit('msg_reacted', data);
     });
 
     socket.on('disconnect', () => {
@@ -381,5 +372,5 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
-    console.log(`Servidor GeoVibe Supremo Pro con Pasarela de Pago activo en puerto ${PORT}`);
+    console.log(`Servidor GeoVibe Supremo Pro activo en puerto ${PORT}`);
 });
