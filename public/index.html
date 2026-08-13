@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoVibe | Project Z Enterprise + Netflix & Multimedia Hub</title>
+    <title>GeoVibe | Project Z Ultimate Enterprise Hub + Communities & Match</title>
     <!-- Librerías Externas -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -123,10 +123,9 @@
         .reaction-btn { background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); border-radius: 4px; padding: 1px 5px; cursor: pointer; color: white; width: auto; font-size: 0.65rem; }
         .reaction-btn:hover { background: rgba(255,255,255,0.08); }
 
-        /* Paneles flotantes de Emojis, Stickers y Sonidos */
         .drawer-panel {
             display: none; background: rgba(2, 4, 8, 0.95); border: 1px solid var(--pz-border);
-            border-radius: 8px; padding: 8px; margin-bottom: 6px; max-height: 110px; overflow-y: auto;
+            border-radius: 8px; padding: 8px; margin-bottom: 6px; max-height: 120px; overflow-y: auto;
         }
         .drawer-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; text-align: center; }
         .drawer-item { background: rgba(255,255,255,0.04); border: 1px solid var(--pz-border); border-radius: 6px; padding: 6px; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
@@ -182,10 +181,13 @@
                     <span style="font-size: 0.55rem; color: var(--pz-muted); display:flex; align-items:center; gap:4px;"><span id="status-dot" style="width:6px; height:6px; background:var(--pz-danger); border-radius:50%; display:inline-block;"></span> <span id="header-status">Desconectado</span></span>
                 </div>
             </div>
-            <div style="display: flex; gap: 4px;">
-                <button onclick="switchPzTab('rooms')" style="width: auto; padding: 5px 8px; font-size: 0.7rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);"><i class="fa-solid fa-tower-broadcast"></i> Salas</button>
-                <button onclick="switchPzTab('global-chat')" style="width: auto; padding: 5px 8px; font-size: 0.7rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);"><i class="fa-solid fa-globe"></i> Global</button>
-                <button onclick="switchPzTab('profile')" style="width: auto; padding: 5px 8px; font-size: 0.7rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);"><i class="fa-solid fa-sliders"></i> Perfil</button>
+            <div style="display: flex; gap: 2px; flex-wrap: wrap; justify-content: flex-end;">
+                <button onclick="switchPzTab('rooms')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Salas"><i class="fa-solid fa-tower-broadcast"></i></button>
+                <button onclick="switchPzTab('circles')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Círculos Temáticos"><i class="fa-solid fa-circle-nodes"></i></button>
+                <button onclick="switchPzTab('bottle')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Botella a la Deriva"><i class="fa-solid fa-bottle-water"></i></button>
+                <button onclick="switchPzTab('match')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Sistema Meet"><i class="fa-solid fa-heart-pulse"></i></button>
+                <button onclick="switchPzTab('global-chat')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Global"><i class="fa-solid fa-globe"></i></button>
+                <button onclick="switchPzTab('profile')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Perfil"><i class="fa-solid fa-sliders"></i></button>
             </div>
         </div>
 
@@ -198,8 +200,8 @@
 
             <div class="pz-card">
                 <h2><i class="fa-solid fa-circle-plus"></i> Desplegar Nueva Frecuencia</h2>
-                <input type="text" id="new-room-name" placeholder="Designación de Sala (ej: Cine & Bunker)">
-                <input type="text" id="new-room-song" placeholder="ID de Pista Spotify o URL/ID de Netflix...">
+                <input type="text" id="new-room-name" placeholder="Designación de Sala (ej: Netflix & Chill Party)">
+                <input type="text" id="new-room-song" placeholder="ID Spotify o Enlace Netflix de la Película...">
                 <button onclick="createRoom()"><i class="fa-solid fa-bolt"></i> Inicializar Red Local</button>
             </div>
 
@@ -211,7 +213,72 @@
             </div>
         </div>
 
-        <!-- VISTA B: FRECUENCIA GLOBAL DE TRANSMISIÓN -->
+        <!-- VISTA B: CÍRCULOS TEMÁTICOS (Comunidades Anime, Música, Videojuegos, Arte, etc.) -->
+        <div id="pz-circles" class="pz-tab-content">
+            <div class="pz-card">
+                <h2><i class="fa-solid fa-circle-nodes"></i> Círculos Temáticos</h2>
+                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Comunidades creadas por usuarios centradas en intereses específicos.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
+                    <div class="pz-list-item" style="flex-direction:column; align-items:flex-start; cursor:pointer;" onclick="joinCircle('Anime & Manga ⛩️')">
+                        <span style="font-weight:700; color:var(--pz-neon);">⛩️ Anime & Manga</span>
+                        <span style="font-size:0.6rem; color:var(--pz-muted);">Debates, arte y reseñas</span>
+                    </div>
+                    <div class="pz-list-item" style="flex-direction:column; align-items:flex-start; cursor:pointer;" onclick="joinCircle('Videojuegos & RPG 🎮')">
+                        <span style="font-weight:700; color:var(--pz-neon);">🎮 Videojuegos & RPG</span>
+                        <span style="font-size:0.6rem; color:var(--pz-muted);">Multijugador y trucos</span>
+                    </div>
+                    <div class="pz-list-item" style="flex-direction:column; align-items:flex-start; cursor:pointer;" onclick="joinCircle('Música & Underground 🎧')">
+                        <span style="font-weight:700; color:var(--pz-neon);">🎧 Música & Underground</span>
+                        <span style="font-size:0.6rem; color:var(--pz-muted);">Sets, techno y synth</span>
+                    </div>
+                    <div class="pz-list-item" style="flex-direction:column; align-items:flex-start; cursor:pointer;" onclick="joinCircle('Arte & Cyberpunk ⚡')">
+                        <span style="font-weight:700; color:var(--pz-neon);">⚡ Arte & Cyberpunk</span>
+                        <span style="font-size:0.6rem; color:var(--pz-muted);">Ilustración y diseño</span>
+                    </div>
+                </div>
+                
+                <input type="text" id="new-circle-name" placeholder="Crear nuevo Círculo temático...">
+                <button onclick="createNewCircle()" style="background:var(--pz-accent);"><i class="fa-solid fa-plus"></i> Lanzar Círculo</button>
+            </div>
+        </div>
+
+        <!-- VISTA C: BOTELLA A LA DERIVA (Mensajes Anónimos) -->
+        <div id="pz-bottle" class="pz-tab-content">
+            <div class="pz-card" style="text-align: center; padding: 20px 12px;">
+                <h2><i class="fa-solid fa-bottle-water"></i> Botella a la Deriva</h2>
+                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 12px;">Escribe un mensaje en una botella virtual y lánzalo al ciberespacio para conectar con alguien aleatorio.</p>
+                <textarea id="bottle-msg" rows="3" placeholder="Escribe tu mensaje anónimo o público aquí..."></textarea>
+                <button onclick="throwBottle()" style="background:var(--pz-primary); margin-top: 8px;"><i class="fa-solid fa-paper-plane"></i> Lanzar al Mar Digital</button>
+                <div id="bottle-result" style="margin-top: 12px; font-size: 0.75rem; color: var(--pz-neon);"></div>
+            </div>
+        </div>
+
+        <!-- VISTA D: SISTEMA DE COINCIDENCIA (MEET / AFINIDAD) -->
+        <div id="pz-match" class="pz-tab-content">
+            <div class="pz-card">
+                <h2><i class="fa-solid fa-heart-pulse"></i> Sistema Meet // Afinidad</h2>
+                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Sugerencias automáticas de perfiles basados en tus gustos y aficiones seleccionadas.</p>
+                <div id="match-list" style="display: flex; flex-direction: column; gap: 6px;">
+                    <div class="pz-list-item">
+                        <div>
+                            <span style="font-weight:700; color:var(--pz-text);">👽 CyberViper</span>
+                            <div style="font-size:0.6rem; color:var(--pz-muted);">Intereses: Cyberpunk, Synthwave, RPG</div>
+                        </div>
+                        <span class="pz-badge" style="background:rgba(219,39,119,0.2); border-color:var(--pz-pink); color:#f472b6;">94% Afinidad</span>
+                    </div>
+                    <div class="pz-list-item">
+                        <div>
+                            <span style="font-weight:700; color:var(--pz-text);">🎧 TUCNAK_Official</span>
+                            <div style="font-size:0.6rem; color:var(--pz-muted);">Intereses: Industrial Techno, Producción</div>
+                        </div>
+                        <span class="pz-badge" style="background:rgba(219,39,119,0.2); border-color:var(--pz-pink); color:#f472b6;">88% Afinidad</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA E: FRECUENCIA GLOBAL DE TRANSMISIÓN -->
         <div id="pz-global-chat" class="pz-tab-content">
             <div class="pz-card" style="padding: 10px;">
                 <h2><i class="fa-solid fa-globe"></i> Canal de Enlace Global</h2>
@@ -223,7 +290,7 @@
             </div>
         </div>
 
-        <!-- VISTA C: SALA DE OPERACIONES ACTIVA (HUD Z) -->
+        <!-- VISTA F: SALA DE OPERACIONES ACTIVA (HUD Z CON WATCH PARTY, VOZ Y CHAT) -->
         <div id="pz-room-active" class="pz-tab-content">
             
             <div class="pz-card" style="padding: 10px;">
@@ -237,11 +304,11 @@
                 
                 <div id="map"></div>
 
-                <!-- CONTENEDOR MULTIMEDIA UNIFICADO -->
+                <!-- CONTENEDOR MULTIMEDIA UNIFICADO (Spotify & Netflix Watch Party + Chat de Voz) -->
                 <div id="media-panel" style="display: block;">
                     <div class="media-tabs">
                         <button class="media-tab-btn active" onclick="switchMediaTab('spotify')"><i class="fa-brands fa-spotify"></i> Spotify</button>
-                        <button class="media-tab-btn netflix" onclick="switchMediaTab('netflix')"><i class="fa-solid fa-film"></i> Netflix Sync</button>
+                        <button class="media-tab-btn netflix" onclick="switchMediaTab('netflix')"><i class="fa-solid fa-film"></i> Sala de Cine</button>
                     </div>
 
                     <div id="pane-spotify" class="media-content-pane active">
@@ -254,25 +321,35 @@
                         <div id="playlist-container" style="font-size: 0.65rem; color: var(--pz-muted); margin-top: 3px;">Cola de reproducción vacía</div>
                     </div>
 
+                    <!-- SALA DE CINE / WATCH PARTY & VOZ -->
                     <div id="pane-netflix" class="media-content-pane">
                         <div style="background: rgba(229,9,20,0.1); border: 1px solid var(--pz-netflix); border-radius: 6px; padding: 6px; margin-bottom: 4px; text-align: center;">
-                            <span style="font-size: 0.7rem; font-weight: 700; color: var(--pz-netflix); display:block; margin-bottom:3px;"><i class="fa-solid fa-triangle-exclamation"></i> Watch Party Netflix Activa</span>
-                            <div style="display: flex; gap: 4px; margin-bottom: 4px;">
-                                <input type="text" id="netflix-title-input" placeholder="Título / ID de Película Netflix..." style="margin:0; padding: 4px 6px; font-size: 0.7rem;">
-                                <button onclick="syncNetflix()" style="background:var(--pz-netflix); width:75px; margin:0; padding:4px; font-size:0.65rem;"><i class="fa-solid fa-sync"></i> Sincronizar</button>
+                            <span id="netflix-host-badge" style="font-size: 0.7rem; font-weight: 700; color: var(--pz-netflix); display:block; margin-bottom:3px;"><i class="fa-solid fa-crown"></i> Sala de Cine (Watch Party)</span>
+                            <p id="netflix-desc" style="font-size: 0.6rem; color: var(--pz-muted); margin: 0 0 6px 0;">Reproduce y sincroniza videos o películas con los miembros de la sala mientras hablas por los canales de voz o texto.</p>
+                            
+                            <div id="host-controls" style="display: none; margin-bottom: 6px; border-top:1px dashed rgba(229,9,20,0.3); padding-top:6px;">
+                                <label style="color:var(--pz-netflix); font-size:0.6rem;">Panel de Control del Host:</label>
+                                <div style="display: flex; gap: 4px; margin: 4px 0;">
+                                    <input type="text" id="netflix-url-input" placeholder="URL de video o Título Netflix..." style="margin:0; padding: 4px 6px; font-size: 0.7rem;">
+                                    <button onclick="hostStartBroadcast()" style="background:var(--pz-netflix); width:75px; margin:0; padding:4px; font-size:0.65rem;"><i class="fa-solid fa-broadcast-tower"></i> Transmitir</button>
+                                </div>
+                                <div style="display: flex; justify-content: center; gap: 4px;">
+                                    <button onclick="hostSendState('play')" style="width: auto; padding: 3px 8px; background: rgba(255,255,255,0.1); font-size: 0.6rem;"><i class="fa-solid fa-play"></i> Play</button>
+                                    <button onclick="hostSendState('pause')" style="width: auto; padding: 3px 8px; background: rgba(255,255,255,0.1); font-size: 0.6rem;"><i class="fa-solid fa-pause"></i> Pause</button>
+                                </div>
                             </div>
-                            <div style="display: flex; justify-content: center; gap: 6px;">
-                                <button onclick="sendNetflixAction('play')" style="width: auto; padding: 3px 10px; background: rgba(255,255,255,0.1); font-size: 0.65rem;"><i class="fa-solid fa-play"></i> Play</button>
-                                <button onclick="sendNetflixAction('pause')" style="width: auto; padding: 3px 10px; background: rgba(255,255,255,0.1); font-size: 0.65rem;"><i class="fa-solid fa-pause"></i> Pause</button>
-                                <a id="netflix-direct-link" href="https://www.netflix.com" target="_blank" style="text-decoration: none;"><button style="width: auto; padding: 3px 10px; background: var(--pz-netflix); font-size: 0.65rem; margin-top:0;"><i class="fa-solid fa-external-link"></i> Abrir Netflix</button></a>
+
+                            <div id="netflix-viewer-screen" style="background: #000; border-radius: 6px; padding: 12px; border: 1px solid var(--pz-netflix); margin-top: 4px;">
+                                <div id="netflix-current-title" style="font-size: 0.75rem; font-weight: 700; color: white; margin-bottom: 4px;">Ninguna película seleccionada</div>
+                                <div id="netflix-sync-status" style="font-size: 0.65rem; color: var(--pz-muted); margin-bottom: 6px;">Canal de voz y sincronización listos</div>
+                                <a id="netflix-open-link" href="https://www.netflix.com" target="_blank" style="text-decoration: none;"><button style="background: var(--pz-netflix); padding: 4px 10px; font-size: 0.65rem; margin:0;"><i class="fa-solid fa-external-link"></i> Abrir Netflix / Video</button></a>
                             </div>
                         </div>
-                        <div id="netflix-status-container" style="font-size: 0.65rem; color: var(--pz-muted); text-align: center;">Estado de sincronización: En espera de comandos...</div>
                     </div>
                 </div>
             </div>
 
-            <!-- CHAT CON SOPORTE PARA EMOJIS, STICKERS Y EFECTOS DE SONIDO -->
+            <!-- CHAT CON SOPORTE PARA FOTOS, VIDEOS, EMOJIS, STICKERS Y SONIDOS -->
             <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 6px;">
                 
                 <div class="pz-card" style="padding: 8px; display:flex; flex-direction:column; justify-content:space-between;">
@@ -286,7 +363,7 @@
                             <div class="drawer-item" onclick="insertEmoji('💀')">💀</div>
                             <div class="drawer-item" onclick="insertEmoji('🎵')">🎵</div>
                             <div class="drawer-item" onclick="insertEmoji('⚡')">⚡</div>
-                            <div class="drawer-item" onclick="insertEmoji('💎')">💎</div>
+                            <div class="drawer-item" onclick="insertEmoji('🍿')">🍿</div>
                             <div class="drawer-item" onclick="insertEmoji('🎉')">🎉</div>
                             <div class="drawer-item" onclick="insertEmoji('👽')">👽</div>
                             <div class="drawer-item" onclick="insertEmoji('💥')">💥</div>
@@ -317,16 +394,19 @@
 
                     <div>
                         <div id="typing-box" class="typing-indicator"></div>
-                        <!-- Barra de herramientas de Chat (Emojis, Stickers, Sonidos, Micrófono, Enviar) -->
-                        <div style="display: flex; gap: 2px; margin-bottom: 2px;">
-                            <button onclick="toggleDrawer('emoji-drawer')" style="width: auto; padding: 3px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Emojis">😊</button>
-                            <button onclick="toggleDrawer('sticker-drawer')" style="width: auto; padding: 3px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Stickers/GIFs">🖼️</button>
-                            <button onclick="toggleDrawer('sound-drawer')" style="width: auto; padding: 3px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Efectos de Sonido">🔊</button>
+                        <!-- Barra de herramientas de Chat (Emojis, Stickers, Sonidos, Multimedia y Enviar) -->
+                        <div style="display: flex; gap: 2px; margin-bottom: 2px; align-items:center;">
+                            <button onclick="toggleDrawer('emoji-drawer')" style="width: auto; padding: 2px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Emojis">😊</button>
+                            <button onclick="toggleDrawer('sticker-drawer')" style="width: auto; padding: 2px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Stickers/GIFs">🖼️</button>
+                            <button onclick="toggleDrawer('sound-drawer')" style="width: auto; padding: 2px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Efectos de Sonido">🔊</button>
+                            <!-- Input oculto para enviar Fotos y Videos -->
+                            <input type="file" id="media-file-input" accept="image/*,video/*" style="display:none;" onchange="handleMediaUpload(event)">
+                            <button onclick="document.getElementById('media-file-input').click()" style="width: auto; padding: 2px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.06); margin:0;" title="Enviar Foto o Video"><i class="fa-solid fa-photo-film"></i> Archivo</button>
                         </div>
                         <div style="display: flex; gap: 3px;">
-                            <input type="text" id="msg-input" placeholder="Mensaje de red..." style="margin:0; padding:6px 8px; font-size:0.75rem;" oninput="handleTyping()" onkeypress="if(event.key==='Enter') sendMsg()">
+                            <input type="text" id="msg-input" placeholder="Mensaje de red o chat de voz..." style="margin:0; padding:6px 8px; font-size:0.75rem;" oninput="handleTyping()" onkeypress="if(event.key==='Enter') sendMsg()">
                             <button onclick="sendMsg()" style="width: 35px; margin:0; padding:6px; font-size:0.75rem;"><i class="fa-solid fa-paper-plane"></i></button>
-                            <button id="mic-btn" onclick="toggleMic()" style="width: 35px; background:var(--pz-pink); margin:0; padding:6px; font-size:0.75rem;" title="Audio"><i class="fa-solid fa-microphone"></i></button>
+                            <button id="mic-btn" onclick="toggleMic()" style="width: 35px; background:var(--pz-pink); margin:0; padding:6px; font-size:0.75rem;" title="Canal de Voz en Vivo"><i class="fa-solid fa-microphone"></i></button>
                         </div>
                     </div>
                 </div>
@@ -353,19 +433,19 @@
 
         </div>
 
-        <!-- VISTA D: CONFIGURACIÓN DE PERFIL Y ESTADO -->
+        <!-- VISTA G: CONFIGURACIÓN DE PERFIL Y ESTADO -->
         <div id="pz-profile" class="pz-tab-content">
             <div class="pz-card" style="text-align: center; padding: 20px 15px;">
                 <div id="profile-avatar-big" style="font-size: 2.4rem; margin-bottom: 4px;">🎧</div>
                 <h3 id="profile-name-big" style="margin-bottom: 2px;">Operador</h3>
-                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 12px;">Configuración de Registro de Perfil</p>
+                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 12px;">Identidad Visual y Aficiones</p>
                 
                 <div style="text-align: left;">
                     <label style="font-size: 0.65rem; color: var(--pz-muted);">Biografía / Estado del Nodo:</label>
                     <textarea id="profile-bio" rows="2" placeholder="Estado operativo actual..."></textarea>
                     
-                    <label style="font-size: 0.65rem; color: var(--pz-muted); margin-top: 6px; display: block;">Género / Preferencia Audiovisual:</label>
-                    <input type="text" id="profile-genre" placeholder="Ej: Sci-Fi, Industrial Techno...">
+                    <label style="font-size: 0.65rem; color: var(--pz-muted); margin-top: 6px; display: block;">Intereses y Círculos (Anime, Música, etc.):</label>
+                    <input type="text" id="profile-genre" placeholder="Ej: Anime, Manga, Techno, Videojuegos...">
                 </div>
                 <button onclick="saveProfile()" style="background:var(--pz-accent); margin-top: 12px;"><i class="fa-solid fa-floppy-disk"></i> Guardar Configuración</button>
             </div>
@@ -391,6 +471,7 @@
     const socket = io("https://chat-online-110g.onrender.com");
     let currentRoomId = null;
     let myProfile = null;
+    let currentRoomData = null;
     let map = null;
     let markers = [];
     let mediaRecorder, audioChunks = [];
@@ -400,6 +481,9 @@
     function switchPzTab(tabName) {
         document.querySelectorAll('.pz-tab-content').forEach(el => el.classList.remove('active'));
         if(tabName === 'rooms') document.getElementById('pz-rooms').classList.add('active');
+        if(tabName === 'circles') document.getElementById('pz-circles').classList.add('active');
+        if(tabName === 'bottle') document.getElementById('pz-bottle').classList.add('active');
+        if(tabName === 'match') document.getElementById('pz-match').classList.add('active');
         if(tabName === 'global-chat') document.getElementById('pz-global-chat').classList.add('active');
         if(tabName === 'room-active') document.getElementById('pz-room-active').classList.add('active');
         if(tabName === 'profile') document.getElementById('pz-profile').classList.add('active');
@@ -450,6 +534,25 @@
         });
     }
 
+    function handleMediaUpload(event) {
+        const file = event.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64Data = e.target.result;
+            let htmlContent = "";
+            if(file.type.startsWith('image/')) {
+                htmlContent = `<div style="margin-top:3px;"><img src="${base64Data}" style="max-width:160px; max-height:140px; border-radius:6px;" alt="Imagen compartida"></div>`;
+            } else if(file.type.startsWith('video/')) {
+                htmlContent = `<div style="margin-top:3px;"><video src="${base64Data}" controls style="max-width:180px; max-height:140px; border-radius:6px;"></video></div>`;
+            }
+            if(htmlContent) {
+                socket.emit('chat_msg', { roomId: currentRoomId, msg: htmlContent, user: `${myProfile.avatar} ${myProfile.username}` });
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
     function sendSoundEffect(type) {
         document.getElementById('sound-drawer').style.display = 'none';
         socket.emit('play_sound_effect', { roomId: currentRoomId, type: type, user: myProfile.username });
@@ -497,25 +600,48 @@
         }
     });
 
-    function syncNetflix() {
-        const titleInput = document.getElementById('netflix-title-input').value.trim();
-        if(!titleInput) return alert('Ingresa el título o ID de Netflix.');
-        socket.emit('netflix_sync', { roomId: currentRoomId, action: 'load', title: titleInput, user: myProfile.username });
-        document.getElementById('netflix-status-container').innerText = `Sincronizado: ${titleInput} (Cargando sesión...)`;
+    /* Funciones para Círculos Temáticos y Botella a la Deriva */
+    function joinCircle(circleName) {
+        alert(`Conectando al Círculo temático: ${circleName}`);
+        joinRoom(circleName);
     }
 
-    function sendNetflixAction(action) {
+    function createNewCircle() {
+        const name = document.getElementById('new-circle-name').value.trim();
+        if(!name) return alert('Ingresa el nombre del círculo.');
+        joinCircle(name + ' 🌟');
+    }
+
+    function throwBottle() {
+        const msg = document.getElementById('bottle-msg').value.trim();
+        if(!msg) return alert('Escribe un mensaje para tu botella.');
+        document.getElementById('bottle-result').innerHTML = `<i class="fa-solid fa-check"></i> ¡Botella lanzada con éxito al mar digital! Esperando respuesta anónima...`;
+        document.getElementById('bottle-msg').value = '';
+    }
+
+    /* Funciones Netamente Sincronizadas de Watch Party / Cine */
+    function hostStartBroadcast() {
+        const urlInput = document.getElementById('netflix-url-input').value.trim() || "Sala de Cine Party";
+        socket.emit('netflix_sync', { roomId: currentRoomId, action: 'load', title: urlInput, user: myProfile.username });
+        document.getElementById('netflix-current-title').innerText = `🍿 Transmitiendo en Sala de Cine: ${urlInput}`;
+        document.getElementById('netflix-sync-status').innerText = `Estado: Sincronizado en vivo (Host activo)`;
+    }
+
+    function hostSendState(action) {
         socket.emit('netflix_sync', { roomId: currentRoomId, action: action, user: myProfile.username });
+        document.getElementById('netflix-sync-status').innerText = `Estado: ${action === 'play' ? '▶️ Reproduciendo' : '⏸️ Pausado'} por el Host`;
     }
 
     socket.on('netflix_action_broadcast', (data) => {
-        const statusEl = document.getElementById('netflix-status-container');
+        const titleEl = document.getElementById('netflix-current-title');
+        const statusEl = document.getElementById('netflix-sync-status');
         if(data.action === 'load') {
-            statusEl.innerText = `🎥 ${data.user} cambió la película a: "${data.title}"`;
+            titleEl.innerText = `🍿 Cine / Video del Host: "${data.title}"`;
+            statusEl.innerText = `Sincronizado con la señal de ${data.user}`;
         } else if(data.action === 'play') {
-            statusEl.innerText = `▶️ Reproducción iniciada por ${data.user}`;
+            statusEl.innerText = `▶️ El Host (${data.user}) dio PLAY`;
         } else if(data.action === 'pause') {
-            statusEl.innerText = `⏸️ Pausado por ${data.user}`;
+            statusEl.innerText = `⏸️ El Host (${data.user}) dio PAUSE`;
         }
     });
 
@@ -587,7 +713,7 @@
     });
 
     function createRoom() {
-        const name = document.getElementById('new-room-name').value.trim() || 'Sala Operativa Vibe';
+        const name = document.getElementById('new-room-name').value.trim() || 'Sala Watch Party';
         let trackUri = document.getElementById('new-room-song').value.trim() || '4cOdK2wGLETKBW3PvgPWqT';
         if(trackUri.includes('spotify.com')) trackUri = trackUri.split('/').pop().split('?')[0];
         socket.emit('create_room', { name, trackUri });
@@ -599,8 +725,24 @@
 
     socket.on('room_joined', (room) => {
         currentRoomId = room.id;
+        currentRoomData = room;
         document.getElementById('active-room-name').innerText = room.name;
         switchPzTab('room-active');
+
+        const isHost = room.host === myProfile.username || room.creator === myProfile.username || !room.host;
+        const hostControlsEl = document.getElementById('host-controls');
+        const badgeEl = document.getElementById('netflix-host-badge');
+        const descEl = document.getElementById('netflix-desc');
+
+        if(isHost) {
+            hostControlsEl.style.display = 'block';
+            badgeEl.innerHTML = `<i class="fa-solid fa-crown"></i> Sala de Cine (Tú eres el Host)`;
+            descEl.innerText = `Reproduce y sincroniza videos para toda la sala mientras charláis por texto o voz.`;
+        } else {
+            hostControlsEl.style.display = 'none';
+            badgeEl.innerHTML = `<i class="fa-solid fa-film"></i> Sala de Cine (Espectador)`;
+            descEl.innerText = `Sintonizado con la Watch Party del Host. Canal de voz y chat abiertos.`;
+        }
 
         const cleanUri = (room.currentTrack || '4cOdK2wGLETKBW3PvgPWqT').replace('spotify:track:', '');
         document.getElementById('spotify-player').src = `https://open.spotify.com/embed/track/${cleanUri}?utm_source=generator&theme=0`;
@@ -786,7 +928,7 @@
         if(box) {
             box.innerHTML += `
                 <div class="msg-bubble">
-                    <div class="msg-header"><span>🔊 Transmisión de Voz de ${data.from}</span></div>
+                    <div class="msg-header"><span>🔊 Canal de Voz en Vivo (${data.from})</span></div>
                     <audio src="${url}" controls style="width:100%; height:26px; margin-top:3px;"></audio>
                 </div>
             `;
