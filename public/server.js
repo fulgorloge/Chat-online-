@@ -9,65 +9,39 @@ const io = new Server(server);
 app.use(express.static('public'));
 app.use(express.json());
 
-app.post('/api/auth/google', (req, res) => {
-    const { token } = req.body;
-    res.json({ success: true, user: { name: "Operador " + Math.floor(Math.random() * 900 + 100) } });
-});
+// Estado de la plataforma
+let activeRooms = {}; 
 
 io.on('connection', (socket) => {
-    console.log(`> Nodo conectado: ${socket.id}`);
+    console.log('Nodo conectado: ' + socket.id);
 
+    // Sincronización de Salas
     socket.on('create_room', (data) => {
         socket.join(data.roomName);
-        console.log(`> Sala creada: ${data.roomName} [Plataforma: ${data.platform}] por ${data.user}`);
-        socket.emit('room_joined', {
-            roomName: data.roomName,
-            platform: data.platform,
-            mediaInput: data.mediaInput
-        });
+        activeRooms[data.roomName] = { 
+            platform: data.platform, 
+            media: data.media, 
+            owner: data.user 
+        };
+        io.emit('update_room_list', activeRooms);
     });
 
-    // Eventos de escritura en tiempo real ("Typing")
-    socket.on('typing', (data) => {
-        if (data.scope === 'room' && data.roomName) {
-            socket.to(data.roomName).emit('display_typing', { user: data.user, scope: 'room' });
-        } else if (data.scope === 'global') {
-            socket.broadcast.emit('display_typing', { user: data.user, scope: 'global' });
-        }
+    // Chat Global
+    socket.on('global_message', (data) => {
+        io.emit('global_message', data);
     });
 
-    socket.on('stop_typing', (data) => {
-        if (data.scope === 'room' && data.roomName) {
-            socket.to(data.roomName).emit('clear_typing', { scope: 'room' });
-        } else if (data.scope === 'global') {
-            socket.broadcast.emit('clear_typing', { scope: 'global' });
-        }
-    });
-
-    // Mensajería de sala
+    // Chat de Sala
     socket.on('room_message', (data) => {
-        io.to(data.roomName).emit('room_message', {
-            user: data.user,
-            text: data.text,
-            time: data.time
-        });
+        io.to(data.roomName).emit('room_message', data);
     });
 
-    // Mensajería global
-    socket.on('chat_message', (data) => {
-        io.emit('chat_message', {
-            user: data.user,
-            text: data.text,
-            time: data.time
-        });
+    // Indicadores de escritura
+    socket.on('typing', (data) => {
+        socket.to(data.roomName || 'global').emit('display_typing', data);
     });
 
-    socket.on('disconnect', () => {
-        console.log(`> Nodo desconectado: ${socket.id}`);
-    });
+    socket.on('disconnect', () => console.log('Nodo desconectado'));
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`> Servidor GeoVibe activo en el puerto ${PORT}`);
-});
+server.listen(3000, () => console.log('>>> GeoVibe Core: Online en puerto 3000'));
