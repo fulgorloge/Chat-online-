@@ -115,6 +115,17 @@
             border: 1px solid var(--pz-border); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
         }
 
+        #map { height: 110px; border-radius: 8px; margin-bottom: 6px; border: 1px solid var(--pz-border); z-index: 1; }
+
+        .pz-list-item {
+            background: rgba(2, 4, 8, 0.5); border: 1px solid var(--pz-border);
+            border-radius: 8px; padding: 6px 10px; display: flex; justify-content: space-between;
+            align-items: center; margin-bottom: 4px; font-size: 0.75rem;
+            transition: background 0.2s;
+        }
+        .pz-list-item:hover { background: rgba(6, 182, 212, 0.03); border-color: var(--pz-border-glow); }
+        .pz-list-item button { width: auto; padding: 3px 8px; font-size: 0.65rem; margin: 0; box-shadow: none; }
+
         .pz-tab-content { display: none; flex-direction: column; gap: 8px; animation: fadeIn 0.3s ease; }
         .pz-tab-content.active { display: flex; }
 
@@ -159,6 +170,17 @@
         <input type="text" id="auth-user" placeholder="Correo electrónico o Usuario...">
         <input type="password" id="auth-pass" placeholder="Contraseña segura...">
         
+        <div id="register-extra-fields" style="display: none;">
+            <select id="auth-avatar">
+                <option value="🎧">🎧 Operador de Audio / DJ</option>
+                <option value="🚀">🚀 Oficial de Campo</option>
+                <option value="🔥">🔥 Nodo Raver / Producción</option>
+                <option value="⚡">⚡ Ingeniero Cyberpunk</option>
+                <option value="💀">💀 Analista Dark Synth</option>
+                <option value="👽">👽 Especialista Telemetría</option>
+            </select>
+        </div>
+
         <button id="auth-action-btn" onclick="handleAuthSubmit()" style="margin-top: 6px;"><i class="fa-solid fa-right-to-bracket"></i> Iniciar Sesión</button>
     </div>
 
@@ -170,7 +192,7 @@
                 <span id="header-avatar" style="font-size: 1.1rem;">🎧</span>
                 <div>
                     <span id="header-username" style="font-weight: 700; font-size: 0.8rem; display: block;">Operador</span>
-                    <span style="font-size: 0.55rem; color: var(--pz-muted); display:flex; align-items:center; gap:4px;"><span id="status-dot" style="width:6px; height:6px; background:var(--pz-accent); border-radius:50%; display:inline-block;"></span> Sesión Segura Activa</span>
+                    <span style="font-size: 0.55rem; color: var(--pz-muted); display:flex; align-items:center; gap:4px;"><span id="status-dot" style="width:6px; height:6px; background:var(--pz-accent); border-radius:50%; display:inline-block;"></span> <span id="header-status">Sesión Segura Activa</span></span>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 6px;">
@@ -178,14 +200,69 @@
                     <i class="fa-solid fa-coins" style="color: var(--pz-economy); font-size: 0.7rem;"></i>
                     <span id="header-wallet" style="font-weight: 700; font-size: 0.7rem; color: var(--pz-economy);">100 ZC</span>
                 </div>
+                <div style="display: flex; gap: 2px; flex-wrap: wrap; justify-content: flex-end;">
+                    <button onclick="switchPzTab('rooms')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Salas"><i class="fa-solid fa-tower-broadcast"></i></button>
+                    <button onclick="switchPzTab('economy')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(234,179,8,0.1); margin:0; box-shadow:none; border:1px solid var(--pz-economy); color:var(--pz-economy);" title="Economía"><i class="fa-solid fa-wallet"></i></button>
+                    <button onclick="switchPzTab('global-chat')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Global"><i class="fa-solid fa-globe"></i></button>
+                    <button onclick="switchPzTab('profile')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; background:rgba(255,255,255,0.04); margin:0; box-shadow:none; border:1px solid var(--pz-border);" title="Perfil"><i class="fa-solid fa-sliders"></i></button>
+                </div>
             </div>
         </div>
 
-        <!-- SALAS / PANEL CENTRAL -->
+        <!-- SALAS -->
         <div id="pz-rooms" class="pz-tab-content active">
             <div class="pz-card">
                 <h2><i class="fa-solid fa-satellite-dish"></i> Sincronización Telemétrica GPS</h2>
-                <p style="font-size: 0.75rem; color: var(--pz-muted);">Bienvenido a la red descentralizada de GeoVibe. Conexión establecida correctamente con el nodo central.</p>
+                <button id="btn-init" style="background:#064e3b; color:#34d399; border: 1px solid var(--pz-accent);" onclick="initRadar()"><i class="fa-solid fa-location-crosshairs"></i> Vincular Coordenadas de Nodo</button>
+                <div id="map" style="margin-top: 8px;"></div>
+            </div>
+
+            <div class="pz-card">
+                <h2><i class="fa-solid fa-circle-plus"></i> Desplegar Frecuencia</h2>
+                <input type="text" id="new-room-name" placeholder="Designación de Sala...">
+                <input type="text" id="new-room-song" placeholder="ID Spotify o Enlace Multimedia...">
+                <button onclick="createRoom()"><i class="fa-solid fa-bolt"></i> Inicializar Red Local</button>
+            </div>
+        </div>
+
+        <!-- ECONOMÍA -->
+        <div id="pz-economy" class="pz-tab-content">
+            <div class="pz-card" style="border-color: var(--pz-economy);">
+                <h2><i class="fa-solid fa-vault" style="color: var(--pz-economy);"></i> Banco Central & Recargas ZC</h2>
+                <p style="font-size: 0.7rem; color: var(--pz-muted); margin-bottom: 8px;">Adquiere Z-Coins mediante pasarela de pago segura o reclama tu bono diario.</p>
+                
+                <div style="background: rgba(234,179,8,0.08); border: 1px solid var(--pz-economy); border-radius: 8px; padding: 10px; text-align: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.65rem; color: var(--pz-muted); text-transform: uppercase;">Saldo Actual en Billetera</span>
+                    <div id="economy-balance-display" style="font-size: 1.6rem; font-weight: 900; color: var(--pz-economy); margin: 2px 0;">100 ZC</div>
+                    <span style="font-size: 0.6rem; color: #34d399;">Tasa: 10 ZC = USD $1.00</span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                    <button onclick="claimDailyReward()" style="background:var(--pz-accent); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-gift"></i> Bono Diario</button>
+                    <button onclick="alert('Abriendo pasarela de pago Stripe...')" style="background:var(--pz-primary); font-size:0.65rem; padding:6px;"><i class="fa-solid fa-cart-shopping"></i> Comprar ZC</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FRECUENCIA GLOBAL -->
+        <div id="pz-global-chat" class="pz-tab-content">
+            <div class="pz-card" style="padding: 10px;">
+                <h2><i class="fa-solid fa-globe"></i> Canal de Enlace Global</h2>
+                <div id="global-chat-box" style="height: 180px; overflow-y: auto; background:rgba(2, 4, 8, 0.6); border-radius:8px; padding:8px; margin-bottom:6px; font-size:0.8rem; border:1px solid var(--pz-border);"></div>
+                <div style="display: flex; gap: 4px;">
+                    <input type="text" id="global-chat-input" placeholder="Transmitir mensaje..." style="margin:0;">
+                    <button onclick="sendGlobalMessage()" style="width: auto; margin:0;"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PERFIL -->
+        <div id="pz-profile" class="pz-tab-content">
+            <div class="pz-card">
+                <h2><i class="fa-solid fa-sliders"></i> Ajustes de Perfil</h2>
+                <label>Nombre de Operador</label>
+                <input type="text" id="profile-name-input" value="Operador">
+                <button onclick="alert('Cambios guardados correctamente.')">Actualizar Credenciales</button>
             </div>
         </div>
 
@@ -195,6 +272,12 @@
 
 <script>
     const socket = io();
+    let userWallet = 100;
+
+    function switchPzTab(tabId) {
+        document.querySelectorAll('.pz-tab-content').forEach(el => el.classList.remove('active'));
+        document.getElementById(`pz-${tabId}`).classList.add('active');
+    }
 
     function socialAuth(provider, emoji) {
         if (provider === 'Google') {
@@ -204,7 +287,6 @@
             });
             google.accounts.id.prompt();
         } else {
-            alert(`Iniciando protocolo de enlace con ${provider} ${emoji}`);
             simulateSuccessfulLogin(provider);
         }
     }
@@ -222,7 +304,8 @@
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('main-hud').style.display = 'flex';
                 document.getElementById('header-username').innerText = data.user.name;
-                document.getElementById('header-wallet').innerText = '100 ZC';
+                document.getElementById('profile-name-input').value = data.user.name;
+                updateWalletDisplay();
             }
         } catch (err) {
             console.error('Error de autenticación:', err);
@@ -230,18 +313,12 @@
     }
 
     function simulateSuccessfulLogin(providerName) {
-        const user = {
-            name: `Operador_${providerName}`,
-            avatar: '🎧',
-            wallet: 100
-        };
-        
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-hud').style.display = 'flex';
-        
-        document.getElementById('header-username').innerText = user.name;
-        document.getElementById('header-avatar').innerText = user.avatar;
-        document.getElementById('header-wallet').innerText = `${user.wallet} ZC`;
+        const defaultName = `Operador_${providerName}`;
+        document.getElementById('header-username').innerText = defaultName;
+        document.getElementById('profile-name-input').value = defaultName;
+        updateWalletDisplay();
     }
 
     function handleAuthSubmit() {
@@ -252,6 +329,64 @@
         }
         simulateSuccessfulLogin('Local');
     }
+
+    function updateWalletDisplay() {
+        document.getElementById('header-wallet').innerText = `${userWallet} ZC`;
+        document.getElementById('economy-balance-display').innerText = `${userWallet} ZC`;
+    }
+
+    function claimDailyReward() {
+        userWallet += 10;
+        updateWalletDisplay();
+        alert('¡Bono diario reclamado con éxito (+10 ZC)!');
+    }
+
+    function initRadar() {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(position => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                document.getElementById('btn-init').innerText = `Nodo Vinculado (${lat.toFixed(2)}, ${lon.toFixed(2)})`;
+                
+                const map = L.map('map').setView([lat, lon], 14);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+                L.marker([lat, lon]).addTo(map).bindPopup('Tu Posición Actual').openPopup();
+            }, () => {
+                alert('No se pudo obtener la geolocalización.');
+            });
+        } else {
+            alert('Geolocalización no soportada por el navegador.');
+        }
+    }
+
+    function createRoom() {
+        const name = document.getElementById('new-room-name').value;
+        if (!name) {
+            alert('Por favor ingresa una designación para la sala.');
+            return;
+        }
+        alert(`Sala "${name}" desplegada con éxito en la red.`);
+        document.getElementById('new-room-name').value = '';
+        document.getElementById('new-room-song').value = '';
+    }
+
+    function sendGlobalMessage() {
+        const input = document.getElementById('global-chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+        
+        socket.emit('chat_message', { user: document.getElementById('header-username').innerText, text });
+        input.value = '';
+    }
+
+    socket.on('chat_message', (data) => {
+        const chatBox = document.getElementById('global-chat-box');
+        const bubble = document.createElement('div');
+        bubble.style.marginBottom = '6px';
+        bubble.innerHTML = `<b style="color:var(--pz-neon);">${data.user}:</b> ${data.text}`;
+        chatBox.appendChild(bubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
 </script>
 
 </body>
