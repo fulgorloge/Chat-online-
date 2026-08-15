@@ -11,7 +11,7 @@ app.use(express.json());
 
 app.post('/api/auth/google', (req, res) => {
     const { token } = req.body;
-    res.json({ success: true, user: { name: "Operador Google" } });
+    res.json({ success: true, user: { name: "Operador " + Math.floor(Math.random() * 900 + 100) } });
 });
 
 io.on('connection', (socket) => {
