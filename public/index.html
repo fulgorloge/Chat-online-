@@ -138,28 +138,38 @@
             </div>
         </div>
 
-        <!-- MÓDULO DE SALAS -->
+        <!-- MÓDULO DE SALAS Y STREAMING -->
         <div id="pz-rooms" class="pz-tab-content active">
-            <div class="pz-card">
-                <h2><i class="fa-solid fa-satellite-dish"></i> Estado del Nodo Telemétrico</h2>
-                <div style="background: rgba(6, 182, 212, 0.08); border: 1px solid var(--pz-neon); border-radius: 8px; padding: 10px; text-align: center;">
-                    <span style="font-size: 0.75rem; color: var(--pz-neon); font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Nodo Activo en Red Local</span>
-                </div>
-            </div>
-
-            <div class="pz-card">
+            <div class="pz-card" id="create-room-card">
                 <h2><i class="fa-solid fa-circle-plus"></i> Desplegar Frecuencia</h2>
                 <input type="text" id="new-room-name" placeholder="Designación de Sala...">
-                <input type="text" id="new-room-media" placeholder="Enlace o ID Multimedia (Spotify/YouTube)...">
+                <input type="text" id="new-room-media" placeholder="Enlace Multimedia (YouTube/Streaming)...">
                 <button onclick="createRoom()"><i class="fa-solid fa-bolt"></i> Inicializar Red Local</button>
             </div>
 
-            <!-- Panel de Sala Activa (Se muestra cuando entras a una sala) -->
+            <!-- Panel de Sala Activa con Herramientas de Streaming -->
             <div id="active-room-panel" class="pz-card" style="display:none; border-color: var(--pz-accent);">
-                <h2><i class="fa-solid fa-tower-broadcast" style="color: var(--pz-accent);"></i> Sala Actual: <span id="current-room-title" style="color:white;">Ninguna</span></h2>
-                <p style="font-size: 0.75rem; color: var(--pz-muted);">Estás conectado a esta frecuencia. Las transmisiones de audio o multimedia se sincronizarán aquí.</p>
-                <div id="room-media-info" style="background: rgba(5, 150, 105, 0.1); padding: 8px; border-radius: 6px; font-size: 0.75rem; margin-bottom: 8px;">Multimedia: Ninguna</div>
-                <button onclick="leaveRoom()" style="background: var(--pz-google);"><i class="fa-solid fa-power-off"></i> Desconectarse de la Sala</button>
+                <h2><i class="fa-solid fa-tower-broadcast" style="color: var(--pz-accent);"></i> Sala: <span id="current-room-title" style="color:white;">Ninguna</span></h2>
+                <p style="font-size: 0.70rem; color: var(--pz-muted);">Transmisión sincronizada activa para todos los usuarios en la sala.</p>
+                
+                <!-- Reproductor de Streaming / Contenedor Multimedia -->
+                <div style="background: rgba(2, 4, 8, 0.8); border: 1px solid var(--pz-border); border-radius: 8px; padding: 8px; margin-bottom: 8px; text-align: center;">
+                    <div id="media-player-container" style="font-size: 0.75rem; color: var(--pz-neon); margin-bottom: 6px; word-break: break-all;">
+                        <i class="fa-solid fa-film"></i> <span id="current-media-url">Esperando contenido multimedia...</span>
+                    </div>
+                    <div style="display: flex; gap: 4px;">
+                        <button onclick="syncMediaAction('play')" style="background: var(--pz-accent); margin:0;"><i class="fa-solid fa-play"></i> Reproducir</button>
+                        <button onclick="syncMediaAction('pause')" style="background: var(--pz-economy); color:black; margin:0;"><i class="fa-solid fa-pause"></i> Pausar</button>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 4px; margin-top: 4px;">
+                    <input type="text" id="room-chat-input" placeholder="Escribe a la sala..." style="margin:0;">
+                    <button onclick="sendRoomMessage()" style="width: auto; margin:0;"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+                <div id="room-chat-box" style="height: 100px; overflow-y: auto; background:rgba(2, 4, 8, 0.6); border-radius:8px; padding:6px; margin-top:6px; font-size:0.75rem; border:1px solid var(--pz-border);"></div>
+
+                <button onclick="leaveRoom()" style="background: var(--pz-google); margin-top: 8px;"><i class="fa-solid fa-power-off"></i> Desconectarse de la Sala</button>
             </div>
         </div>
 
@@ -211,6 +221,23 @@
     let userProfile = { name: '', role: '🎧', bio: '', wallet: 0 };
     let currentRoom = null;
 
+    // Carga automática del perfil guardado (Persistencia en LocalStorage)
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedUser = localStorage.getItem('geovibe_user');
+        if (savedUser) {
+            userProfile = JSON.parse(savedUser);
+            document.getElementById('header-username').innerText = userProfile.name;
+            document.getElementById('header-avatar').innerText = userProfile.role;
+            document.getElementById('profile-handle').value = userProfile.name;
+            document.getElementById('profile-bio').value = userProfile.bio;
+            updateWalletUI();
+
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('main-hud').style.display = 'flex';
+        }
+    });
+
     function initGoogleLogin() {
         google.accounts.id.initialize({
             client_id: "217257383894-svk08tdkru8n294ouema10flce0tbric.apps.googleusercontent.com",
@@ -251,6 +278,8 @@
         userProfile.bio = document.getElementById('setup-bio').value;
         userProfile.wallet = 100;
 
+        localStorage.setItem('geovibe_user', JSON.stringify(userProfile));
+
         document.getElementById('header-username').innerText = userProfile.name;
         document.getElementById('header-avatar').innerText = userProfile.role;
         document.getElementById('profile-handle').value = userProfile.name;
@@ -264,6 +293,7 @@
     function updateWalletUI() {
         document.getElementById('header-wallet').innerText = `${userProfile.wallet} ZC`;
         document.getElementById('economy-balance-display').innerText = `${userProfile.wallet} ZC`;
+        localStorage.setItem('geovibe_user', JSON.stringify(userProfile));
     }
 
     function claimDailyReward() {
@@ -284,29 +314,56 @@
         socket.emit('create_room', { roomName: name, mediaUrl: media, user: userProfile.name });
     }
 
-    // Al unirse exitosamente a la sala, nos quedamos en la pestaña de salas mostrando el panel activo
     socket.on('room_joined', (data) => {
         currentRoom = data.roomName;
-        alert(`¡Conectado exitosamente a la sala telemétrica: ${data.roomName}!`);
-        
-        document.getElementById('current-room-title.innerText = data.roomName');
         document.getElementById('current-room-title').innerText = data.roomName;
-        document.getElementById('room-media-info').innerText = data.mediaUrl ? `Multimedia: ${data.mediaUrl}` : 'Multimedia: Enlace vacío';
+        document.getElementById('current-media-url').innerText = data.mediaUrl ? data.mediaUrl : 'Sin enlace multimedia asignado';
         
-        // Mostrar el panel de sala activa dentro de la misma pestaña de salas
+        document.getElementById('create-room-card').style.display = 'none';
         document.getElementById('active-room-panel').style.display = 'block';
         
         document.getElementById('new-room-name').value = '';
         document.getElementById('new-room-media').value = '';
-        
-        // Mantiene la vista en la sección de salas para ver el estado activo
         switchPzTab('rooms');
+    });
+
+    // Herramientas de streaming sincronizado
+    function syncMediaAction(action) {
+        if (!currentRoom) return;
+        socket.emit('media_action', { roomName: currentRoom, action, user: userProfile.name });
+    }
+
+    socket.on('media_action_broadcast', (data) => {
+        const playerInfo = document.getElementById('current-media-url');
+        if (data.action === 'play') {
+            playerInfo.innerHTML = `<i class="fa-solid fa-play" style="color:var(--pz-accent)"></i> Reproduciendo contenido (Acción de ${data.user})`;
+        } else {
+            playerInfo.innerHTML = `<i class="fa-solid fa-pause" style="color:var(--pz-economy)"></i> En pausa (Acción de ${data.user})`;
+        }
+    });
+
+    function sendRoomMessage() {
+        const input = document.getElementById('room-chat-input');
+        const text = input.value.trim();
+        if (!text || !currentRoom) return;
+        socket.emit('room_message', { roomName: currentRoom, user: userProfile.name, text });
+        input.value = '';
+    }
+
+    socket.on('room_message', (data) => {
+        const chatBox = document.getElementById('room-chat-box');
+        const bubble = document.createElement('div');
+        bubble.style.marginBottom = '4px';
+        bubble.innerHTML = `<b style="color:var(--pz-neon);">${data.user}:</b> ${data.text}`;
+        chatBox.appendChild(bubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
     });
 
     function leaveRoom() {
         currentRoom = null;
         document.getElementById('active-room-panel').style.display = 'none';
-        alert('Te has desconectado de la sala.');
+        document.getElementById('create-room-card').style.display = 'block';
+        document.getElementById('room-chat-box').innerHTML = '';
     }
 
     function sendGlobalMessage() {
@@ -329,8 +386,9 @@
     function saveProfileChanges() {
         userProfile.name = document.getElementById('profile-handle').value;
         userProfile.bio = document.getElementById('profile-bio').value;
+        localStorage.setItem('geovibe_user', JSON.stringify(userProfile));
         document.getElementById('header-username').innerText = userProfile.name;
-        alert('Perfil actualizado.');
+        alert('Perfil actualizado y guardado correctamente.');
     }
 
     function switchPzTab(tabId) {
