@@ -9,41 +9,47 @@ const io = new Server(server);
 app.use(express.static('public'));
 app.use(express.json());
 
-// Endpoint básico para autenticación con Google (si aplica)
 app.post('/api/auth/google', (req, res) => {
     const { token } = req.body;
-    // Aquí puedes validar tu token de Google si lo requieres
-    res.json({ success: true, user: { name: "Operador Google" } });
+    res.json({ success: true, user: { name: "Operador " + Math.floor(Math.random() * 900 + 100) } });
 });
 
 io.on('connection', (socket) => {
     console.log(`> Nodo conectado: ${socket.id}`);
 
-    // Crear y unirse a una sala de streaming
     socket.on('create_room', (data) => {
         socket.join(data.roomName);
-        console.log(`> Sala creada/unida: ${data.roomName} por ${data.user}`);
-        
-        // Notificar al usuario que se unió exitosamente enviando los datos de la sala
+        console.log(`> Sala creada: ${data.roomName} [Plataforma: ${data.platform}] por ${data.user}`);
         socket.emit('room_joined', {
             roomName: data.roomName,
-            mediaUrl: data.mediaUrl
+            platform: data.platform,
+            mediaInput: data.mediaInput
         });
     });
 
-    // Manejar acciones de reproducción multimedia sincronizada (Play/Pause)
-    socket.on('media_action', (data) => {
-        io.to(data.roomName).emit('media_action_broadcast', {
-            action: data.action,
-            user: data.user
-        });
+    // Eventos de escritura en tiempo real ("Typing")
+    socket.on('typing', (data) => {
+        if (data.scope === 'room' && data.roomName) {
+            socket.to(data.roomName).emit('display_typing', { user: data.user, scope: 'room' });
+        } else if (data.scope === 'global') {
+            socket.broadcast.emit('display_typing', { user: data.user, scope: 'global' });
+        }
     });
 
-    // Mensajería dentro de una sala específica
+    socket.on('stop_typing', (data) => {
+        if (data.scope === 'room' && data.roomName) {
+            socket.to(data.roomName).emit('clear_typing', { scope: 'room' });
+        } else if (data.scope === 'global') {
+            socket.broadcast.emit('clear_typing', { scope: 'global' });
+        }
+    });
+
+    // Mensajería de sala
     socket.on('room_message', (data) => {
         io.to(data.roomName).emit('room_message', {
             user: data.user,
-            text: data.text
+            text: data.text,
+            time: data.time
         });
     });
 
@@ -51,7 +57,8 @@ io.on('connection', (socket) => {
     socket.on('chat_message', (data) => {
         io.emit('chat_message', {
             user: data.user,
-            text: data.text
+            text: data.text,
+            time: data.time
         });
     });
 
