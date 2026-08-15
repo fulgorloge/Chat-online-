@@ -54,11 +54,12 @@ app.post('/api/auth/google', async (req, res) => {
 io.on('connection', (socket) => {
   console.log(`Nuevo usuario conectado: ${socket.id}`);
 
+  // Canal de chat global
   socket.on('chat_message', (data) => {
     io.emit('chat_message', data);
   });
 
-  // Manejo de despliegue y conexión real a salas
+  // Manejo de creación y unión a salas por WebSockets
   socket.on('create_room', (data) => {
     socket.join(data.roomName);
     socket.emit('room_joined', { roomName: data.roomName });
