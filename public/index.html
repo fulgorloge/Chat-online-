@@ -26,8 +26,6 @@
             --pz-neon-glow: rgba(6, 182, 212, 0.25);
             --pz-economy: #eab308;
             --pz-google: #ea4335;
-            --pz-facebook: #1877f2;
-            --pz-instagram: #e1306c;
             --pz-text: #f8fafc;
             --pz-muted: #64748b;
         }
@@ -94,7 +92,7 @@
 
 <div id="app">
     
-    <!-- 1. PANTALLA DE ACCESO OAUTH / CREDENCIALES -->
+    <!-- 1. PANTALLA DE ACCESO OAUTH -->
     <div id="login-screen" class="pz-card" style="margin-top: 15px; text-align: center; padding: 16px;">
         <h2><i class="fa-solid fa-shield-halved"></i> GeoVibe // Core Security</h2>
         <p style="color: var(--pz-muted); font-size: 0.75rem; margin-bottom: 10px;">Acceso seguro mediante red unificada</p>
@@ -287,13 +285,24 @@
         }
     }
 
+    // Creación y unión real a salas mediante WebSockets
     function createRoom() {
         const name = document.getElementById('new-room-name').value;
-        if (!name) { alert('Ingresa una designación para la sala.'); return; }
-        alert(`Sala "${name}" desplegada con éxito.`);
+        const media = document.getElementById('new-room-media').value;
+        
+        if (!name) { 
+            alert('Ingresa una designación para la sala.'); 
+            return; 
+        }
+
+        socket.emit('create_room', { roomName: name, mediaUrl: media, user: userProfile.name });
+    }
+
+    socket.on('room_joined', (data) => {
+        alert(`¡Conectado exitosamente a la sala telemétrica: ${data.roomName}!`);
         document.getElementById('new-room-name').value = '';
         document.getElementById('new-room-media').value = '';
-    }
+    });
 
     function sendGlobalMessage() {
         const input = document.getElementById('global-chat-input');
