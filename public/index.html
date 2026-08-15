@@ -196,7 +196,11 @@
 </div>
 
 <script>
-    const socket = io();
+    // Inicialización robusta de Socket.io orientada a Render
+    const socket = io(window.location.origin, {
+        transports: ['websocket', 'polling']
+    });
+
     let userProfile = { name: '', role: '🎧', bio: '', wallet: 0 };
 
     function initGoogleLogin() {
@@ -260,8 +264,9 @@
         alert('¡Bono diario reclamado (+10 ZC)!');
     }
 
-    // Creación y unión real a salas mediante WebSockets sin usar geolocalización
+    // Creación y unión a salas con alerta de diagnóstico
     function createRoom() {
+        alert("Diagnóstico: Botón presionado correctamente");
         const name = document.getElementById('new-room-name').value;
         const media = document.getElementById('new-room-media').value;
         
