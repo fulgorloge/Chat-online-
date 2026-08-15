@@ -143,23 +143,28 @@
             <div class="pz-card" id="create-room-card">
                 <h2><i class="fa-solid fa-circle-plus"></i> Desplegar Frecuencia</h2>
                 <input type="text" id="new-room-name" placeholder="Designación de Sala...">
-                <input type="text" id="new-room-media" placeholder="Enlace Multimedia (YouTube/Streaming)...">
+                
+                <label>Plataforma de Streaming</label>
+                <select id="new-room-platform">
+                    <option value="youtube">▶️ YouTube (Video/Música)</option>
+                    <option value="spotify">🟢 Spotify (Música/Podcast)</option>
+                    <option value="netflix">🔴 Netflix (Películas/Series)</option>
+                    <option value="custom">🌐 Enlace Web Libre / Otro</option>
+                </select>
+
+                <input type="text" id="new-room-media" placeholder="ID del video o URL completa...">
                 <button onclick="createRoom()"><i class="fa-solid fa-bolt"></i> Inicializar Red Local</button>
             </div>
 
-            <!-- Panel de Sala Activa con Herramientas de Streaming -->
+            <!-- Panel de Sala Activa con Reproductor Integrado -->
             <div id="active-room-panel" class="pz-card" style="display:none; border-color: var(--pz-accent);">
                 <h2><i class="fa-solid fa-tower-broadcast" style="color: var(--pz-accent);"></i> Sala: <span id="current-room-title" style="color:white;">Ninguna</span></h2>
-                <p style="font-size: 0.70rem; color: var(--pz-muted);">Transmisión sincronizada activa para todos los usuarios en la sala.</p>
+                <p style="font-size: 0.70rem; color: var(--pz-muted);">Reproductor multimedia sincronizado para la sala.</p>
                 
-                <!-- Reproductor de Streaming / Contenedor Multimedia -->
-                <div style="background: rgba(2, 4, 8, 0.8); border: 1px solid var(--pz-border); border-radius: 8px; padding: 8px; margin-bottom: 8px; text-align: center;">
-                    <div id="media-player-container" style="font-size: 0.75rem; color: var(--pz-neon); margin-bottom: 6px; word-break: break-all;">
-                        <i class="fa-solid fa-film"></i> <span id="current-media-url">Esperando contenido multimedia...</span>
-                    </div>
-                    <div style="display: flex; gap: 4px;">
-                        <button onclick="syncMediaAction('play')" style="background: var(--pz-accent); margin:0;"><i class="fa-solid fa-play"></i> Reproducir</button>
-                        <button onclick="syncMediaAction('pause')" style="background: var(--pz-economy); color:black; margin:0;"><i class="fa-solid fa-pause"></i> Pausar</button>
+                <!-- Contenedor del Reproductor Embebido (Iframe Dinámico) -->
+                <div style="background: rgba(2, 4, 8, 0.9); border: 1px solid var(--pz-border); border-radius: 8px; overflow: hidden; margin-bottom: 8px;">
+                    <div id="media-player-wrapper" style="width: 100%; height: 200px; display: flex; align-items: center; justify-content: center; background: #000;">
+                        <span style="font-size: 0.75rem; color: var(--pz-muted);">Cargando contenido multimedia...</span>
                     </div>
                 </div>
 
@@ -167,7 +172,7 @@
                     <input type="text" id="room-chat-input" placeholder="Escribe a la sala..." style="margin:0;">
                     <button onclick="sendRoomMessage()" style="width: auto; margin:0;"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
-                <div id="room-chat-box" style="height: 100px; overflow-y: auto; background:rgba(2, 4, 8, 0.6); border-radius:8px; padding:6px; margin-top:6px; font-size:0.75rem; border:1px solid var(--pz-border);"></div>
+                <div id="room-chat-box" style="height: 90px; overflow-y: auto; background:rgba(2, 4, 8, 0.6); border-radius:8px; padding:6px; margin-top:6px; font-size:0.75rem; border:1px solid var(--pz-border);"></div>
 
                 <button onclick="leaveRoom()" style="background: var(--pz-google); margin-top: 8px;"><i class="fa-solid fa-power-off"></i> Desconectarse de la Sala</button>
             </div>
@@ -221,7 +226,7 @@
     let userProfile = { name: '', role: '🎧', bio: '', wallet: 0 };
     let currentRoom = null;
 
-    // Carga automática del perfil guardado (Persistencia en LocalStorage)
+    // Persistencia de Perfil
     window.addEventListener('DOMContentLoaded', () => {
         const savedUser = localStorage.getItem('geovibe_user');
         if (savedUser) {
@@ -304,20 +309,23 @@
 
     function createRoom() {
         const name = document.getElementById('new-room-name').value;
-        const media = document.getElementById('new-room-media').value;
+        const platform = document.getElementById('new-room-platform').value;
+        const mediaInput = document.getElementById('new-room-media').value.trim();
         
         if (!name) { 
             alert('Ingresa una designación para la sala.'); 
             return; 
         }
 
-        socket.emit('create_room', { roomName: name, mediaUrl: media, user: userProfile.name });
+        socket.emit('create_room', { roomName: name, platform, mediaInput, user: userProfile.name });
     }
 
     socket.on('room_joined', (data) => {
         currentRoom = data.roomName;
         document.getElementById('current-room-title').innerText = data.roomName;
-        document.getElementById('current-media-url').innerText = data.mediaUrl ? data.mediaUrl : 'Sin enlace multimedia asignado';
+        
+        // Generar el reproductor incrustado según la plataforma seleccionada
+        renderEmbedPlayer(data.platform, data.mediaInput);
         
         document.getElementById('create-room-card').style.display = 'none';
         document.getElementById('active-room-panel').style.display = 'block';
@@ -327,20 +335,47 @@
         switchPzTab('rooms');
     });
 
-    // Herramientas de streaming sincronizado
-    function syncMediaAction(action) {
-        if (!currentRoom) return;
-        socket.emit('media_action', { roomName: currentRoom, action, user: userProfile.name });
-    }
+    // Función para transformar URLs en reproductores incrustados seguros
+    function renderEmbedPlayer(platform, input) {
+        const wrapper = document.getElementById('media-player-wrapper');
+        wrapper.innerHTML = '';
 
-    socket.on('media_action_broadcast', (data) => {
-        const playerInfo = document.getElementById('current-media-url');
-        if (data.action === 'play') {
-            playerInfo.innerHTML = `<i class="fa-solid fa-play" style="color:var(--pz-accent)"></i> Reproduciendo contenido (Acción de ${data.user})`;
-        } else {
-            playerInfo.innerHTML = `<i class="fa-solid fa-pause" style="color:var(--pz-economy)"></i> En pausa (Acción de ${data.user})`;
+        if (!input) {
+            wrapper.innerHTML = `<span style="font-size: 0.75rem; color: var(--pz-muted);">Sin contenido multimedia configurado</span>`;
+            return;
         }
-    });
+
+        let embedHtml = '';
+
+        if (platform === 'youtube') {
+            // Extraer ID de YouTube de forma sencilla o usar el texto si es el ID directo
+            let videoId = input;
+            if (input.includes('watch?v=')) {
+                videoId = input.split('watch?v=')[1].split('&')[0];
+            } else if (input.includes('youtu.be/')) {
+                videoId = input.split('youtu.be/')[1].split('?')[0];
+            }
+            embedHtml = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+        
+        } else if (platform === 'spotify') {
+            // Si el usuario ingresa un enlace de Spotify, adaptarlo para embed
+            let spotifyUri = input;
+            if (input.includes('spotify.com/')) {
+                spotifyUri = input.replace('spotify.com/', 'spotify.com/embed/');
+            }
+            embedHtml = `<iframe src="${spotifyUri}" width="100%" height="100%" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
+        
+        } else if (platform === 'netflix') {
+            // Netflix bloquea iframes directos por políticas de seguridad, pero se provee un visor o enlace directo integrado
+            embedHtml = `<div style="padding: 20px; text-align: center;"><i class="fa-solid fa-film" style="font-size: 2rem; color: var(--pz-google); margin-bottom: 8px;"></i><p style="font-size: 0.75rem; color: white; margin-bottom: 8px;">Transmisión de Netflix / Externa</p><a href="${input}" target="_blank" style="background: var(--pz-google); color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 0.75rem; display:inline-block;">Abrir enlace de transmisión <i class="fa-solid fa-external-link"></i></a></div>`;
+        
+        } else {
+            // Páginas web libres o genéricas
+            embedHtml = `<iframe src="${input}" width="100%" height="100%" frameborder="0"></iframe>`;
+        }
+
+        wrapper.innerHTML = embedHtml;
+    }
 
     function sendRoomMessage() {
         const input = document.getElementById('room-chat-input');
@@ -364,6 +399,7 @@
         document.getElementById('active-room-panel').style.display = 'none';
         document.getElementById('create-room-card').style.display = 'block';
         document.getElementById('room-chat-box').innerHTML = '';
+        document.getElementById('media-player-wrapper').innerHTML = '';
     }
 
     function sendGlobalMessage() {
