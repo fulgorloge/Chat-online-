@@ -153,6 +153,14 @@
                 <input type="text" id="new-room-media" placeholder="Enlace o ID Multimedia (Spotify/YouTube)...">
                 <button onclick="createRoom()"><i class="fa-solid fa-bolt"></i> Inicializar Red Local</button>
             </div>
+
+            <!-- Panel de Sala Activa (Se muestra cuando entras a una sala) -->
+            <div id="active-room-panel" class="pz-card" style="display:none; border-color: var(--pz-accent);">
+                <h2><i class="fa-solid fa-tower-broadcast" style="color: var(--pz-accent);"></i> Sala Actual: <span id="current-room-title" style="color:white;">Ninguna</span></h2>
+                <p style="font-size: 0.75rem; color: var(--pz-muted);">Estás conectado a esta frecuencia. Las transmisiones de audio o multimedia se sincronizarán aquí.</p>
+                <div id="room-media-info" style="background: rgba(5, 150, 105, 0.1); padding: 8px; border-radius: 6px; font-size: 0.75rem; margin-bottom: 8px;">Multimedia: Ninguna</div>
+                <button onclick="leaveRoom()" style="background: var(--pz-google);"><i class="fa-solid fa-power-off"></i> Desconectarse de la Sala</button>
+            </div>
         </div>
 
         <!-- MÓDULO DE CHAT GLOBAL -->
@@ -201,6 +209,7 @@
     });
 
     let userProfile = { name: '', role: '🎧', bio: '', wallet: 0 };
+    let currentRoom = null;
 
     function initGoogleLogin() {
         google.accounts.id.initialize({
@@ -275,16 +284,30 @@
         socket.emit('create_room', { roomName: name, mediaUrl: media, user: userProfile.name });
     }
 
-    // Transición visual al recibir la confirmación de la sala
+    // Al unirse exitosamente a la sala, nos quedamos en la pestaña de salas mostrando el panel activo
     socket.on('room_joined', (data) => {
+        currentRoom = data.roomName;
         alert(`¡Conectado exitosamente a la sala telemétrica: ${data.roomName}!`);
+        
+        document.getElementById('current-room-title.innerText = data.roomName');
+        document.getElementById('current-room-title').innerText = data.roomName;
+        document.getElementById('room-media-info').innerText = data.mediaUrl ? `Multimedia: ${data.mediaUrl}` : 'Multimedia: Enlace vacío';
+        
+        // Mostrar el panel de sala activa dentro de la misma pestaña de salas
+        document.getElementById('active-room-panel').style.display = 'block';
         
         document.getElementById('new-room-name').value = '';
         document.getElementById('new-room-media').value = '';
-
-        // Te redirige automáticamente al chat global o panel activo de la sala
-        switchPzTab('global-chat');
+        
+        // Mantiene la vista en la sección de salas para ver el estado activo
+        switchPzTab('rooms');
     });
+
+    function leaveRoom() {
+        currentRoom = null;
+        document.getElementById('active-room-panel').style.display = 'none';
+        alert('Te has desconectado de la sala.');
+    }
 
     function sendGlobalMessage() {
         const input = document.getElementById('global-chat-input');
