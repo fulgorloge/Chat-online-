@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nox | Watch Together</title>
+    <!-- Enlace a la hoja de estilos personalizada -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- Contenedor Principal de la Interfaz -->
+    <div class="app-container">
+        
+        <!-- Sección Izquierda: Reproductor y Controles -->
+        <div class="main-content">
+            <header class="room-header">
+                <h1 id="room-title">NOX // <span id="current-room-name">General</span></h1>
+                <button id="change-room-btn">Cambiar de Sala</button>
+            </header>
+
+            <!-- Contenedor del Reproductor de Vídeo -->
+            <div class="video-container">
+                <video id="video-player" controls>
+                    <!-- URL de ejemplo pública compatible para pruebas de reproducción -->
+                    <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+                    Tu navegador no soporta el elemento de vídeo.
+                </video>
+            </div>
+
+            <!-- Panel de Información de la Sala / Streamer -->
+            <div class="stream-info">
+                <div class="streamer-details">
+                    <div class="avatar-placeholder"></div>
+                    <div>
+                        <h3 id="streamer-name">Anfitrión de Nox</h3>
+                        <p id="stream-category">Categoría: Cine y Series</p>
+                    </div>
+                </div>
+                <div class="viewer-count">Espectadores: <span id="count">1</span></div>
+            </div>
+        </div>
+
+        <!-- Sección Derecha: Chat en Vivo Estilo Kick -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <h3>Chat de Nox</h3>
+            </div>
+            <div id="chat-messages" class="chat-messages">
+                <!-- Los mensajes del chat se inyectarán dinámicamente aquí -->
+            </div>
+            <form id="chat-form" class="chat-input-form">
+                <input type="text" id="chat-input" placeholder="Envía un mensaje a Nox..." autocomplete="off" required>
+                <button type="submit">Enviar</button>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- Script del cliente de Socket.io (servido automáticamente por el backend) -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Script principal de lógica del cliente -->
+    <script src="client.js"></script>
+</body>
+</html>
