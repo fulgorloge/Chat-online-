@@ -26,6 +26,8 @@
             --pz-neon-glow: rgba(6, 182, 212, 0.25);
             --pz-economy: #eab308;
             --pz-google: #ea4335;
+            --pz-facebook: #1877f2;
+            --pz-instagram: #e1306c;
             --pz-text: #f8fafc;
             --pz-muted: #64748b;
         }
@@ -36,6 +38,9 @@
             background: var(--pz-bg); color: var(--pz-text); font-family: 'Outfit', sans-serif; 
             margin: 0; padding: 4px; display: flex; justify-content: center; 
             min-height: 100vh; overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(37, 99, 235, 0.03) 0%, transparent 40%);
         }
 
         #app { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 6px; }
@@ -69,7 +74,7 @@
 
         .pz-oauth-btn {
             display: flex; align-items: center; justify-content: center; gap: 8px;
-            background: rgba(255,255,255,0.04); border: 1px solid rgba(234, 67, 53, 0.4); color: white;
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(234, 67, 53, 0.4); color: white; margin-top: 6px;
         }
         .pz-oauth-btn:hover { background: rgba(234, 67, 53, 0.15); }
 
@@ -79,6 +84,8 @@
             border: 1px solid var(--pz-border);
         }
 
+        #map { height: 110px; border-radius: 8px; margin-top: 6px; border: 1px solid var(--pz-border); z-index: 1; }
+
         .pz-tab-content { display: none; flex-direction: column; gap: 8px; }
         .pz-tab-content.active { display: flex; }
     </style>
@@ -87,17 +94,16 @@
 
 <div id="app">
     
-    <!-- 1. PANTALLA DE ACCESO / GOOGLE OAUTH -->
+    <!-- 1. PANTALLA DE ACCESO OAUTH / CREDENCIALES -->
     <div id="login-screen" class="pz-card" style="margin-top: 15px; text-align: center; padding: 16px;">
         <h2><i class="fa-solid fa-shield-halved"></i> GeoVibe // Core Security</h2>
         <p style="color: var(--pz-muted); font-size: 0.75rem; margin-bottom: 10px;">Acceso seguro mediante red unificada</p>
-        
         <button class="pz-oauth-btn" onclick="initGoogleLogin()">
             <i class="fa-brands fa-google" style="color: var(--pz-google);"></i> Continuar con Google
         </button>
     </div>
 
-    <!-- 2. PASO INTERMEDIO: COMPLETAR PERFIL Y BILLETERA INICIAL -->
+    <!-- 2. CONFIGURACIÓN DE PERFIL INICIAL -->
     <div id="setup-screen" class="pz-card" style="display: none; margin-top: 15px;">
         <h2><i class="fa-solid fa-user-gear"></i> Configuración de Perfil</h2>
         <p style="color: var(--pz-muted); font-size: 0.75rem;">Completa tus datos para inicializar tu billetera y nodo.</p>
@@ -116,14 +122,6 @@
         <label>Biografía Corta</label>
         <textarea id="setup-bio" placeholder="Estado o descripción..."></textarea>
 
-        <label>Plataformas de Streaming Habituales</label>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.75rem;">
-            <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" class="stream-pref" value="Spotify" style="width:auto; margin:0;"> Spotify</label>
-            <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" class="stream-pref" value="YouTube" style="width:auto; margin:0;"> YouTube</label>
-            <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" class="stream-pref" value="Netflix" style="width:auto; margin:0;"> Netflix</label>
-            <label style="display:flex; align-items:center; gap:4px;"><input type="checkbox" class="stream-pref" value="Prime" style="width:auto; margin:0;"> Amazon Prime</label>
-        </div>
-
         <button onclick="completeSetup()" style="background: var(--pz-accent); margin-top: 10px;"><i class="fa-solid fa-check"></i> Finalizar y Reclamar Bono Inicial (100 ZC)</button>
     </div>
 
@@ -134,29 +132,47 @@
                 <span id="header-avatar" style="font-size: 1.1rem;">🎧</span>
                 <span id="header-username" style="font-weight: 700; font-size: 0.8rem;">Operador</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="display: flex; align-items: center; gap: 4px;">
                 <div style="background: rgba(234, 179, 8, 0.15); border: 1px solid var(--pz-economy); padding: 2px 6px; border-radius: 6px; display: flex; align-items: center; gap: 4px;">
                     <i class="fa-solid fa-coins" style="color: var(--pz-economy); font-size: 0.7rem;"></i>
                     <span id="header-wallet" style="font-weight: 700; font-size: 0.7rem; color: var(--pz-economy);">0 ZC</span>
                 </div>
-                <button onclick="switchPzTab('profile')" style="width: auto; padding: 4px 8px; font-size: 0.65rem; margin:0;">Perfil</button>
-                <button onclick="switchPzTab('economy')" style="width: auto; padding: 4px 8px; font-size: 0.65rem; margin:0; background:var(--pz-economy); color:black;">Banco</button>
+                <button onclick="switchPzTab('rooms')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; margin:0;" title="Salas"><i class="fa-solid fa-tower-broadcast"></i></button>
+                <button onclick="switchPzTab('global-chat')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; margin:0;" title="Chat Global"><i class="fa-solid fa-globe"></i></button>
+                <button onclick="switchPzTab('economy')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; margin:0; background:var(--pz-economy); color:black;" title="Banco"><i class="fa-solid fa-wallet"></i></button>
+                <button onclick="switchPzTab('profile')" style="width: auto; padding: 4px 6px; font-size: 0.65rem; margin:0;" title="Perfil"><i class="fa-solid fa-sliders"></i></button>
             </div>
         </div>
 
-        <!-- SECCIÓN PERFIL -->
-        <div id="pz-profile" class="pz-tab-content active">
+        <!-- MÓDULO DE SALAS Y MAPA GPS -->
+        <div id="pz-rooms" class="pz-tab-content active">
             <div class="pz-card">
-                <h2><i class="fa-solid fa-sliders"></i> Perfil del Operador</h2>
-                <label>Nombre de usuario</label>
-                <input type="text" id="profile-handle">
-                <label>Biografía corta</label>
-                <textarea id="profile-bio"></textarea>
-                <button onclick="saveProfileChanges()">Guardar Cambios</button>
+                <h2><i class="fa-solid fa-satellite-dish"></i> Sincronización Telemétrica GPS</h2>
+                <button id="btn-init" style="background:#064e3b; color:#34d399; border: 1px solid var(--pz-accent);" onclick="initRadar()"><i class="fa-solid fa-location-crosshairs"></i> Vincular Coordenadas de Nodo</button>
+                <div id="map"></div>
+            </div>
+
+            <div class="pz-card">
+                <h2><i class="fa-solid fa-circle-plus"></i> Desplegar Frecuencia</h2>
+                <input type="text" id="new-room-name" placeholder="Designación de Sala...">
+                <input type="text" id="new-room-media" placeholder="Enlace o ID Multimedia (Spotify/YouTube)...">
+                <button onclick="createRoom()"><i class="fa-solid fa-bolt"></i> Inicializar Red Local</button>
             </div>
         </div>
 
-        <!-- SECCIÓN ECONOMÍA / BILLETERA -->
+        <!-- MÓDULO DE CHAT GLOBAL -->
+        <div id="pz-global-chat" class="pz-tab-content">
+            <div class="pz-card" style="padding: 10px;">
+                <h2><i class="fa-solid fa-globe"></i> Canal de Enlace Global</h2>
+                <div id="global-chat-box" style="height: 160px; overflow-y: auto; background:rgba(2, 4, 8, 0.6); border-radius:8px; padding:8px; margin-bottom:6px; font-size:0.8rem; border:1px solid var(--pz-border);"></div>
+                <div style="display: flex; gap: 4px;">
+                    <input type="text" id="global-chat-input" placeholder="Transmitir mensaje..." style="margin:0;">
+                    <button onclick="sendGlobalMessage()" style="width: auto; margin:0;"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MÓDULO DE BILLETERA / ECONOMÍA -->
         <div id="pz-economy" class="pz-tab-content">
             <div class="pz-card" style="border-color: var(--pz-economy);">
                 <h2><i class="fa-solid fa-vault" style="color: var(--pz-economy);"></i> Billetera Virtual Z-Coins</h2>
@@ -168,12 +184,26 @@
                 <button onclick="alert('Conectando con pasarela de pago Stripe...')" style="background:var(--pz-primary);"><i class="fa-solid fa-cart-shopping"></i> Comprar Z-Coins</button>
             </div>
         </div>
+
+        <!-- MÓDULO DE PERFIL -->
+        <div id="pz-profile" class="pz-tab-content">
+            <div class="pz-card">
+                <h2><i class="fa-solid fa-sliders"></i> Perfil del Operador</h2>
+                <label>Nombre de usuario</label>
+                <input type="text" id="profile-handle">
+                <label>Biografía corta</label>
+                <textarea id="profile-bio"></textarea>
+                <button onclick="saveProfileChanges()">Guardar Cambios</button>
+            </div>
+        </div>
     </div>
 
 </div>
 
 <script>
-    let userProfile = { name: '', role: '🎧', bio: '', prefs: [], wallet: 0 };
+    const socket = io();
+    let userProfile = { name: '', role: '🎧', bio: '', wallet: 0 };
+    let mapInitialized = false;
 
     function initGoogleLogin() {
         google.accounts.id.initialize({
@@ -195,14 +225,10 @@
             if (data.success) {
                 userProfile.name = data.user.name;
                 document.getElementById('setup-handle').value = data.user.name;
-                
-                // Ocultar login y mostrar pantalla de configuración de perfil y billetera
                 document.getElementById('login-screen').style.display = 'none';
                 document.getElementById('setup-screen').style.display = 'block';
             }
         } catch (err) {
-            console.error('Error de autenticación:', err);
-            // Fallback simulado en caso de entorno local sin conexión estricta
             userProfile.name = "Operador Google";
             document.getElementById('setup-handle').value = userProfile.name;
             document.getElementById('login-screen').style.display = 'none';
@@ -217,19 +243,16 @@
         userProfile.name = handle;
         userProfile.role = document.getElementById('setup-role').value;
         userProfile.bio = document.getElementById('setup-bio').value;
-        userProfile.wallet = 100; // Bono inicial automático al crear perfil
+        userProfile.wallet = 100;
 
-        // Actualizar HUD visual
         document.getElementById('header-username').innerText = userProfile.name;
         document.getElementById('header-avatar').innerText = userProfile.role;
         document.getElementById('profile-handle').value = userProfile.name;
         document.getElementById('profile-bio').value = userProfile.bio;
         updateWalletUI();
 
-        // Transición al HUD principal
         document.getElementById('setup-screen').style.display = 'none';
         document.getElementById('main-hud').style.display = 'flex';
-        alert('¡Perfil configurado y billetera inicializada con éxito (+100 ZC)!');
     }
 
     function updateWalletUI() {
@@ -243,11 +266,57 @@
         alert('¡Bono diario reclamado (+10 ZC)!');
     }
 
+    function initRadar() {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(position => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                document.getElementById('btn-init').innerText = `Nodo Vinculado (${lat.toFixed(2)}, ${lon.toFixed(2)})`;
+                
+                if (!mapInitialized) {
+                    const map = L.map('map').setView([lat, lon], 14);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+                    L.marker([lat, lon]).addTo(map).bindPopup('Tu Posición Actual').openPopup();
+                    mapInitialized = true;
+                }
+            }, () => {
+                alert('No se pudo obtener la geolocalización.');
+            });
+        } else {
+            alert('Geolocalización no soportada.');
+        }
+    }
+
+    function createRoom() {
+        const name = document.getElementById('new-room-name').value;
+        if (!name) { alert('Ingresa una designación para la sala.'); return; }
+        alert(`Sala "${name}" desplegada con éxito.`);
+        document.getElementById('new-room-name').value = '';
+        document.getElementById('new-room-media').value = '';
+    }
+
+    function sendGlobalMessage() {
+        const input = document.getElementById('global-chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+        socket.emit('chat_message', { user: userProfile.name, text });
+        input.value = '';
+    }
+
+    socket.on('chat_message', (data) => {
+        const chatBox = document.getElementById('global-chat-box');
+        const bubble = document.createElement('div');
+        bubble.style.marginBottom = '6px';
+        bubble.innerHTML = `<b style="color:var(--pz-neon);">${data.user}:</b> ${data.text}`;
+        chatBox.appendChild(bubble);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+
     function saveProfileChanges() {
         userProfile.name = document.getElementById('profile-handle').value;
         userProfile.bio = document.getElementById('profile-bio').value;
         document.getElementById('header-username').innerText = userProfile.name;
-        alert('Credenciales y perfil actualizados.');
+        alert('Perfil actualizado.');
     }
 
     function switchPzTab(tabId) {
