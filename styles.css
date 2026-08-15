@@ -1,0 +1,212 @@
+/* Configuración global de reseteo y fuentes */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #0e0e10; /* Fondo negro profundo típico de Nox */
+    color: #efeff1;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Contenedor principal de la app en formato Grid (Pantalla dividida) */
+.app-container {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    height: 100vh;
+}
+
+/* Sección principal de vídeo y cabecera */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.room-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+/* Estilo del logotipo de Nox en la cabecera */
+.room-header h1 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #53fc18; /* Verde neón característico */
+    text-transform: uppercase;
+}
+
+#change-room-btn {
+    background-color: #1f1f23;
+    color: #fff;
+    border: 1px solid #303036;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+#change-room-btn:hover {
+    background-color: #303036;
+}
+
+/* Contenedor responsivo del reproductor de vídeo */
+.video-container {
+    width: 100%;
+    background-color: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+}
+
+#video-player {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Barra de información inferior del stream */
+.stream-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    padding: 12px 15px;
+    background-color: #18181b;
+    border-radius: 8px;
+    border: 1px solid #2f2f35;
+}
+
+.streamer-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.avatar-placeholder {
+    width: 45px;
+    height: 45px;
+    background-color: #53fc18; /* Avatar estilo neón */
+    border-radius: 50%;
+}
+
+.streamer-details h3 {
+    font-size: 1rem;
+    color: #fff;
+}
+
+.streamer-details p {
+    font-size: 0.85rem;
+    color: #adadb8;
+}
+
+.viewer-count {
+    font-size: 0.9rem;
+    color: #adadb8;
+}
+
+/* Panel lateral derecho del Chat */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    background-color: #18181b;
+    border-left: 1px solid #2f2f35;
+    height: 100vh;
+}
+
+.chat-header {
+    padding: 15px;
+    border-bottom: 1px solid #2f2f35;
+    text-align: center;
+}
+
+.chat-header h3 {
+    font-size: 1rem;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.chat-message {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+/* Nombre de usuario destacado en el chat en verde neón */
+.chat-message .username {
+    font-weight: bold;
+    color: #53fc18;
+    margin-right: 5px;
+}
+
+.chat-message .text {
+    color: #efeff1;
+}
+
+/* Formulario inferior para enviar mensajes */
+.chat-input-form {
+    display: flex;
+    padding: 15px;
+    border-top: 1px solid #2f2f35;
+    gap: 10px;
+}
+
+#chat-input {
+    flex: 1;
+    background-color: #0e0e10;
+    border: 1px solid #303036;
+    border-radius: 4px;
+    padding: 10px;
+    color: #fff;
+    outline: none;
+}
+
+#chat-input:focus {
+    border-color: #53fc18;
+}
+
+.chat-input-form button {
+    background-color: #53fc18;
+    color: #0e0e10;
+    border: none;
+    font-weight: bold;
+    padding: 0 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.chat-input-form button:hover {
+    background-color: #43ca12;
+}
+
+/* Adaptabilidad para pantallas pequeñas o móviles */
+@media (max-width: 900px) {
+    .app-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+    }
+    .chat-container {
+        height: 50vh;
+        border-left: none;
+        border-top: 1px solid #2f2f35;
+    }
+}
