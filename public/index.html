@@ -196,7 +196,6 @@
 </div>
 
 <script>
-    // Inicialización robusta de Socket.io orientada a Render
     const socket = io(window.location.origin, {
         transports: ['websocket', 'polling']
     });
@@ -264,9 +263,7 @@
         alert('¡Bono diario reclamado (+10 ZC)!');
     }
 
-    // Creación y unión a salas con alerta de diagnóstico
     function createRoom() {
-        alert("Diagnóstico: Botón presionado correctamente");
         const name = document.getElementById('new-room-name').value;
         const media = document.getElementById('new-room-media').value;
         
@@ -278,10 +275,15 @@
         socket.emit('create_room', { roomName: name, mediaUrl: media, user: userProfile.name });
     }
 
+    // Transición visual al recibir la confirmación de la sala
     socket.on('room_joined', (data) => {
         alert(`¡Conectado exitosamente a la sala telemétrica: ${data.roomName}!`);
+        
         document.getElementById('new-room-name').value = '';
         document.getElementById('new-room-media').value = '';
+
+        // Te redirige automáticamente al chat global o panel activo de la sala
+        switchPzTab('global-chat');
     });
 
     function sendGlobalMessage() {
