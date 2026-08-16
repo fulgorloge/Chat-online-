@@ -3,132 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nox | Watch Together & Monetización</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Nox | Sincronización y Multimedia</title>
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Sign-In & Stripe -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://js.stripe.com/v3/"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <header class="top-navbar">
+    <!-- NAVBAR SUPERIOR -->
+    <header class="navbar">
         <div class="nav-brand">
-            <h1>NOX</h1>
-            <span class="room-badge" id="current-room-name">General</span>
-            <div class="live-indicator">
-                <span class="live-dot"></span>
-                <span>EN VIVO</span>
-            </div>
+            <span class="brand-logo">🌌</span>
+            <h1>NOX <span class="room-badge" id="current-room-name">Cargando...</span></h1>
         </div>
         
         <div class="nav-actions">
+            <button id="host-panel-btn" class="btn btn-secondary"><i class="fa-solid fa-sliders"></i> Panel Host</button>
+            <button id="open-shop-btn" class="btn btn-secondary" disabled><i class="fa-solid fa-coins"></i> <span id="user-wallet-balance">🪙 0 Coins</span></button>
+            <button id="open-vip-btn" class="btn btn-vip" disabled><i class="fa-solid fa-crown"></i> VIP</button>
+            
+            <!-- AUTH GOOGLE -->
             <div id="google-signin-container"></div>
-            <div id="user-profile-display" style="display: none;" class="user-badge">
-                <img id="user-avatar-img" src="" alt="Avatar" class="mini-avatar">
-                <span id="user-name-display"></span>
-                <span id="user-wallet-balance" class="wallet-badge">🪙 0 NoxCoins</span>
+            <div id="user-profile-display" class="user-profile" style="display: none;">
+                <div class="avatar-placeholder"><img id="user-avatar-img" src="" alt="Avatar"></div>
+                <span id="user-name-display">Usuario</span>
             </div>
-
-            <button id="open-shop-btn" class="monetize-btn" disabled title="Inicia sesión">🪙 Comprar Coins</button>
-            <button id="open-vip-btn" class="vip-btn" disabled title="Inicia sesión">⭐ Suscripción VIP</button>
-            <button id="host-panel-btn" class="host-btn">Panel Anfitrión</button>
-            <button id="change-room-btn" class="secondary-action-btn">Cambiar Sala</button>
         </div>
     </header>
 
-    <div id="sponsor-banner" class="sponsor-banner">
-        <span>📢 Patrocinado por <strong>TechStore Envigado</strong>: Usa el código NOX2026 para un 15% de descuento.</span>
-    </div>
-
-    <div class="app-container">
-        <div class="main-content">
-            <div id="paywall-overlay" class="paywall-overlay" style="display: none;">
-                <div class="paywall-card">
-                    <h2>🔒 Sala Exclusiva (Pay-Per-View)</h2>
-                    <p>Este evento requiere un pase de acceso digital para sintonizar la transmisión (Costo: 20 NoxCoins).</p>
-                    <button id="pay-ticket-btn" class="primary-btn">Comprar Pase de Entrada (20 🪙)</button>
-                </div>
-            </div>
-
-            <div class="video-container" id="media-player-container">
-                <video id="video-player" controls>
-                    <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
-                    Tu navegador no soporta el vídeo.
-                </video>
-                <div id="external-player-target"></div>
-            </div>
-
-            <div class="stream-info">
-                <div class="streamer-details">
-                    <div id="streamer-avatar-container" class="avatar-placeholder"></div>
-                    <div>
-                        <h3 id="streamer-name">Anfitrión de Nox</h3>
-                        <p id="stream-category">Categoría: Transmisión Interactiva</p>
+    <!-- CONTENEDOR PRINCIPAL -->
+    <main class="main-layout">
+        <!-- SECCIÓN MULTIMEDIA -->
+        <section class="media-section">
+            <div class="player-container">
+                <video id="video-player" controls></video>
+                <div id="external-player-target" class="external-target"></div>
+                
+                <!-- PAYWALL / PPV OVERLAY -->
+                <div id="paywall-overlay" class="paywall-overlay" style="display: none;">
+                    <div class="paywall-card">
+                        <i class="fa-solid fa-ticket-simple paywall-icon"></i>
+                        <h2>Contenido Exclusivo PPV</h2>
+                        <p>Esta sala requiere un pase de acceso digital para reproducir el contenido.</p>
+                        <button id="pay-ticket-btn" class="btn btn-primary"><i class="fa-solid fa-wallet"></i> Comprar Pase (20 Coins)</button>
                     </div>
                 </div>
-                <div class="viewer-count">Espectadores: <span id="count">1</span></div>
             </div>
-        </div>
+        </section>
 
-        <div class="chat-container">
+        <!-- SECCIÓN CHAT Y SOCIAL -->
+        <section class="chat-section">
             <div class="chat-header">
-                <h3>Chat del Stream</h3>
+                <h3><i class="fa-solid fa-comments"></i> Chat en Vivo</h3>
+                <button id="change-room-btn" class="btn-icon" title="Cambiar de sala"><i class="fa-solid fa-rotate"></i></button>
             </div>
             <div id="chat-messages" class="chat-messages"></div>
-            <form id="chat-form" class="chat-input-form">
-                <div class="input-wrapper">
-                    <input type="text" id="chat-input" placeholder="Inicia sesión para chatear..." autocomplete="off" required disabled>
-                    <button type="submit" id="send-chat-btn" disabled>Enviar</button>
-                </div>
+            <form id="chat-form" class="chat-form">
+                <input type="text" id="chat-input" placeholder="Inicia sesión para chatear..." autocomplete="off" disabled>
+                <button type="submit" id="send-chat-btn" class="btn btn-primary" disabled><i class="fa-solid fa-paper-plane"></i></button>
             </form>
+        </section>
+    </main>
+
+    <!-- MODAL TIENDA / RECARGAS -->
+    <div id="shop-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-store"></i> Tienda NoxCoins & Efectos</h3>
+                <button id="close-shop-modal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="section-title">Recargar Billetera (Stripe)</p>
+                <div class="shop-grid">
+                    <div class="shop-item stripe-pack" data-action="topup" data-amount="50">
+                        <i class="fa-solid fa-coins"></i>
+                        <h4>50 NoxCoins</h4>
+                        <span>$1.99 USD</span>
+                    </div>
+                    <div class="shop-item stripe-pack" data-action="topup" data-amount="150">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                        <h4>150 NoxCoins</h4>
+                        <span>$4.99 USD</span>
+                    </div>
+                </div>
+                
+                <p class="section-title">Efectos en Chat</p>
+                <div class="shop-grid">
+                    <div class="shop-item" data-cost="10" data-effect="fire">
+                        <i class="fa-solid fa-fire"></i>
+                        <h4>Lluvia de Fuego</h4>
+                        <span>10 Coins</span>
+                    </div>
+                    <div class="shop-item" data-cost="15" data-effect="party">
+                        <i class="fa-solid fa-champagne-glasses"></i>
+                        <h4>Alerta de Fiesta</h4>
+                        <span>15 Coins</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Modales -->
-    <div id="shop-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <h2>🪙 Tienda de NoxCoins</h2>
-            <p>Recarga saldo o adquiere efectos para destacar en el chat.</p>
-            <div class="shop-grid">
-                <button class="shop-item" data-action="topup" data-amount="50">⚡ Paquete Base: +50 Coins ($1.99 USD)</button>
-                <button class="shop-item" data-action="topup" data-amount="150">🚀 Paquete Pro: +150 Coins ($4.99 USD)</button>
-                <hr style="border-color: #30303b; margin: 5px 0;">
-                <button class="shop-item" data-cost="10" data-effect="fire">🔥 Lluvia de Fuego (10 Coins)</button>
-                <button class="shop-item" data-cost="25" data-effect="party">🎉 Alerta de Fiesta (25 Coins)</button>
+    <!-- MODAL VIP -->
+    <div id="vip-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal-content vip-modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-crown" style="color: #f2c94c;"></i> Membresía VIP Nox</h3>
+                <button id="close-vip-modal" class="close-btn">&times;</button>
             </div>
-            <button id="close-shop-modal" class="secondary-btn" style="margin-top:15px; width:100%;">Cerrar</button>
+            <div class="modal-body text-center">
+                <div class="vip-badge-lg">👑</div>
+                <p>Obtén acceso total a todas las funciones premium, corona dorada permanente, salas exclusivas y cero restricciones.</p>
+                <div class="vip-price">$4.99 USD <span>/ mes</span></div>
+                <button id="confirm-vip-btn" class="btn btn-vip btn-lg"><i class="fa-solid fa-lock-open"></i> Suscribirme con Stripe</button>
+            </div>
         </div>
     </div>
 
-    <div id="vip-modal" class="modal-overlay" style="display: none;">
+    <!-- MODAL HOST PANEL -->
+    <div id="host-modal" class="modal-backdrop" style="display: none;">
         <div class="modal-content">
-            <h2>⭐ Suscripción VIP Mensual</h2>
-            <p>Obtén corona dorada, acceso automático a salas PPV y color exclusivo por $4.99/mes.</p>
-            <button id="confirm-vip-btn" class="primary-btn">Suscribirme Ahora</button>
-            <button id="close-vip-modal" class="secondary-btn" style="margin-top:8px; width:100%;">Cancelar</button>
-        </div>
-    </div>
-
-    <div id="host-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <h2>Panel de Control del Anfitrión</h2>
-            <div class="form-group">
-                <label for="platform-select">Plataforma:</label>
-                <select id="platform-select">
-                    <option value="video">Enlace MP4 Directo</option>
-                    <option value="youtube">YouTube (URL)</option>
-                    <option value="spotify">Spotify (Enlace / URI)</option>
-                </select>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-sliders"></i> Panel de Control (Host)</h3>
+                <button id="close-modal-btn" class="close-btn">&times;</button>
             </div>
-            <div class="form-group">
-                <label for="media-url-input">URL del contenido:</label>
-                <input type="text" id="media-url-input" placeholder="https://...">
-            </div>
-            <div class="form-group">
-                <label><input type="checkbox" id="ppv-toggle"> Habilitar Pay-Per-View (Requiere Pase)</label>
-            </div>
-            <div class="modal-buttons">
-                <button id="load-media-btn" class="primary-btn">Cargar</button>
-                <button id="close-modal-btn" class="secondary-btn">Cancelar</button>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Plataforma / Tipo</label>
+                    <select id="platform-select" class="form-control">
+                        <option value="video">Video Directo (MP4)</option>
+                        <option value="youtube">YouTube</option>
+                        <option value="spotify">Spotify</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Enlace Multimedia (URL)</label>
+                    <input type="text" id="media-url-input" class="form-control" placeholder="https://...">
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" id="ppv-toggle">
+                    <label for="ppv-toggle">Activar Pay-Per-View (PPV / Requiere Pase)</label>
+                </div>
+                <button id="load-media-btn" class="btn btn-primary btn-block"><i class="fa-solid fa-play"></i> Sincronizar y Reproducir</button>
             </div>
         </div>
     </div>
