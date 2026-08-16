@@ -1,21 +1,66 @@
 const socket = io();
 
 let roomId = prompt("Ingresa el nombre de la sala Nox a la que deseas unirte:") || "general";
-let username = prompt("Ingresa tu nombre de usuario en Nox:") || `Usuario_${Math.floor(Math.random() * 1000)}`;
-
 document.getElementById('current-room-name').innerText = roomId;
 socket.emit('join-room', roomId);
+
+let username = null;
+let userAvatar = null;
 
 const videoPlayer = document.getElementById('video-player');
 const externalTarget = document.getElementById('external-player-target');
 const chatForm = document.getElementById('chat-form');
 const chatInput = document.getElementById('chat-input');
+const sendChatBtn = document.getElementById('send-chat-btn');
 const chatMessages = document.getElementById('chat-messages');
 
 let isRemoteAction = false;
 
-// --- GESTIÓN DE REPRODUCTOR MULTIMODAL ---
+// --- CONFIGURACIÓN DE GOOGLE SIGN-IN ---
+window.onload = function () {
+    google.accounts.id.initialize({
+        client_id: "76525558845-s046srh597h8er8svsq1un6c8b95tmbo.apps.googleusercontent.com",
+        callback: handleCredentialResponse
+    });
 
+    google.accounts.id.renderButton(
+        document.getElementById("google-signin-container"),
+        { theme: "outline", size: "medium", text: "signin_with", shape: "pill" }
+    );
+};
+
+function handleCredentialResponse(response) {
+    const responsePayload = parseJwt(response.credential);
+    
+    username = responsePayload.name;
+    userAvatar = responsePayload.picture;
+
+    // Actualizar interfaz superior
+    document.getElementById('google-signin-container').style.display = 'none';
+    document.getElementById('user-profile-display').style.display = 'flex';
+    document.getElementById('user-avatar-img').src = userAvatar;
+    document.getElementById('user-name-display').innerText = username;
+
+    // Actualizar avatar del streamer local
+    const avatarPlaceholder = document.querySelector('.avatar-placeholder');
+    avatarPlaceholder.innerHTML = `<img src="${userAvatar}" alt="${username}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+
+    // Habilitar chat
+    chatInput.disabled = false;
+    sendChatBtn.disabled = false;
+    chatInput.placeholder = "Envía un mensaje a Nox...";
+}
+
+function parseJwt(token) {
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+}
+
+// --- GESTIÓN DE REPRODUCTOR MULTIMODAL ---
 function renderMedia(mediaData) {
     externalTarget.innerHTML = '';
     
@@ -57,7 +102,6 @@ function getSpotifyEmbedUrl(url) {
     return `https://open.spotify.com/embed/track/${url}`;
 }
 
-// Eventos de vídeo HTML5 local
 videoPlayer.addEventListener('play', () => {
     if (isRemoteAction) return;
     socket.emit('video-action', { roomId, action: 'play', currentTime: videoPlayer.currentTime });
@@ -72,7 +116,7 @@ socket.on('video-action', (data) => {
     isRemoteAction = true;
     videoPlayer.currentTime = data.currentTime;
     if (data.action === 'play') {
-        videoPlayer.play().catch(e => console.log("Autoplay bloqueado por el navegador:", e));
+        videoPlayer.play().catch(e => {});
     } else {
         videoPlayer.pause();
     }
@@ -93,8 +137,7 @@ socket.on('sync-state', (state) => {
     }
 });
 
-
-// --- PANEL DE CONTROL DEL ANFITRIÓN ---
+// --- PANEL DE ANFITRIÓN ---
 const hostModal = document.getElementById('host-modal');
 document.getElementById('host-panel-btn').addEventListener('click', () => { hostModal.style.display = 'flex'; });
 document.getElementById('close-modal-btn').addEventListener('click', () => { hostModal.style.display = 'none'; });
@@ -104,7 +147,7 @@ document.getElementById('load-media-btn').addEventListener('click', () => {
     const url = document.getElementById('media-url-input').value.trim();
     
     if (!url) {
-        alert("Por favor ingresa un enlace o identificador válido.");
+        alert("Por favor ingresa un enlace válido.");
         return;
     }
 
@@ -114,13 +157,16 @@ document.getElementById('load-media-btn').addEventListener('click', () => {
     hostModal.style.display = 'none';
 });
 
-
 // --- CHAT EN TIEMPO REAL ---
 chatForm.addEventListener('submit', (e) => {
     e.preventDefault();
+    if (!username) {
+        alert("Debes iniciar sesión con Google para enviar mensajes.");
+        return;
+    }
     const message = chatInput.value.trim();
     if (message) {
-        socket.emit('chat-message', { roomId, user: username, message });
+        socket.emit('chat-message', { roomId, user: username, avatar: userAvatar, message });
         chatInput.value = '';
     }
 });
@@ -128,7 +174,10 @@ chatForm.addEventListener('submit', (e) => {
 socket.on('chat-message', (data) => {
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('chat-message');
-    messageDiv.innerHTML = `<span class="username">${escapeHtml(data.user)}:</span> <span class="text">${escapeHtml(data.message)}</span>`;
+    
+    const avatarHtml = data.avatar ? `<img src="${data.avatar}" class="chat-user-avatar">` : '';
+    messageDiv.innerHTML = `${avatarHtml}<span class="username">${escapeHtml(data.user)}:</span> <span class="text">${escapeHtml(data.message)}</span>`;
+    
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 });
