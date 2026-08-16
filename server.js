@@ -20,22 +20,23 @@ app.post('/create-checkout-session', async (req, res) => {
 
     try {
         let lineItems = [];
-        let metadata = { googleId, type };
+        let metadata = { googleId: String(googleId), type };
 
         if (type === 'topup') {
-            const priceUSD = amount === 50 ? 1.99 : 4.99;
+            const numericAmount = parseInt(amount, 10);
+            const priceUSD = numericAmount === 50 ? 1.99 : 4.99;
             lineItems.push({
                 price_data: {
                     currency: 'usd',
                     product_data: {
-                        name: `Paquete de ${amount} NoxCoins`,
+                        name: `Paquete de ${numericAmount} NoxCoins`,
                         description: 'Monedas virtuales para efectos y pases en Nox.',
                     },
                     unit_amount: Math.round(priceUSD * 100),
                 },
                 quantity: 1,
             });
-            metadata.amount = amount;
+            metadata.amount = String(numericAmount);
         } else if (type === 'vip') {
             lineItems.push({
                 price_data: {
@@ -68,6 +69,32 @@ app.post('/create-checkout-session', async (req, res) => {
     }
 });
 
+// Endpoint adicional para verificar el pago y abonar el saldo automáticamente
+app.get('/verify-payment', async (req, res) => {
+    const { session_id } = req.query;
+    if (!session_id) return res.status(400).json({ error: 'Falta session_id' });
+
+    try {
+        const session = await stripe.checkout.sessions.retrieve(session_id);
+        if (session.payment_status === 'paid') {
+            const { googleId, type, amount } = session.metadata;
+            
+            if (users[googleId]) {
+                if (type === 'topup' && amount) {
+                    users[googleId].coins += parseInt(amount, 10);
+                } else if (type === 'vip') {
+                    users[googleId].isVip = true;
+                }
+                return res.json({ success: true, user: users[googleId] });
+            }
+        }
+        res.json({ success: false });
+    } catch (error) {
+        console.error("Error verificando sesión de Stripe:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 io.on('connection', (socket) => {
     console.log(`Usuario conectado: ${socket.id}`);
 
@@ -77,7 +104,7 @@ io.on('connection', (socket) => {
             users[googleId] = { 
                 name, 
                 avatar, 
-                coins: 100, // Bono inicial de billetera
+                coins: 100, 
                 isVip: false,
                 paidRooms: [] 
             };
