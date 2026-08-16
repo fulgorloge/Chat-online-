@@ -3,6 +3,8 @@ const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_tu_clave_secreta_aqui');
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
@@ -10,33 +12,82 @@ const io = new Server(server);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-// Simulación de base de datos en memoria (Escalar a MongoDB/PostgreSQL en producción)
 const rooms = {};
-const users = {}; // Almacena { googleId: { name, avatar, coins, isVip, paidRooms: [] } }
+const users = {}; 
+
+app.post('/create-checkout-session', async (req, res) => {
+    const { type, googleId, amount } = req.body;
+
+    try {
+        let lineItems = [];
+        let metadata = { googleId, type };
+
+        if (type === 'topup') {
+            const priceUSD = amount === 50 ? 1.99 : 4.99;
+            lineItems.push({
+                price_data: {
+                    currency: 'usd',
+                    product_data: {
+                        name: `Paquete de ${amount} NoxCoins`,
+                        description: 'Monedas virtuales para efectos y pases en Nox.',
+                    },
+                    unit_amount: Math.round(priceUSD * 100),
+                },
+                quantity: 1,
+            });
+            metadata.amount = amount;
+        } else if (type === 'vip') {
+            lineItems.push({
+                price_data: {
+                    currency: 'usd',
+                    product_data: {
+                        name: 'Suscripción VIP Mensual - Nox',
+                        description: 'Acceso total a salas exclusivas, corona dorada y ventajas.',
+                    },
+                    unit_amount: 499,
+                },
+                quantity: 1,
+            });
+        }
+
+        const domain = process.env.DOMAIN || 'http://localhost:3000';
+
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: lineItems,
+            mode: type === 'vip' ? 'subscription' : 'payment',
+            success_url: `${domain}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${domain}?payment=cancelled`,
+            metadata: metadata
+        });
+
+        res.json({ id: session.id });
+    } catch (error) {
+        console.error("Error creando sesión de Stripe:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
 
 io.on('connection', (socket) => {
     console.log(`Usuario conectado: ${socket.id}`);
 
-    // Autenticación y sincronización de usuario
     socket.on('user-login', (userData) => {
         const { googleId, name, avatar } = userData;
         if (!users[googleId]) {
             users[googleId] = { 
                 name, 
                 avatar, 
-                coins: 100, // Bono inicial de bienvenida
+                coins: 100, 
                 isVip: false,
                 paidRooms: [] 
             };
         } else {
-            // Actualizar datos por si cambiaron
             users[googleId].name = name;
             users[googleId].avatar = avatar;
         }
         socket.emit('sync-user', users[googleId]);
     });
 
-    // Unirse a sala
     socket.on('join-room', ({ roomId, googleId }) => {
         socket.join(roomId);
 
@@ -67,7 +118,6 @@ io.on('connection', (socket) => {
         });
     });
 
-    // Procesar compra de Ticket PPV de forma segura en servidor
     socket.on('buy-ppv-ticket', ({ roomId, googleId }) => {
         const room = rooms[roomId];
         const user = users[googleId];
@@ -77,7 +127,7 @@ io.on('connection', (socket) => {
             return;
         }
 
-        const ticketCost = 20; // Costo en NoxCoins del pase
+        const ticketCost = 20; 
         if (user.coins < ticketCost) {
             socket.emit('payment-error', 'No tienes suficientes NoxCoins para comprar este pase.');
             return;
@@ -100,22 +150,16 @@ io.on('connection', (socket) => {
         });
     });
 
-    // Comprar Coins o VIP desde la tienda simulada / Stripe
-    socket.on('topup-coins', ({ googleId, amount }) => {
-        if (users[googleId]) {
+    socket.on('grant-purchase-reward', ({ googleId, type, amount }) => {
+        if (!users[googleId]) return;
+        if (type === 'topup') {
             users[googleId].coins += amount;
-            socket.emit('sync-user', users[googleId]);
-        }
-    });
-
-    socket.on('buy-vip', ({ googleId }) => {
-        if (users[googleId]) {
+        } else if (type === 'vip') {
             users[googleId].isVip = true;
-            socket.emit('sync-user', users[googleId]);
         }
+        socket.emit('sync-user', users[googleId]);
     });
 
-    // Chat y Sincronización de Multimedia
     socket.on('chat-message', (data) => {
         io.to(data.roomId).emit('chat-message', data);
     });
