@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nox | Watch Together</title>
+    <title>Nox | Watch Together & Monetización</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- SDK de Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
-    <!-- Barra de Navegación Superior -->
     <header class="top-navbar">
         <div class="nav-brand">
             <h1>NOX</h1>
@@ -22,27 +20,38 @@
         </div>
         
         <div class="nav-actions">
-            <!-- Botón de Inicio de Sesión con Google -->
             <div id="google-signin-container"></div>
             <div id="user-profile-display" style="display: none;" class="user-badge">
                 <img id="user-avatar-img" src="" alt="Avatar" class="mini-avatar">
                 <span id="user-name-display"></span>
+                <span id="user-wallet-balance" class="wallet-badge">🪙 100 NoxCoins</span>
             </div>
 
+            <button id="open-shop-btn" class="monetize-btn" disabled title="Inicia sesión">🪙 Comprar Coins</button>
+            <button id="open-vip-btn" class="vip-btn" disabled title="Inicia sesión">⭐ Suscripción VIP</button>
             <button id="host-panel-btn" class="host-btn">Panel Anfitrión</button>
             <button id="change-room-btn" class="secondary-action-btn">Cambiar Sala</button>
         </div>
     </header>
 
-    <!-- Contenedor Principal de la Interfaz -->
+    <div id="sponsor-banner" class="sponsor-banner">
+        <span>📢 Patrocinado por <strong>TechStore Envigado</strong>: Usa el código NOX2026 para un 15% de descuento.</span>
+    </div>
+
     <div class="app-container">
-        
-        <!-- Sección Izquierda: Reproductor y Stream -->
         <div class="main-content">
+            <div id="paywall-overlay" class="paywall-overlay" style="display: none;">
+                <div class="paywall-card">
+                    <h2>🔒 Sala Exclusiva (Pay-Per-View)</h2>
+                    <p>Este evento requiere un pase de acceso digital para sintonizar la transmisión.</p>
+                    <button id="pay-ticket-btn" class="primary-btn">Comprar Pase de Entrada ($5.00 USD)</button>
+                </div>
+            </div>
+
             <div class="video-container" id="media-player-container">
                 <video id="video-player" controls>
                     <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
-                    Tu navegador no soporta el elemento de vídeo.
+                    Tu navegador no soporta el vídeo.
                 </video>
                 <div id="external-player-target"></div>
             </div>
@@ -52,14 +61,13 @@
                     <div id="streamer-avatar-container" class="avatar-placeholder"></div>
                     <div>
                         <h3 id="streamer-name">Anfitrión de Nox</h3>
-                        <p id="stream-category">Categoría: Multimedia Interactiva</p>
+                        <p id="stream-category">Categoría: Transmisión Interactiva</p>
                     </div>
                 </div>
                 <div class="viewer-count">Espectadores: <span id="count">1</span></div>
             </div>
         </div>
 
-        <!-- Sección Derecha: Chat en Vivo Estilo Kick -->
         <div class="chat-container">
             <div class="chat-header">
                 <h3>Chat del Stream</h3>
@@ -67,36 +75,56 @@
             <div id="chat-messages" class="chat-messages"></div>
             <form id="chat-form" class="chat-input-form">
                 <div class="input-wrapper">
-                    <input type="text" id="chat-input" placeholder="Inicia sesión con Google para chatear..." autocomplete="off" required disabled>
+                    <input type="text" id="chat-input" placeholder="Inicia sesión para chatear..." autocomplete="off" required disabled>
                     <button type="submit" id="send-chat-btn" disabled>Enviar</button>
                 </div>
             </form>
         </div>
-
     </div>
 
-    <!-- Modal: Panel de Control del Anfitrión -->
+    <!-- Modales -->
+    <div id="shop-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>🪙 Tienda de NoxCoins (Bits)</h2>
+            <p>Envía efectos visuales y sonidos destacados en el chat.</p>
+            <div class="shop-grid">
+                <button class="shop-item" data-cost="10" data-effect="fire">🔥 Lluvia de Fuego (10 Coins)</button>
+                <button class="shop-item" data-cost="25" data-effect="party">🎉 Alerta de Fiesta (25 Coins)</button>
+                <button class="shop-item" data-cost="50" data-effect="superchat">💎 SuperChat Destacado (50 Coins)</button>
+            </div>
+            <button id="close-shop-modal" class="secondary-btn" style="margin-top:15px; width:100%;">Cerrar</button>
+        </div>
+    </div>
+
+    <div id="vip-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>⭐ Suscripción VIP Mensual</h2>
+            <p>Obtén corona dorada, acceso a salas privadas y color exclusivo por $4.99/mes.</p>
+            <button id="confirm-vip-btn" class="primary-btn">Suscribirme Ahora</button>
+            <button id="close-vip-modal" class="secondary-btn" style="margin-top:8px; width:100%;">Cancelar</button>
+        </div>
+    </div>
+
     <div id="host-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <h2>Panel de Control del Anfitrión</h2>
-            <p>Cambia la fuente de entretenimiento en tiempo real para la sala.</p>
-            
             <div class="form-group">
-                <label for="platform-select">Selecciona la plataforma:</label>
+                <label for="platform-select">Plataforma:</label>
                 <select id="platform-select">
                     <option value="video">Enlace MP4 Directo</option>
                     <option value="youtube">YouTube (URL)</option>
                     <option value="spotify">Spotify (Enlace / URI)</option>
                 </select>
             </div>
-
             <div class="form-group">
-                <label for="media-url-input">URL o ID del contenido:</label>
-                <input type="text" id="media-url-input" placeholder="Ej: https://www.youtube.com/watch?v=...">
+                <label for="media-url-input">URL del contenido:</label>
+                <input type="text" id="media-url-input" placeholder="https://...">
             </div>
-
+            <div class="form-group">
+                <label><input type="checkbox" id="ppv-toggle"> Habilitar Pay-Per-View (Requiere Ticket)</label>
+            </div>
             <div class="modal-buttons">
-                <button id="load-media-btn" class="primary-btn">Cargar y Sincronizar</button>
+                <button id="load-media-btn" class="primary-btn">Cargar</button>
                 <button id="close-modal-btn" class="secondary-btn">Cancelar</button>
             </div>
         </div>
