@@ -2,13 +2,12 @@ const socket = io();
 
 let roomId = prompt("Ingresa el nombre de la sala Nox a la que deseas unirte:") || "general";
 document.getElementById('current-room-name').innerText = roomId;
-socket.emit('join-room', roomId);
 
+let googleId = null;
 let username = null;
 let userAvatar = null;
-let userCoins = 100;
+let userCoins = 0;
 let isVip = false;
-let hasPaidTicket = false;
 
 const videoPlayer = document.getElementById('video-player');
 const externalTarget = document.getElementById('external-player-target');
@@ -37,6 +36,7 @@ window.onload = function () {
 
 function handleCredentialResponse(response) {
     const responsePayload = parseJwt(response.credential);
+    googleId = responsePayload.sub;
     username = responsePayload.name;
     userAvatar = responsePayload.picture;
 
@@ -45,6 +45,17 @@ function handleCredentialResponse(response) {
     document.getElementById('user-avatar-img').src = userAvatar;
     document.getElementById('user-name-display').innerText = username;
 
+    // Conectar sesión al backend
+    socket.emit('user-login', { googleId, name: username, avatar: userAvatar });
+    socket.emit('join-room', { roomId, googleId });
+}
+
+// Sincronizar datos del usuario logueado desde el servidor
+socket.on('sync-user', (userData) => {
+    userCoins = userData.coins;
+    isVip = userData.isVip;
+
+    document.getElementById('user-wallet-balance').innerText = `🪙 ${userCoins} NoxCoins`;
     document.querySelector('.avatar-placeholder').innerHTML = `<img src="${userAvatar}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
 
     chatInput.disabled = false;
@@ -52,7 +63,7 @@ function handleCredentialResponse(response) {
     openShopBtn.disabled = false;
     openVipBtn.disabled = false;
     chatInput.placeholder = "Envía un mensaje a Nox...";
-}
+});
 
 function parseJwt(token) {
     var base64Url = token.split('.')[1];
@@ -63,10 +74,10 @@ function parseJwt(token) {
     return JSON.parse(jsonPayload);
 }
 
-function renderMedia(mediaData) {
+function renderMedia(mediaData, hasAccess) {
     externalTarget.innerHTML = '';
     
-    if (mediaData.isPPV && !hasPaidTicket) {
+    if (mediaData.isPPV && !hasAccess) {
         paywallOverlay.style.display = 'flex';
         videoPlayer.style.display = 'none';
         return;
@@ -90,11 +101,23 @@ function renderMedia(mediaData) {
     }
 }
 
+// Comprar pase PPV
 document.getElementById('pay-ticket-btn').addEventListener('click', () => {
-    hasPaidTicket = true;
+    if (!googleId) {
+        alert("Debes iniciar sesión para comprar el pase.");
+        return;
+    }
+    socket.emit('buy-ppv-ticket', { roomId, googleId });
+});
+
+socket.on('ppv-access-granted', () => {
     paywallOverlay.style.display = 'none';
-    alert("¡Pago de ticket verificado con éxito! Disfruta del evento exclusivo.");
-    socket.emit('chat-message', { roomId, user: username, avatar: userAvatar, message: "¡Adquirió su pase PPV para el evento!", isEffect: true });
+    alert("¡Pase de acceso comprado con éxito!");
+    socket.emit('join-room', { roomId, googleId }); // Recargar estado
+});
+
+socket.on('payment-error', (errorMsg) => {
+    alert(errorMsg);
 });
 
 function extractYouTubeId(url) {
@@ -129,21 +152,35 @@ socket.on('video-action', (data) => {
     setTimeout(() => { isRemoteAction = false; }, 300);
 });
 
-socket.on('change-media', (mediaData) => { renderMedia(mediaData); });
-socket.on('sync-state', (state) => {
-    if (state.mediaData) renderMedia(state.mediaData);
-    if (state.currentTime && videoPlayer.style.display !== 'none') {
-        videoPlayer.currentTime = state.currentTime;
-        if (state.isPlaying) videoPlayer.play().catch(e => {});
+socket.on('change-media', (mediaData) => { 
+    socket.emit('join-room', { roomId, googleId }); // Revalida acceso al cambiar contenido
+});
+
+socket.on('sync-state', ({ roomState, hasAccess }) => {
+    if (roomState.mediaData) renderMedia(roomState.mediaData, hasAccess);
+    if (roomState.currentTime && videoPlayer.style.display !== 'none') {
+        videoPlayer.currentTime = roomState.currentTime;
+        if (roomState.isPlaying) videoPlayer.play().catch(e => {});
     }
 });
 
+// Modales y Tienda
 const shopModal = document.getElementById('shop-modal');
 openShopBtn.addEventListener('click', () => { shopModal.style.display = 'flex'; });
 document.getElementById('close-shop-modal').addEventListener('click', () => { shopModal.style.display = 'none'; });
 
 document.querySelectorAll('.shop-item').forEach(item => {
     item.addEventListener('click', (e) => {
+        const action = e.currentTarget.getAttribute('data-action');
+        
+        if (action === 'topup') {
+            const amount = parseInt(e.currentTarget.getAttribute('data-amount'));
+            socket.emit('topup-coins', { googleId, amount });
+            shopModal.style.display = 'none';
+            alert(`¡Recarga exitosa de +${amount} NoxCoins!`);
+            return;
+        }
+
         const cost = parseInt(e.currentTarget.getAttribute('data-cost'));
         const effect = e.currentTarget.getAttribute('data-effect');
 
@@ -156,8 +193,8 @@ document.querySelectorAll('.shop-item').forEach(item => {
         document.getElementById('user-wallet-balance').innerText = `🪙 ${userCoins} NoxCoins`;
         shopModal.style.display = 'none';
 
-        let msg = effect === 'fire' ? "envió 🪙 Lluvia de Fuego 🔥" : effect === 'party' ? "activó 🪙 Alerta de Fiesta 🎉" : "envió un 💎 SuperChat Destacado";
-        socket.emit('chat-message', { roomId, user: username, avatar: userAvatar, message: msg, isEffect: true });
+        let msg = effect === 'fire' ? "envió 🪙 Lluvia de Fuego 🔥" : "activó 🪙 Alerta de Fiesta 🎉";
+        socket.emit('chat-message', { roomId, user: username, avatar: userAvatar, message: msg, isEffect: true, isVip });
     });
 });
 
@@ -166,10 +203,10 @@ openVipBtn.addEventListener('click', () => { vipModal.style.display = 'flex'; })
 document.getElementById('close-vip-modal').addEventListener('click', () => { vipModal.style.display = 'none'; });
 
 document.getElementById('confirm-vip-btn').addEventListener('click', () => {
-    isVip = true;
+    socket.emit('buy-vip', { googleId });
     vipModal.style.display = 'none';
     alert("¡Felicidades! Ahora eres suscriptor VIP de Nox.");
-    socket.emit('chat-message', { roomId, user: username, avatar: userAvatar, message: "¡Se ha suscrito como VIP a la sala! ⭐", isVip: true });
+    socket.emit('chat-message', { roomId, user: username, avatar: userAvatar, message: "¡Se ha suscrito como VIP a la sala! ⭐", isVip: true, isEffect: true });
 });
 
 const hostModal = document.getElementById('host-modal');
@@ -184,7 +221,6 @@ document.getElementById('load-media-btn').addEventListener('click', () => {
     if (!url) { alert("Ingresa un enlace válido."); return; }
 
     const mediaData = { type, url, isPPV };
-    renderMedia(mediaData);
     socket.emit('change-media', { roomId, mediaData });
     hostModal.style.display = 'none';
 });
