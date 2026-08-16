@@ -9,29 +9,26 @@
 <body>
 
     <!-- Barra de Navegación Superior -->
-    <nav class="top-navbar">
+    <header class="top-navbar">
         <div class="nav-brand">
-            <h1>NOX // <span id="current-room-name">General</span></h1>
+            <h1>NOX</h1>
+            <span class="room-badge" id="current-room-name">General</span>
             <div class="live-indicator">
                 <span class="live-dot"></span>
-                <span class="live-text">EN VIVO</span>
+                <span>EN VIVO</span>
             </div>
         </div>
-        <div class="nav-tabs">
-            <button class="tab-btn active">Directo</button>
-            <button class="tab-btn">Chat en vivo</button>
-            <button class="tab-btn">Acerca de</button>
-        </div>
+        
         <div class="nav-actions">
-            <button id="host-panel-btn" class="host-btn">Panel de Anfitrión</button>
-            <button id="change-room-btn">Cambiar de Sala</button>
+            <button id="host-panel-btn" class="host-btn">Panel Anfitrión</button>
+            <button id="change-room-btn" class="secondary-action-btn">Cambiar Sala</button>
         </div>
-    </nav>
+    </header>
 
     <!-- Contenedor Principal de la Interfaz -->
     <div class="app-container">
         
-        <!-- Sección Izquierda: Reproductor Multimodal y Controles -->
+        <!-- Sección Izquierda: Reproductor y Stream -->
         <div class="main-content">
             <div class="video-container" id="media-player-container">
                 <video id="video-player" controls>
@@ -53,7 +50,7 @@
             </div>
         </div>
 
-        <!-- Sección Derecha: Chat en Vivo Estilo Kick Moderno -->
+        <!-- Sección Derecha: Chat en Vivo Estilo Kick -->
         <div class="chat-container">
             <div class="chat-header">
                 <h3>Chat del Stream</h3>
@@ -73,14 +70,14 @@
     <div id="host-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <h2>Panel de Control del Anfitrión</h2>
-            <p>Cambia la fuente de entretenimiento en tiempo real para todos los usuarios de la sala.</p>
+            <p>Cambia la fuente de entretenimiento en tiempo real para la sala.</p>
             
             <div class="form-group">
                 <label for="platform-select">Selecciona la plataforma:</label>
                 <select id="platform-select">
                     <option value="video">Enlace MP4 Directo</option>
-                    <option value="youtube">YouTube (URL o ID)</option>
-                    <option value="spotify">Spotify (URI o Enlace)</option>
+                    <option value="youtube">YouTube (URL)</option>
+                    <option value="spotify">Spotify (Enlace / URI)</option>
                 </select>
             </div>
 
