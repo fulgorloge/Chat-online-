@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nox | Watch Together</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- SDK de Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -20,6 +22,13 @@
         </div>
         
         <div class="nav-actions">
+            <!-- Botón de Inicio de Sesión con Google -->
+            <div id="google-signin-container"></div>
+            <div id="user-profile-display" style="display: none;" class="user-badge">
+                <img id="user-avatar-img" src="" alt="Avatar" class="mini-avatar">
+                <span id="user-name-display"></span>
+            </div>
+
             <button id="host-panel-btn" class="host-btn">Panel Anfitrión</button>
             <button id="change-room-btn" class="secondary-action-btn">Cambiar Sala</button>
         </div>
@@ -40,7 +49,7 @@
 
             <div class="stream-info">
                 <div class="streamer-details">
-                    <div class="avatar-placeholder"></div>
+                    <div id="streamer-avatar-container" class="avatar-placeholder"></div>
                     <div>
                         <h3 id="streamer-name">Anfitrión de Nox</h3>
                         <p id="stream-category">Categoría: Multimedia Interactiva</p>
@@ -58,8 +67,8 @@
             <div id="chat-messages" class="chat-messages"></div>
             <form id="chat-form" class="chat-input-form">
                 <div class="input-wrapper">
-                    <input type="text" id="chat-input" placeholder="Envía un mensaje..." autocomplete="off" required>
-                    <button type="submit">Enviar</button>
+                    <input type="text" id="chat-input" placeholder="Inicia sesión con Google para chatear..." autocomplete="off" required disabled>
+                    <button type="submit" id="send-chat-btn" disabled>Enviar</button>
                 </div>
             </form>
         </div>
