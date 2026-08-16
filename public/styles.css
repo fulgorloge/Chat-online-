@@ -16,41 +16,54 @@ body {
 
 /* Barra de Navegación Superior */
 .top-navbar {
-    height: 60px;
+    min-height: 56px;
     background-color: #141417;
     border-bottom: 1px solid #23232b;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 20px;
+    padding: 8px 15px;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .nav-brand {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
 }
 
 .nav-brand h1 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 800;
     color: #9146ff;
-    letter-spacing: -0.5px;
+}
+
+.room-badge {
+    background-color: #1f1f26;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: #00f2fe;
+    font-weight: 600;
 }
 
 .live-indicator {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     background-color: rgba(255, 0, 0, 0.15);
-    padding: 4px 8px;
+    padding: 3px 6px;
     border-radius: 4px;
     border: 1px solid rgba(255, 0, 0, 0.3);
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: #ff2a2a;
 }
 
 .live-dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     background-color: #ff2a2a;
     border-radius: 50%;
     animation: pulse-dot 1.5s infinite;
@@ -62,88 +75,58 @@ body {
     100% { opacity: 1; transform: scale(1); }
 }
 
-.live-text {
-    font-size: 0.75rem;
-    font-weight: bold;
-    color: #ff2a2a;
-}
-
-.nav-tabs {
-    display: flex;
-    gap: 10px;
-}
-
-.tab-btn {
-    background: transparent;
-    border: none;
-    color: #adadb8;
-    font-weight: 600;
-    padding: 6px 12px;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: all 0.2s;
-}
-
-.tab-btn.active, .tab-btn:hover {
-    color: #fff;
-    background-color: #1f1f26;
-}
-
 .nav-actions {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 
 .host-btn {
     background-color: #9146ff;
     color: #fff;
     border: none;
-    padding: 6px 12px;
+    padding: 6px 10px;
     border-radius: 4px;
     font-weight: 600;
+    font-size: 0.8rem;
     cursor: pointer;
-    transition: background 0.2s;
 }
 
-.host-btn:hover {
-    background-color: #772ce8;
-}
+.host-btn:hover { background-color: #772ce8; }
 
-#change-room-btn {
+.secondary-action-btn {
     background-color: #1f1f26;
     color: #fff;
     border: 1px solid #30303b;
-    padding: 6px 12px;
+    padding: 6px 10px;
     border-radius: 4px;
+    font-size: 0.8rem;
     cursor: pointer;
-    font-weight: 600;
 }
 
-#change-room-btn:hover {
-    background-color: #30303b;
-}
+.secondary-action-btn:hover { background-color: #30303b; }
 
 /* Contenedor Principal */
 .app-container {
     display: grid;
-    grid-template-columns: 1fr 360px;
-    height: calc(100vh - 60px);
+    grid-template-columns: 1fr 340px;
+    height: calc(100vh - 56px);
+    width: 100vw;
 }
 
 .main-content {
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    padding: 15px;
     overflow-y: auto;
 }
 
 .video-container {
     width: 100%;
     background-color: #000;
-    border-radius: 10px;
+    border-radius: 8px;
     overflow: hidden;
     aspect-ratio: 16 / 9;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
     position: relative;
 }
 
@@ -161,8 +144,8 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 15px;
-    padding: 14px 18px;
+    margin-top: 12px;
+    padding: 10px 14px;
     background-color: #141417;
     border-radius: 8px;
     border: 1px solid #23232b;
@@ -171,32 +154,32 @@ body {
 .streamer-details {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .avatar-placeholder {
-    width: 45px;
-    height: 45px;
+    width: 38px;
+    height: 38px;
     background: linear-gradient(135deg, #9146ff, #00f2fe);
     border-radius: 50%;
 }
 
 .streamer-details h3 {
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: #fff;
 }
 
 .streamer-details p {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: #adadb8;
 }
 
 .viewer-count {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     color: #adadb8;
 }
 
-/* Chat Moderno Estilo Kick */
+/* Chat Moderno */
 .chat-container {
     display: flex;
     flex-direction: column;
@@ -206,13 +189,13 @@ body {
 }
 
 .chat-header {
-    padding: 15px;
+    padding: 12px;
     border-bottom: 1px solid #23232b;
     text-align: center;
 }
 
 .chat-header h3 {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     color: #fff;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -220,7 +203,7 @@ body {
 
 .chat-messages {
     flex: 1;
-    padding: 15px;
+    padding: 12px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -228,11 +211,11 @@ body {
 }
 
 .chat-message {
-    font-size: 0.9rem;
-    line-height: 1.4;
+    font-size: 0.85rem;
+    line-height: 1.3;
     word-break: break-word;
     background-color: #1a1a21;
-    padding: 8px 12px;
+    padding: 6px 10px;
     border-radius: 6px;
     border-left: 3px solid #9146ff;
 }
@@ -240,7 +223,7 @@ body {
 .chat-message .username {
     font-weight: bold;
     color: #00f2fe;
-    margin-right: 6px;
+    margin-right: 5px;
 }
 
 .chat-message .text {
@@ -248,7 +231,7 @@ body {
 }
 
 .chat-input-form {
-    padding: 15px;
+    padding: 12px;
     border-top: 1px solid #23232b;
 }
 
@@ -256,9 +239,8 @@ body {
     display: flex;
     background-color: #0b0b0e;
     border: 1px solid #30303b;
-    border-radius: 20px;
-    padding: 4px 6px 4px 14px;
-    transition: border-color 0.2s;
+    border-radius: 18px;
+    padding: 3px 5px 3px 12px;
 }
 
 .input-wrapper:focus-within {
@@ -271,7 +253,7 @@ body {
     border: none;
     color: #fff;
     outline: none;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .chat-input-form button {
@@ -279,15 +261,13 @@ body {
     color: #fff;
     border: none;
     font-weight: bold;
-    padding: 8px 14px;
-    border-radius: 16px;
+    padding: 6px 12px;
+    border-radius: 14px;
     cursor: pointer;
-    transition: background 0.2s;
+    font-size: 0.8rem;
 }
 
-.chat-input-form button:hover {
-    background-color: #772ce8;
-}
+.chat-input-form button:hover { background-color: #772ce8; }
 
 /* Modal */
 .modal-overlay {
@@ -296,7 +276,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.75);
+    background-color: rgba(0, 0, 0, 0.8);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -306,34 +286,33 @@ body {
 .modal-content {
     background-color: #141417;
     border: 1px solid #23232b;
-    padding: 25px;
-    border-radius: 12px;
+    padding: 20px;
+    border-radius: 10px;
     width: 90%;
-    max-width: 450px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    max-width: 400px;
 }
 
 .modal-content h2 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     color: #9146ff;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .modal-content p {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #adadb8;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 12px;
 }
 
 .form-group label {
     display: block;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #efeff1;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
 }
 
 .form-group select, .form-group input {
@@ -341,19 +320,16 @@ body {
     background-color: #0b0b0e;
     border: 1px solid #30303b;
     border-radius: 6px;
-    padding: 10px;
+    padding: 8px;
     color: #fff;
     outline: none;
-}
-
-.form-group select:focus, .form-group input:focus {
-    border-color: #9146ff;
+    font-size: 0.85rem;
 }
 
 .modal-buttons {
     display: flex;
-    gap: 10px;
-    margin-top: 20px;
+    gap: 8px;
+    margin-top: 15px;
 }
 
 .primary-btn {
@@ -361,32 +337,34 @@ body {
     background-color: #9146ff;
     color: #fff;
     border: none;
-    padding: 10px;
+    padding: 8px;
     border-radius: 6px;
     font-weight: bold;
     cursor: pointer;
 }
 
-.primary-btn:hover { background-color: #772ce8; }
-
 .secondary-btn {
     background-color: #23232b;
     color: #fff;
     border: none;
-    padding: 10px 15px;
+    padding: 8px 12px;
     border-radius: 6px;
     cursor: pointer;
 }
 
-.secondary-btn:hover { background-color: #30303b; }
-
-@media (max-width: 900px) {
+/* Adaptabilidad Móvil */
+@media (max-width: 768px) {
     .app-container {
         grid-template-columns: 1fr;
         grid-template-rows: auto 1fr;
+        height: calc(100vh - 56px);
+        overflow-y: auto;
+    }
+    body {
+        overflow: auto;
     }
     .chat-container {
-        height: 45vh;
+        height: 350px;
         border-left: none;
         border-top: 1px solid #23232b;
     }
