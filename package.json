@@ -1,0 +1,21 @@
+{
+  "name": "nox-watch-together",
+  "version": "1.0.0",
+  "description": "Plataforma de streaming y sincronización de vídeo en tiempo real con chat estilo Kick",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  },
+  "keywords": [
+    "websockets",
+    "socket.io",
+    "streaming",
+    "watch-together"
+  ],
+  "author": "",
+  "license": "MIT"
+}
