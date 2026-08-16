@@ -24,7 +24,7 @@
             <div id="user-profile-display" style="display: none;" class="user-badge">
                 <img id="user-avatar-img" src="" alt="Avatar" class="mini-avatar">
                 <span id="user-name-display"></span>
-                <span id="user-wallet-balance" class="wallet-badge">🪙 100 NoxCoins</span>
+                <span id="user-wallet-balance" class="wallet-badge">🪙 0 NoxCoins</span>
             </div>
 
             <button id="open-shop-btn" class="monetize-btn" disabled title="Inicia sesión">🪙 Comprar Coins</button>
@@ -43,8 +43,8 @@
             <div id="paywall-overlay" class="paywall-overlay" style="display: none;">
                 <div class="paywall-card">
                     <h2>🔒 Sala Exclusiva (Pay-Per-View)</h2>
-                    <p>Este evento requiere un pase de acceso digital para sintonizar la transmisión.</p>
-                    <button id="pay-ticket-btn" class="primary-btn">Comprar Pase de Entrada ($5.00 USD)</button>
+                    <p>Este evento requiere un pase de acceso digital para sintonizar la transmisión (Costo: 20 NoxCoins).</p>
+                    <button id="pay-ticket-btn" class="primary-btn">Comprar Pase de Entrada (20 🪙)</button>
                 </div>
             </div>
 
@@ -85,12 +85,14 @@
     <!-- Modales -->
     <div id="shop-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
-            <h2>🪙 Tienda de NoxCoins (Bits)</h2>
-            <p>Envía efectos visuales y sonidos destacados en el chat.</p>
+            <h2>🪙 Tienda de NoxCoins</h2>
+            <p>Recarga saldo o adquiere efectos para destacar en el chat.</p>
             <div class="shop-grid">
+                <button class="shop-item" data-action="topup" data-amount="50">⚡ Paquete Base: +50 Coins ($1.99 USD)</button>
+                <button class="shop-item" data-action="topup" data-amount="150">🚀 Paquete Pro: +150 Coins ($4.99 USD)</button>
+                <hr style="border-color: #30303b; margin: 5px 0;">
                 <button class="shop-item" data-cost="10" data-effect="fire">🔥 Lluvia de Fuego (10 Coins)</button>
                 <button class="shop-item" data-cost="25" data-effect="party">🎉 Alerta de Fiesta (25 Coins)</button>
-                <button class="shop-item" data-cost="50" data-effect="superchat">💎 SuperChat Destacado (50 Coins)</button>
             </div>
             <button id="close-shop-modal" class="secondary-btn" style="margin-top:15px; width:100%;">Cerrar</button>
         </div>
@@ -99,7 +101,7 @@
     <div id="vip-modal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <h2>⭐ Suscripción VIP Mensual</h2>
-            <p>Obtén corona dorada, acceso a salas privadas y color exclusivo por $4.99/mes.</p>
+            <p>Obtén corona dorada, acceso automático a salas PPV y color exclusivo por $4.99/mes.</p>
             <button id="confirm-vip-btn" class="primary-btn">Suscribirme Ahora</button>
             <button id="close-vip-modal" class="secondary-btn" style="margin-top:8px; width:100%;">Cancelar</button>
         </div>
@@ -121,7 +123,7 @@
                 <input type="text" id="media-url-input" placeholder="https://...">
             </div>
             <div class="form-group">
-                <label><input type="checkbox" id="ppv-toggle"> Habilitar Pay-Per-View (Requiere Ticket)</label>
+                <label><input type="checkbox" id="ppv-toggle"> Habilitar Pay-Per-View (Requiere Pase)</label>
             </div>
             <div class="modal-buttons">
                 <button id="load-media-btn" class="primary-btn">Cargar</button>
