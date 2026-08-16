@@ -1,5 +1,5 @@
 const socket = io();
-const stripe = Stripe('pk_test_tu_clave_publica_aqui');
+const stripe = Stripe('pk_test_tu_clave_publica_aqui'); // Asegúrate de poner tu clave real aquí
 
 let roomId = prompt("Ingresa el nombre de la sala Nox a la que deseas unirte:") || "general";
 document.getElementById('current-room-name').innerText = roomId;
@@ -23,10 +23,24 @@ const paywallOverlay = document.getElementById('paywall-overlay');
 
 let isRemoteAction = false;
 
-window.onload = function () {
+// --- INICIO CORREGIDO ---
+window.onload = async function () {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('payment') === 'success') {
-        alert('¡Pago procesado con éxito a través de Stripe!');
+    const sessionId = urlParams.get('session_id');
+
+    // Validación automática al volver de Stripe
+    if (urlParams.get('payment') === 'success' && sessionId) {
+        try {
+            const res = await fetch(`/verify-payment?session_id=${sessionId}`);
+            const data = await res.json();
+            if (data.success) {
+                alert('¡Pago procesado con éxito! Tus NoxCoins o VIP han sido acreditados.');
+                userCoins = data.user.coins;
+                isVip = data.user.isVip;
+            }
+        } catch (e) {
+            console.error("Error verificando pago:", e);
+        }
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 
@@ -40,6 +54,7 @@ window.onload = function () {
         { theme: "outline", size: "medium", text: "signin_with", shape: "pill" }
     );
 };
+// --- FIN CORREGIDO ---
 
 function handleCredentialResponse(response) {
     const responsePayload = parseJwt(response.credential);
