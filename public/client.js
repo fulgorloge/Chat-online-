@@ -1,120 +1,143 @@
-// Inicializar la conexión con el servidor a través de Socket.io
 const socket = io();
 
-// Solicitar al usuario los datos iniciales al entrar a Nox
 let roomId = prompt("Ingresa el nombre de la sala Nox a la que deseas unirte:") || "general";
 let username = prompt("Ingresa tu nombre de usuario en Nox:") || `Usuario_${Math.floor(Math.random() * 1000)}`;
 
-// Mostrar el nombre de la sala actual en la interfaz
 document.getElementById('current-room-name').innerText = roomId;
-
-// Enviar señal al servidor para unirse a la sala seleccionada
 socket.emit('join-room', roomId);
 
-// Referencias a elementos del DOM del reproductor y chat
 const videoPlayer = document.getElementById('video-player');
+const externalTarget = document.getElementById('external-player-target');
 const chatForm = document.getElementById('chat-form');
 const chatInput = document.getElementById('chat-input');
 const chatMessages = document.getElementById('chat-messages');
 
-// Bandera para evitar bucles infinitos al procesar eventos remotos vs locales
 let isRemoteAction = false;
 
-// --- GESTIÓN DE SINCRONIZACIÓN DE VÍDEO ---
+// --- GESTIÓN DE REPRODUCTOR MULTIMODAL ---
 
-// Cuando el usuario local presiona "Play"
+function renderMedia(mediaData) {
+    externalTarget.innerHTML = '';
+    
+    if (mediaData.type === 'video') {
+        videoPlayer.style.display = 'block';
+        videoPlayer.src = mediaData.url;
+    } else {
+        videoPlayer.style.display = 'none';
+        videoPlayer.pause();
+        
+        if (mediaData.type === 'youtube') {
+            const videoId = extractYouTubeId(mediaData.url);
+            if (videoId) {
+                externalTarget.innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+            }
+        } else if (mediaData.type === 'spotify') {
+            const embedUri = getSpotifyEmbedUrl(mediaData.url);
+            if (embedUri) {
+                externalTarget.innerHTML = `<iframe src="${embedUri}" width="100%" height="100%" frameborder="0" allowtransparency="true" allow="encrypted-media"></iframe>`;
+            }
+        }
+    }
+}
+
+function extractYouTubeId(url) {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : url;
+}
+
+function getSpotifyEmbedUrl(url) {
+    if (url.includes('spotify.com/')) {
+        return url.replace('spotify.com/', 'spotify.com/embed/');
+    }
+    if (url.startsWith('spotify:')) {
+        const parts = url.split(':');
+        return `https://open.spotify.com/embed/${parts[1]}/${parts[2]}`;
+    }
+    return `https://open.spotify.com/embed/track/${url}`;
+}
+
+// Eventos de vídeo HTML5 local
 videoPlayer.addEventListener('play', () => {
     if (isRemoteAction) return;
-    socket.emit('video-action', {
-        roomId: roomId,
-        action: 'play',
-        currentTime: videoPlayer.currentTime
-    });
+    socket.emit('video-action', { roomId, action: 'play', currentTime: videoPlayer.currentTime });
 });
 
-// Cuando el usuario local presiona "Pause"
 videoPlayer.addEventListener('pause', () => {
     if (isRemoteAction) return;
-    socket.emit('video-action', {
-        roomId: roomId,
-        action: 'pause',
-        currentTime: videoPlayer.currentTime
-    });
+    socket.emit('video-action', { roomId, action: 'pause', currentTime: videoPlayer.currentTime });
 });
 
-// Escuchar acciones de reproducción enviadas por otros usuarios desde el servidor
 socket.on('video-action', (data) => {
     isRemoteAction = true;
     videoPlayer.currentTime = data.currentTime;
-    
     if (data.action === 'play') {
-        videoPlayer.play().catch(e => console.log("Restricción de reproducción automática del navegador:", e));
+        videoPlayer.play().catch(e => console.log("Autoplay bloqueado por el navegador:", e));
     } else {
         videoPlayer.pause();
     }
-
-    // Liberar la bandera de acción remota tras un breve lapso
-    setTimeout(() => {
-        isRemoteAction = false;
-    }, 300);
+    setTimeout(() => { isRemoteAction = false; }, 300);
 });
 
-// Sincronizar el estado actual al unirse por primera vez a una sala activa
+socket.on('change-media', (mediaData) => {
+    renderMedia(mediaData);
+});
+
 socket.on('sync-state', (state) => {
-    videoPlayer.currentTime = state.currentTime;
-    if (state.isPlaying) {
-        videoPlayer.play().catch(e => console.log("Restricción de reproducción automática del navegador:", e));
+    if (state.mediaData) {
+        renderMedia(state.mediaData);
+    }
+    if (state.currentTime && videoPlayer.style.display !== 'none') {
+        videoPlayer.currentTime = state.currentTime;
+        if (state.isPlaying) videoPlayer.play().catch(e => {});
     }
 });
 
 
-// --- GESTIÓN DEL CHAT EN TIEMPO REAL ---
+// --- PANEL DE CONTROL DEL ANFITRIÓN ---
+const hostModal = document.getElementById('host-modal');
+document.getElementById('host-panel-btn').addEventListener('click', () => { hostModal.style.display = 'flex'; });
+document.getElementById('close-modal-btn').addEventListener('click', () => { hostModal.style.display = 'none'; });
 
-// Enviar un mensaje de chat al servidor
+document.getElementById('load-media-btn').addEventListener('click', () => {
+    const type = document.getElementById('platform-select').value;
+    const url = document.getElementById('media-url-input').value.trim();
+    
+    if (!url) {
+        alert("Por favor ingresa un enlace o identificador válido.");
+        return;
+    }
+
+    const mediaData = { type, url };
+    renderMedia(mediaData);
+    socket.emit('change-media', { roomId, mediaData });
+    hostModal.style.display = 'none';
+});
+
+
+// --- CHAT EN TIEMPO REAL ---
 chatForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const message = chatInput.value.trim();
-    
     if (message) {
-        socket.emit('chat-message', {
-            roomId: roomId,
-            user: username,
-            message: message
-        });
+        socket.emit('chat-message', { roomId, user: username, message });
         chatInput.value = '';
     }
 });
 
-// Recibir mensajes de chat de la sala
 socket.on('chat-message', (data) => {
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('chat-message');
-    
-    // Construir estructura HTML segura para el mensaje
     messageDiv.innerHTML = `<span class="username">${escapeHtml(data.user)}:</span> <span class="text">${escapeHtml(data.message)}</span>`;
-    
     chatMessages.appendChild(messageDiv);
-    
-    // Mantener el scroll automáticamente al fondo para ver los mensajes nuevos
     chatMessages.scrollTop = chatMessages.scrollHeight;
 });
 
-// Botón para cambiar de sala limpiando la sesión actual
 document.getElementById('change-room-btn').addEventListener('click', () => {
-    const newRoom = prompt("Ingresa el nombre de la nueva sala Nox:");
-    if (newRoom && newRoom !== roomId) {
-        window.location.reload();
-    }
+    window.location.reload();
 });
 
-// Función de seguridad básica para prevenir ataques XSS en el chat
 function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return text.replace(/[&<>"']/g, m => map[m]);
 }
