@@ -1,4 +1,5 @@
 const socket = io();
+const stripe = Stripe('pk_test_tu_clave_publica_aqui');
 
 let roomId = prompt("Ingresa el nombre de la sala Nox a la que deseas unirte:") || "general";
 document.getElementById('current-room-name').innerText = roomId;
@@ -23,6 +24,12 @@ const paywallOverlay = document.getElementById('paywall-overlay');
 let isRemoteAction = false;
 
 window.onload = function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('payment') === 'success') {
+        alert('¡Pago procesado con éxito a través de Stripe!');
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     google.accounts.id.initialize({
         client_id: "76525558845-s046srh597h8er8svsq1un6c8b95tmbo.apps.googleusercontent.com",
         callback: handleCredentialResponse
@@ -45,12 +52,10 @@ function handleCredentialResponse(response) {
     document.getElementById('user-avatar-img').src = userAvatar;
     document.getElementById('user-name-display').innerText = username;
 
-    // Conectar sesión al backend
     socket.emit('user-login', { googleId, name: username, avatar: userAvatar });
     socket.emit('join-room', { roomId, googleId });
 }
 
-// Sincronizar datos del usuario logueado desde el servidor
 socket.on('sync-user', (userData) => {
     userCoins = userData.coins;
     isVip = userData.isVip;
@@ -101,7 +106,6 @@ function renderMedia(mediaData, hasAccess) {
     }
 }
 
-// Comprar pase PPV
 document.getElementById('pay-ticket-btn').addEventListener('click', () => {
     if (!googleId) {
         alert("Debes iniciar sesión para comprar el pase.");
@@ -113,7 +117,7 @@ document.getElementById('pay-ticket-btn').addEventListener('click', () => {
 socket.on('ppv-access-granted', () => {
     paywallOverlay.style.display = 'none';
     alert("¡Pase de acceso comprado con éxito!");
-    socket.emit('join-room', { roomId, googleId }); // Recargar estado
+    socket.emit('join-room', { roomId, googleId });
 });
 
 socket.on('payment-error', (errorMsg) => {
@@ -152,8 +156,8 @@ socket.on('video-action', (data) => {
     setTimeout(() => { isRemoteAction = false; }, 300);
 });
 
-socket.on('change-media', (mediaData) => { 
-    socket.emit('join-room', { roomId, googleId }); // Revalida acceso al cambiar contenido
+socket.on('change-media', () => { 
+    socket.emit('join-room', { roomId, googleId });
 });
 
 socket.on('sync-state', ({ roomState, hasAccess }) => {
@@ -164,20 +168,29 @@ socket.on('sync-state', ({ roomState, hasAccess }) => {
     }
 });
 
-// Modales y Tienda
 const shopModal = document.getElementById('shop-modal');
 openShopBtn.addEventListener('click', () => { shopModal.style.display = 'flex'; });
 document.getElementById('close-shop-modal').addEventListener('click', () => { shopModal.style.display = 'none'; });
 
 document.querySelectorAll('.shop-item').forEach(item => {
-    item.addEventListener('click', (e) => {
+    item.addEventListener('click', async (e) => {
         const action = e.currentTarget.getAttribute('data-action');
         
         if (action === 'topup') {
             const amount = parseInt(e.currentTarget.getAttribute('data-amount'));
-            socket.emit('topup-coins', { googleId, amount });
-            shopModal.style.display = 'none';
-            alert(`¡Recarga exitosa de +${amount} NoxCoins!`);
+            if (!googleId) { alert("Inicia sesión para realizar recargas."); return; }
+            
+            try {
+                const response = await fetch('/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'topup', googleId, amount })
+                });
+                const session = await response.json();
+                await stripe.redirectToCheckout({ sessionId: session.id });
+            } catch (err) {
+                console.error("Error al redirigir a Stripe:", err);
+            }
             return;
         }
 
@@ -202,11 +215,20 @@ const vipModal = document.getElementById('vip-modal');
 openVipBtn.addEventListener('click', () => { vipModal.style.display = 'flex'; });
 document.getElementById('close-vip-modal').addEventListener('click', () => { vipModal.style.display = 'none'; });
 
-document.getElementById('confirm-vip-btn').addEventListener('click', () => {
-    socket.emit('buy-vip', { googleId });
-    vipModal.style.display = 'none';
-    alert("¡Felicidades! Ahora eres suscriptor VIP de Nox.");
-    socket.emit('chat-message', { roomId, user: username, avatar: userAvatar, message: "¡Se ha suscrito como VIP a la sala! ⭐", isVip: true, isEffect: true });
+document.getElementById('confirm-vip-btn').addEventListener('click', async () => {
+    if (!googleId) { alert("Inicia sesión para adquirir la suscripción VIP."); return; }
+
+    try {
+        const response = await fetch('/create-checkout-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'vip', googleId })
+        });
+        const session = await response.json();
+        await stripe.redirectToCheckout({ sessionId: session.id });
+    } catch (err) {
+        console.error("Error al procesar VIP con Stripe:", err);
+    }
 });
 
 const hostModal = document.getElementById('host-modal');
