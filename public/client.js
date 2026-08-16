@@ -61,6 +61,14 @@ socket.on('sync-user', (userData) => {
     isVip = userData.isVip;
 
     document.getElementById('user-wallet-balance').innerText = `🪙 ${userCoins} NoxCoins`;
+    
+    if (isVip) {
+        const nameDisplay = document.getElementById('user-name-display');
+        if (!nameDisplay.innerHTML.includes('👑')) {
+            nameDisplay.innerHTML = `👑 ${nameDisplay.innerText} <span style="color:#f2c94c; font-size:0.75rem;">(VIP)</span>`;
+        }
+    }
+
     document.querySelector('.avatar-placeholder').innerHTML = `<img src="${userAvatar}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
 
     chatInput.disabled = false;
@@ -116,7 +124,7 @@ document.getElementById('pay-ticket-btn').addEventListener('click', () => {
 
 socket.on('ppv-access-granted', () => {
     paywallOverlay.style.display = 'none';
-    alert("¡Pase de acceso comprado con éxito!");
+    alert("¡Pase de acceso comprado con éxito usando tu billetera!");
     socket.emit('join-room', { roomId, googleId });
 });
 
@@ -198,7 +206,7 @@ document.querySelectorAll('.shop-item').forEach(item => {
         const effect = e.currentTarget.getAttribute('data-effect');
 
         if (userCoins < cost) {
-            alert("No tienes suficientes NoxCoins. Recarga más en la tienda.");
+            alert("No tienes suficientes NoxCoins en tu billetera. Recarga más en la tienda.");
             return;
         }
 
