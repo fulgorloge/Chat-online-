@@ -13,7 +13,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 const rooms = {};
-const users = {}; 
+const users = {}; // { googleId: { name, avatar, coins, isVip, paidRooms: [] } }
 
 app.post('/create-checkout-session', async (req, res) => {
     const { type, googleId, amount } = req.body;
@@ -77,7 +77,7 @@ io.on('connection', (socket) => {
             users[googleId] = { 
                 name, 
                 avatar, 
-                coins: 100, 
+                coins: 100, // Bono inicial de billetera
                 isVip: false,
                 paidRooms: [] 
             };
@@ -129,7 +129,7 @@ io.on('connection', (socket) => {
 
         const ticketCost = 20; 
         if (user.coins < ticketCost) {
-            socket.emit('payment-error', 'No tienes suficientes NoxCoins para comprar este pase.');
+            socket.emit('payment-error', 'No tienes suficientes NoxCoins en tu billetera.');
             return;
         }
 
@@ -144,7 +144,7 @@ io.on('connection', (socket) => {
         io.to(roomId).emit('chat-message', {
             user: user.name,
             avatar: user.avatar,
-            message: '¡Compró su pase de acceso digital (PPV) para el evento! 🎟️',
+            message: '¡Compró su pase de acceso digital (PPV) con su billetera! 🎟️',
             isEffect: true,
             isVip: user.isVip
         });
