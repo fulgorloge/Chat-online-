@@ -77,6 +77,7 @@ body {
 
 .nav-actions {
     display: flex;
+    align-items: center;
     gap: 8px;
 }
 
@@ -104,6 +105,26 @@ body {
 }
 
 .secondary-action-btn:hover { background-color: #30303b; }
+
+/* Perfil de Google en Barra Superior */
+.mini-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #1f1f26;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: 1px solid #30303b;
+    font-size: 0.8rem;
+    color: #fff;
+}
 
 /* Contenedor Principal */
 .app-container {
@@ -218,12 +239,22 @@ body {
     padding: 6px 10px;
     border-radius: 6px;
     border-left: 3px solid #9146ff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.chat-user-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .chat-message .username {
     font-weight: bold;
     color: #00f2fe;
-    margin-right: 5px;
+    margin-right: 4px;
 }
 
 .chat-message .text {
@@ -256,6 +287,11 @@ body {
     font-size: 0.85rem;
 }
 
+#chat-input:disabled {
+    cursor: not-allowed;
+    color: #666;
+}
+
 .chat-input-form button {
     background-color: #9146ff;
     color: #fff;
@@ -267,7 +303,8 @@ body {
     font-size: 0.8rem;
 }
 
-.chat-input-form button:hover { background-color: #772ce8; }
+.chat-input-form button:hover:not(:disabled) { background-color: #772ce8; }
+.chat-input-form button:disabled { background-color: #333; cursor: not-allowed; }
 
 /* Modal */
 .modal-overlay {
